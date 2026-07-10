@@ -24,6 +24,8 @@ You can run `mise tasks` to see the full list of shortcut commands. Do NOT use n
 - `mise build`: Check that the project compiles fine.
 - `mise check:agents`: Run type checking, formatting, and linting, with optimized output.
 
+Tip: you can append arguments to mise shortcuts, mise will pass them through, ex. `mise some:task --some-arg`.
+
 Always run the appropriate check/test commands after performing changes; but do it at the end of the editing session, not in the middle.
 
 ## Guidelines
