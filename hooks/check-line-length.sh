@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Version: 1.0.0
+#
 # PostToolUse hook: warns the agent when a source file it just edited has lines exceeding the 100-character limit from
 # the general-code-style rule.
 # Exits with code 2 so the warning (offending line numbers) is fed back to the agent to fix.

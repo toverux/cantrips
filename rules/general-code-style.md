@@ -1,6 +1,7 @@
 ---
 paths:
   - "**/*"
+version: 1.0.0
 ---
 
 # General Code Style

@@ -1,6 +1,7 @@
 ---
 paths:
   - "**/*.cs"
+version: 1.0.0
 ---
 
 # C# Code Style

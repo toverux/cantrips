@@ -1,6 +1,7 @@
 ---
 paths:
   - "**/*.{js,jsx,ts,tsx}"
+version: 1.0.0
 ---
 
 # TypeScript Code Style

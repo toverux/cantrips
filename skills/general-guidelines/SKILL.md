@@ -1,6 +1,7 @@
 ---
 name: general-guidelines
 description: Behavioral guidelines to reduce common LLM coding mistakes. Always use this when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiable success criteria.
+version: 1.0.0
 ---
 
 # General Guidelines

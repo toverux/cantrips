@@ -65,6 +65,17 @@ JS/TS (the defaults, shown explicitly):
 }
 ```
 
+## Versioning
+
+Every skill, rule, and hook carries a [semver](https://semver.org) `version` so a copy pulled into a
+project can be compared against the source of truth here:
+
+- **Skills and rules:** a `version` field in the frontmatter.
+- **Hooks:** a `# Version:` comment near the top of the script.
+
+Bump the version whenever you change a component's content, so downstream copies can tell they are out
+of date.
+
 ## Authoring documents
 
 I recommend installing this skill globally:
