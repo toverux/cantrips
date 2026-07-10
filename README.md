@@ -26,6 +26,45 @@ Adapt it, change it, fill the gaps.
 | [typescript-code-style](rules/typescript-code-style.md)                   | TypeScript code style: strictness, nullability, `readonly` data, and assertion-based type guards.    | No — assumes project helpers (`nn()`, `ensure*()`, `unreachable()`) | `**/*.{js,jsx,ts,tsx}` | Pick this **or** [typescript-code-style-no-utils](rules/typescript-code-style-no-utils.md), not both (same glob). Also opinionated: prefers `==` over `===`. |
 | [typescript-code-style-no-utils](rules/typescript-code-style-no-utils.md) | Same as typescript-code-style but with plain runtime checks instead of the custom assertion helpers. | Almost — assumes TypeScript's strictest settings                    | `**/*.{js,jsx,ts,tsx}` | Variant of [typescript-code-style](rules/typescript-code-style.md) for projects without the `nn()`/`ensure*()` utilities.                                    |
 
+## Hooks
+
+Claude Code hooks that run on tool events. Unlike skills, hooks are wired up per project in
+`.claude/settings.json` (see below).
+
+| Name                                            | Description                                                                                                                               | Fully generic                       | Notes                                                                                                                                                                                                                                                                      |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [check-line-length](hooks/check-line-length.sh) | `PostToolUse` hook that warns Claude, with the offending line numbers, when a source file it just edited exceeds the 100-character limit. | Almost — needs `bash`, `jq`, `awk`. | Configurable per language via env vars (see below). Pairs with [general-code-style](rules/general-code-style.md). Exempts one-line lint suppression comments and non-source files; long strings and files where the limit does not apply are left to the agent's judgment. |
+
+### check-line-length
+
+Copy the script into the project (ex. `.claude/hooks/`) and register it in `.claude/settings.json`.
+Configure the target language with two environment variables prefixed on the command (the defaults
+target JS/TS):
+
+- `CHECK_LINE_LENGTH_EXTENSIONS`: space-separated extensions to check, without dots.
+- `CHECK_LINE_LENGTH_SUPPRESSION`: extended regex matching one-line suppression directives to exempt
+  from the limit (empty disables the exemption).
+
+JS/TS (the defaults, shown explicitly):
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CHECK_LINE_LENGTH_EXTENSIONS='ts tsx js jsx mjs cjs' CHECK_LINE_LENGTH_SUPPRESSION='oxlint-disable|eslint-disable|biome-ignore|@ts-expect-error|@ts-ignore' bash .claude/hooks/check-line-length.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
 ## Authoring documents
 
 I recommend installing this skill globally:
