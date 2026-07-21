@@ -5,6 +5,25 @@ These are personal agent skills and rules I use a lot and share across projects.
 They are either completely portable and generic or depend lightly on things I have set up in pretty
 much any of my projects.
 
+## Recommended plugins and skills
+
+Curated set of third-party plugins and skills I like to have with me, the kind you install globally once.
+
+### Plugins
+
+- [chrome-devtools-mcp@claude-plugins-official](https://github.com/ChromeDevTools/chrome-devtools-mcp) — Control and inspect a live Chrome browser from your coding agent.
+- [playwright@claude-plugins-official](https://github.com/anthropics/claude-plugins-public/tree/main/external_plugins/playwright) — Browser automation and end-to-end testing MCP server by Microsoft.
+- [claude-code-setup@claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/claude-code-setup) — Analyze codebases and recommend tailored Claude Code automations such as hooks, skills, MCP servers, and subagents.
+- [claude-md-management@claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/claude-md-management) — Tools to maintain and improve CLAUDE.md files - audit quality, capture session learnings, and keep project memory current.
+- [context7@claude-plugins-official](https://github.com/anthropics/claude-plugins-public/tree/main/external_plugins/context7) — Upstash Context7 MCP server for up-to-date documentation lookup.
+- [frontend-design@claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/frontend-design) — Create distinctive, production-grade frontend interfaces with high design quality.
+- [codex@openai-codex](https://github.com/openai/codex-plugin-cc) — Use Codex from inside Claude Code for code reviews or to delegate tasks to Codex.
+
+### Skills
+
+- [Skills For Real Engineers](https://github.com/mattpocock/skills) — Skills by Matt Pocock. 
+- [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) — AI skills that make each unit of engineering work easier than the last. (Also a plugin, but brings a lot)
+
 ## AGENTS.md Template
 
 In [agents-md-template.md](agents-md-template.md), you can find the template for AGENTS.md I use in
