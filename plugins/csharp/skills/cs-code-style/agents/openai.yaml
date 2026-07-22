@@ -1,0 +1,5 @@
+interface:
+  display_name: 'C# Code Style'
+  short_description: 'C# style rules, loaded before writing C#'
+policy:
+  allow_implicit_invocation: true

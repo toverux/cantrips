@@ -1,0 +1,21 @@
+{
+  "name": "cantrips",
+  "version": "0.1.0",
+  "description": "The core engineering loop for coding agents (Claude Code, Codex CLI): grill, spec, tickets, implement with TDD at agreed seams, review, commit, plus a user-gated compound step that turns session learnings into durable project memory. Basic spells a caster always has prepared.",
+  "author": {
+    "name": "Morgan Touverey Quilling"
+  },
+  "homepage": "https://github.com/toverux/grimoire",
+  "repository": "https://github.com/toverux/grimoire",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "workflow",
+    "engineering-loop",
+    "spec",
+    "tdd",
+    "code-review",
+    "compound-engineering",
+    "memory"
+  ]
+}

@@ -1,0 +1,16 @@
+pre-commit:
+  parallel: true
+  commands:
+    tsc:
+      glob: "*.{ts,tsx,js,json}"
+      run: mise exec bun -- bun --bun tsc --noEmit
+    plugin-sync:
+      # The Claude and Codex plugin manifests and the two marketplace files dupe shared metadata; keep them in sync.
+      glob: "{package.json,plugins/*/package.json,plugins/*/.claude-plugin/*.json,plugins/*/.codex-plugin/*.json,.claude-plugin/marketplace.json,.agents/plugins/marketplace.json,scripts/check-plugin-sync.ts,release-please-config.json}"
+      run: mise exec bun -- bun scripts/check-plugin-sync.ts
+    oxlint:
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs}"
+      run: mise exec bun -- bun --bun oxlint --deny-warnings --no-error-on-unmatched-pattern {staged_files}
+    oxfmt:
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,md}"
+      run: mise exec bun -- bun --bun oxfmt --check --no-error-on-unmatched-pattern {staged_files}

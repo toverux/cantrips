@@ -1,0 +1,12 @@
+{
+  "name": "typescript",
+  "version": "0.1.0",
+  "description": "TypeScript code style for coding agents (Claude Code, Codex CLI): strict compiler settings, nullability discipline, readonly data, and assertion-based type guards, loaded before writing or editing TypeScript.",
+  "author": {
+    "name": "Morgan Touverey Quilling"
+  },
+  "homepage": "https://github.com/toverux/grimoire",
+  "repository": "https://github.com/toverux/grimoire",
+  "license": "MIT",
+  "keywords": ["skills", "typescript", "code-style"]
+}

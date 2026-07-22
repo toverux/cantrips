@@ -1,0 +1,98 @@
+# https://mise.jdx.dev -- Your dev environment, prepped and ready
+# One tool that manages dev tools, env vars, and tasks per project.
+# Tip: Use "mise t"(asks) to list tasks or "mise r"(un) to interactively select one to run!
+
+[tools]
+bun = "1.3"
+# Pinned to the wards hook's minimum supported Node (type stripping arrived in 22.6): developing
+# against the floor version keeps the hooks honest.
+node = "22.6"
+
+[env]
+_.path = ["{{config_root}}/node_modules/.bin"]
+
+# DEVELOPMENT TASKS
+# =================
+
+[tasks."dev:deps-upgrade"]
+description = "Upgrades mise-en-place, proposes upgrades for tools managed by mise, and proposes upgrades for package.json dependencies."
+interactive = true
+run = [
+  "mise self-update",
+  "mise up --interactive --bump",
+  # using `mise exec bun` makes sure bun is found if a bun upgrade was just made
+  "mise exec bun -- bun update --interactive",
+  # make sure transitive dependencies are updated & deduplicated
+  "mise exec bun -- bun update"
+]
+
+# CHECK TASKS
+# ===========
+
+# check:* are READ-ONLY (idempotent, CI-safe): they verify and write nothing.
+# The in-place auto-fixers live under fix:* (see FIX TASKS).
+# Run `mise fix` locally to apply, `mise check` to verify.
+
+[tasks."check"]
+description = "Verify read-only: typescript, oxlint, oxfmt, and plugin-sync. Writes nothing, run `mise fix` to auto-fix."
+run = ["mise check:tsc", "mise check:oxlint", "mise check:oxfmt", "mise check:plugin-sync"]
+
+[tasks."check:tsc"]
+description = "Type-checks the config files, scripts, and the wards hook with tsc (read-only)."
+raw = true
+run = "bun --bun tsc --noEmit"
+
+[tasks."check:oxfmt"]
+description = "Verifies formatting with oxfmt (read-only, `mise fix:oxfmt` writes)."
+raw = true
+run = "bun --bun oxfmt --check"
+
+[tasks."check:oxlint"]
+description = "Lints with oxlint, warnings denied (read-only, `mise fix:oxlint` auto-fixes)."
+raw = true
+run = "bun --bun oxlint --deny-warnings"
+
+[tasks."check:plugin-sync"]
+description = "Checks that each plugin's Claude and Codex manifests and the marketplace pair stay in sync."
+run = "bun scripts/check-plugin-sync.ts"
+
+# CHECK TASKS (AGENTS)
+# ====================
+
+[tasks."check:agents"]
+description = "Verify read-only (typescript, oxlint, oxfmt, plugin-sync), output optimized for AI agents. Writes nothing."
+run = [
+  "mise check:agents:tsc",
+  "mise check:agents:oxlint",
+  "mise check:oxfmt",
+  "mise check:plugin-sync"
+]
+
+[tasks."check:agents:tsc"]
+description = "Type-checks with tsc, output optimized for AI agents."
+raw = true
+run = "bun --bun tsc --noEmit --pretty false"
+
+[tasks."check:agents:oxlint"]
+description = "Lints with oxlint (read-only, warnings denied), output optimized for AI agents."
+run = "bun --bun oxlint --deny-warnings --format agent"
+
+# FIX TASKS
+# =========
+
+# fix:* WRITE in place (the counterparts to the read-only check:*). For local dev.
+
+[tasks."fix"]
+description = "Auto-fix in place: oxlint --fix then oxfmt. The read-only counterpart is `mise check`."
+# Sequential, lint then format, so formatting settles after lint rewrites.
+run = ["mise fix:oxlint", "mise fix:oxfmt"]
+
+[tasks."fix:oxlint"]
+description = "Auto-fixes lint issues with oxlint (writes, `mise check:oxlint` only reports)."
+raw = true
+run = "bun --bun oxlint --fix"
+
+[tasks."fix:oxfmt"]
+description = "Formats code in place with oxfmt (writes, `mise check:oxfmt` only verifies)."
+raw = true
+run = "bun --bun oxfmt"

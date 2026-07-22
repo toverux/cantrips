@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Tickets'
+  short_description: 'Break a spec into tracer-bullet tickets'
+policy:
+  allow_implicit_invocation: false

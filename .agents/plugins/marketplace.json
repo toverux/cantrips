@@ -1,0 +1,40 @@
+{
+  "name": "grimoire",
+  "owner": {
+    "name": "Morgan Touverey Quilling"
+  },
+  "plugins": [
+    {
+      "name": "cantrips",
+      "source": {
+        "source": "local",
+        "path": "./plugins/cantrips"
+      },
+      "description": "The core engineering loop for coding agents (Claude Code, Codex CLI): grill, spec, tickets, implement with TDD at agreed seams, review, commit, plus a user-gated compound step that turns session learnings into durable project memory. Basic spells a caster always has prepared."
+    },
+    {
+      "name": "wards",
+      "source": {
+        "source": "local",
+        "path": "./plugins/wards"
+      },
+      "description": "Style guard for coding agents (Claude Code, Codex CLI): a language-agnostic code style skill loaded before writing code, plus a line-length hook that flags overlong lines right after an edit. Protective spells that trigger at a boundary."
+    },
+    {
+      "name": "typescript",
+      "source": {
+        "source": "local",
+        "path": "./plugins/typescript"
+      },
+      "description": "TypeScript code style for coding agents (Claude Code, Codex CLI): strict compiler settings, nullability discipline, readonly data, and assertion-based type guards, loaded before writing or editing TypeScript."
+    },
+    {
+      "name": "csharp",
+      "source": {
+        "source": "local",
+        "path": "./plugins/csharp"
+      },
+      "description": "C# code style for coding agents (Claude Code, Codex CLI): modern C# conventions under Nullable and TreatWarningsAsErrors, loaded before writing or editing C#."
+    }
+  ]
+}

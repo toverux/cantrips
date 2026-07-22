@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Grilling'
+  short_description: 'Grill the user about a plan or idea'
+policy:
+  allow_implicit_invocation: true

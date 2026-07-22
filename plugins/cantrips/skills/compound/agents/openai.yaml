@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Compound'
+  short_description: 'Route session learnings to knowledge stores, user-gated'
+policy:
+  allow_implicit_invocation: true

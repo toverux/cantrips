@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Compound Refresh'
+  short_description: 'Garbage-collect the knowledge stores'
+policy:
+  allow_implicit_invocation: false

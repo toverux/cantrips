@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": ["@toverux/blanc-hopital/tsconfig/strict", "@toverux/blanc-hopital/tsconfig/bun"],
+  "compilerOptions": {
+    // Config files and scripts/ run under bun; the wards hook runs under the user's node.
+    "types": ["node"]
+  },
+  "include": ["*.config.ts", "scripts/*.ts", "plugins/wards/hooks/*.ts"]
+}

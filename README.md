@@ -1,107 +1,565 @@
-# @toverux's skills and rules
+<div align="center">
 
-These are personal agent skills and rules I use a lot and share across projects.
+# 🪄 grimoire
 
-They are either completely portable and generic or depend lightly on things I have set up in pretty
-much any of my projects.
+**A marketplace of curated agent skills for Claude Code and Codex CLI.**
 
-## Recommended plugins and skills
+One coherent engineering loop — grill, spec, implement, review, commit — that _remembers what it
+learns_, plus style-guard satellites.
 
-Curated set of third-party plugins and skills I like to have with me, the kind you install globally once.
+Forked from and inspired by [Matt Pocock's skills](https://github.com/mattpocock/skills) and
+[Every's Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin).
 
-### Plugins
+[The loop](#cantrips--the-engineering-loop) · [The skills](#the-loop-skill-by-skill) ·
+[Install](#install) · [Plugins](#plugins) · [Development](#development)
 
-- [chrome-devtools-mcp@claude-plugins-official](https://github.com/ChromeDevTools/chrome-devtools-mcp) — Control and inspect a live Chrome browser from your coding agent.
-- [playwright@claude-plugins-official](https://github.com/anthropics/claude-plugins-public/tree/main/external_plugins/playwright) — Browser automation and end-to-end testing MCP server by Microsoft.
-- [claude-code-setup@claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/claude-code-setup) — Analyze codebases and recommend tailored Claude Code automations such as hooks, skills, MCP servers, and subagents.
-- [claude-md-management@claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/claude-md-management) — Tools to maintain and improve CLAUDE.md files - audit quality, capture session learnings, and keep project memory current.
-- [context7@claude-plugins-official](https://github.com/anthropics/claude-plugins-public/tree/main/external_plugins/context7) — Upstash Context7 MCP server for up-to-date documentation lookup.
-- [frontend-design@claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/frontend-design) — Create distinctive, production-grade frontend interfaces with high design quality.
-- [codex@openai-codex](https://github.com/openai/codex-plugin-cc) — Use Codex from inside Claude Code for code reviews or to delegate tasks to Codex.
+</div>
 
-### Skills
+---
 
-- [Skills For Real Engineers](https://github.com/mattpocock/skills) — Skills by Matt Pocock. 
-- [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) — AI skills that make each unit of engineering work easier than the last. (Also a plugin, but brings a lot)
+## Plugins
 
-## AGENTS.md Template
+| Plugin            | Gives your agent…                                                                                                                            | Type         |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| ✨ **cantrips**   | The core engineering loop: `/grilling` → `/spec` → `/implement` (TDD at agreed seams) → `/review-gate` → `/commit` → `/compound`.            | Skills       |
+| 🛡️ **wards**      | Opinionated language-agnostic code style, enforced at the boundary: a style skill loaded before writing, and a line-length hook after edits. | Skill + hook |
+| 🟦 **typescript** | TypeScript style: strictness, nullability discipline, `readonly` data, assertion-based type guards.                                          | Skill        |
+| 🟪 **csharp**     | C# style for modern C# under `Nullable` + `TreatWarningsAsErrors`.                                                                           | Skill        |
 
-In [agents-md-template.md](agents-md-template.md), you can find the template for AGENTS.md I use in
-all of my projects.
-Adapt it, change it, fill the gaps.
+> Plugin names are plain; skill names are plain and verb-like (`/spec`, `/implement`,
+> `/compound`) — the plugin namespace disambiguates.
 
-## Skills
+## cantrips — the engineering loop
 
-| Name                                                     | Description                                                                                                                                                                                                                             | Fully generic                                                                                                    | Agent-invokable | Notes                                                                                                                                                                                                                                                                                                                                            |
-| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [general-guidelines](skills/general-guidelines/SKILL.md) | Behavioral guidelines to reduce common LLM coding mistakes. Always use this when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiable success criteria. | Yes                                                                                                              | Yes             | Inspired from Karpathy's guidelines, with [Surgical Changes](https://github.com/multica-ai/andrej-karpathy-skills/blob/main/skills/karpathy-guidelines/SKILL.md#3-surgical-changes) removed: agents cornered into being too surgical will accumulate technical debt over time, and today models are smart enough not to need these instructions. |
-| [grill-me](skills/grill-me/SKILL.md)                     | Grill the user relentlessly about a plan, decision, or idea. Interviews you one question at a time, walking down each branch of the decision tree until shared understanding is reached.                                                | Almost — the "How to ask" section targets the Claude Code harness (AskUserQuestion), but says to adapt as needed | No              | This is a personal fork over [Matt Pocock's /grilling skill](https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md) encouraging it to use the `AskUserQuestion` tool.                                                                                                                                             |
+> _Basic spells a caster always has prepared._
 
-## Rules
+Cantrips forks the best of [mattpocock/skills](https://github.com/mattpocock/skills) and
+[EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin)
+into one coherent pipeline: **Pocock to steer, a Compound-Engineering-style pipeline to execute
+and remember.**
 
-| Name                                                                      | Description                                                                                          | Fully generic                                                       | Matches                | Notes                                                                                                                                                        |
-| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [general-code-style](rules/general-code-style.md)                         | Language-agnostic style: line breaks, 100-char line length, comments, and docblocks.                 | Yes                                                                 | `**/*`                 | Assumes a 100-character line length and wikilink references in non-Markdown files.                                                                           |
-| [cs-code-style](rules/cs-code-style.md)                                   | C# code style guidelines.                                                                            | Almost — assumes C# 14, `Nullable` and `TreatWarningsAsErrors`      | `**/*.cs`              |                                                                                                                                                              |
-| [typescript-code-style](rules/typescript-code-style.md)                   | TypeScript code style: strictness, nullability, `readonly` data, and assertion-based type guards.    | No — assumes project helpers (`nn()`, `ensure*()`, `unreachable()`) | `**/*.{js,jsx,ts,tsx}` | Pick this **or** [typescript-code-style-no-utils](rules/typescript-code-style-no-utils.md), not both (same glob). Also opinionated: prefers `==` over `===`. |
-| [typescript-code-style-no-utils](rules/typescript-code-style-no-utils.md) | Same as typescript-code-style but with plain runtime checks instead of the custom assertion helpers. | Almost — assumes TypeScript's strictest settings                    | `**/*.{js,jsx,ts,tsx}` | Variant of [typescript-code-style](rules/typescript-code-style.md) for projects without the `nn()`/`ensure*()` utilities.                                    |
+### A loop that navigates itself
 
-## Hooks
+Cantrips is not a bag of independent commands — it is one dynamic, discoverable loop:
 
-Claude Code hooks that run on tool events. Unlike skills, hooks are wired up per project in
-`.claude/settings.json` (see below).
+- **Every pipeline skill ends by naming the next step** and whether to take it in this session or
+  break to a fresh one, so you never memorize the pipeline — the loop tells you where you are.
+- **Two invocation modes.** Deliberate gates (🧑) only fire when you type them; reflexes (🤖) fire
+  on their own when their triggers match — `/tdd` when you build test-first, `/compound` when a
+  learning surfaces, `/prototype` when a design question needs empirical evidence.
+- **Skills brief each other.** The spec records the seams `/tdd` will bite at; `/implement`
+  suggests a `/review-gate` effort level scaled to the diff it just produced; `/review-gate` flags
+  compound-worthy findings for `/commit`'s learnings scan.
+- **The loop remembers.** `/compound` routes what a session learned into knowledge stores, and
+  `/spec`, `/review-gate`, and `/diagnosing-bugs` read those stores back — each unit of work makes
+  the next one easier.
 
-| Name                                            | Description                                                                                                                               | Fully generic                       | Notes                                                                                                                                                                                                                                                                      |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [check-line-length](hooks/check-line-length.sh) | `PostToolUse` hook that warns Claude, with the offending line numbers, when a source file it just edited exceeds the 100-character limit. | Almost — needs `bash`, `jq`, `awk`. | Configurable per language via env vars (see below). Pairs with [general-code-style](rules/general-code-style.md). Exempts one-line lint suppression comments and non-source files; long strings and files where the limit does not apply are left to the agent's judgment. |
+### The tiers
 
-### check-line-length
+Each tier only adds ceremony when the work warrants it:
 
-Copy the script into the project (ex. `.claude/hooks/`) and register it in `.claude/settings.json`.
-Configure the target language with two environment variables prefixed on the command (the defaults
-target JS/TS):
+```mermaid
+flowchart TD
+    subgraph tiers ["&nbsp;&nbsp;Pick your tier&nbsp;&nbsp;"]
+        small["🩹 <b>Small fix</b><br/>/grilling <i>(optional)</i> → implement"]
+        feature["🏗️ <b>Feature</b><br/>/grilling → /spec → /implement + /tdd"]
+        big["🗺️ <b>Big / multi-session</b><br/>… /spec → /tickets → /implement ×N"]
+        bug["🐛 <b>Bug</b><br/>/diagnosing-bugs"]
+        %% Invisible edges grid the tiers 2×2 (a subgraph's `direction` is ignored once
+        %% edges attach to the container, so the grid is shaped by rank instead).
+        small ~~~ feature
+        big ~~~ bug
+    end
+    tiers ==> simplify["🧹 /simplify <i>(optional)</i>"]
+    simplify ==> review["🔍 /review-gate<br/>parallel finders → verify → report"]
+    review ==> commitPhase
+    subgraph commitPhase ["&nbsp;&nbsp;📦 /commit&nbsp;&nbsp;"]
+        compound["🧠 <b>/compound</b> scan<br/>capture learnings, user-gated"] --> craft["craft the commit(s)"]
+    end
+    compound -. "read back into<br/>future specs, reviews,<br/>and diagnoses" .-> tiers
 
-- `CHECK_LINE_LENGTH_EXTENSIONS`: space-separated extensions to check, without dots.
-- `CHECK_LINE_LENGTH_SUPPRESSION`: extended regex matching one-line suppression directives to exempt
-  from the limit (empty disables the exemption).
+    classDef tierNode fill:#4f46e5,stroke:#a5b4fc,color:#ffffff
+    classDef gateNode fill:#0f766e,stroke:#5eead4,color:#ffffff
+    classDef memoryNode fill:#b45309,stroke:#fcd34d,color:#ffffff
+    class small,feature,big,bug tierNode
+    class simplify,review,craft gateNode
+    class compound memoryNode
+    style tiers fill:transparent,stroke:#a5b4fc,stroke-dasharray:4 4,color:#94a3b8
+    style commitPhase fill:transparent,stroke:#5eead4,stroke-dasharray:4 4,color:#94a3b8
+```
 
-JS/TS (the defaults, shown explicitly):
+- **Small fix:** `/grilling` (optional) → implement directly → `/review-gate` → `/commit`.
+- **Feature:** `/grilling` → `/spec` → `/implement` in a fresh context, driving `/tdd` at the test
+  seams agreed in the spec → [`/simplify`] → `/review-gate` → `/commit`.
+- **Big / multi-session:** insert `/tickets` between spec and implement; one ticket per fresh
+  context window.
+- **Bugs** enter through `/diagnosing-bugs` instead of grill/spec; the root cause becomes a
+  learning at commit time.
+- `/handoff` breaks context at any tier (compaction for resuming — never a substitute for a spec).
+
+### The compounding system
+
+The part that makes each unit of work easier than the last:
+
+- **`/compound`** fires inside `/commit`'s opening scan (or typed ad-hoc, or agent-fired when a
+  learning surfaces mid-session), scans the session for learnings that would change a future
+  agent's behavior — non-obvious and stable ones only — and routes each to the right store: the
+  project's `AGENTS.md`, a `docs/solutions/` entry, a rules file, a skill, or your user-global
+  memory file (`CLAUDE.md`, `AGENTS.md`, or your harness's equivalent). **Every write is
+  user-gated**: approve, redirect, or kill.
+- **Read-back arrows:** `/spec`, `/review-gate`, and `/diagnosing-bugs` search `docs/solutions/`
+  and past specs, so captured knowledge actually gets used.
+- **`/compound-refresh`** garbage-collects the stores when they age: audits `docs/solutions/`
+  against the current code and `AGENTS.md` for bloat and contradictions.
+
+### Full roster
+
+Each skill name links to its section below; each skill's `SKILL.md` under
+[plugins/cantrips/skills/](plugins/cantrips/skills/) is the authoritative source. 🧑 you type it;
+🤖 the agent loads it on its own when its triggers match (agent-invokable skills show both — you
+can still type them).
+
+**The loop:**
+
+| Skill                                  | Invoked by | Role                                                                         |
+| -------------------------------------- | ---------- | ---------------------------------------------------------------------------- |
+| [`/grilling`](#grilling)               | 🧑🤖       | Relentless one-question-at-a-time interview to stress-test the plan.         |
+| [`/spec`](#spec)                       | 🧑         | Turn the conversation into `docs/specs/<feature>.md`, test seams included.   |
+| [`/tickets`](#tickets)                 | 🧑         | Slice a big spec into tracer-bullet tickets, one per fresh context.          |
+| [`/implement`](#implement)             | 🧑         | Execute the spec or one ticket, driving `tdd` at the agreed seams.           |
+| [`/tdd`](#tdd)                         | 🧑🤖       | Red-green-refactor discipline, with its anti-patterns catalogue.             |
+| [`/simplify`](#simplify)               | 🧑         | Optional behavior-preserving quality pass before review.                     |
+| [`/review-gate`](#review-gate)         | 🧑         | The gate: effort-scaled finder angles, every finding independently verified. |
+| [`/commit`](#commit)                   | 🧑         | Scan the session for learnings, then craft the commit(s).                    |
+| [`/compound`](#compound)               | 🧑🤖       | Route each learning to the right store — every write user-gated.             |
+| [`/diagnosing-bugs`](#diagnosing-bugs) | 🧑🤖       | The bug entry point: diagnosis loop replacing grill/spec.                    |
+
+**The utilities:**
+
+| Skill                                                              | Invoked by | Role                                                                       |
+| ------------------------------------------------------------------ | ---------- | -------------------------------------------------------------------------- |
+| [`/compound-refresh`](#compound-refresh)                           | 🧑         | Garbage-collect `docs/solutions/` and `AGENTS.md` when they age.           |
+| [`/handoff`](#handoff)                                             | 🧑         | Compact the session into a handoff for a fresh context.                    |
+| [`/prototype`](#prototype)                                         | 🧑🤖       | Throwaway prototype to answer a design question empirically.               |
+| [`/research`](#research)                                           | 🧑🤖       | Background primary-source research, captured in the repo.                  |
+| [`/resolving-merge-conflicts`](#resolving-merge-conflicts)         | 🧑🤖       | Principled merge/rebase conflict resolution.                               |
+| [`/codebase-design`](#codebase-design)                             | 🧑🤖       | Deep-module vocabulary other skills lean on.                               |
+| [`/improve-codebase-architecture`](#improve-codebase-architecture) | 🧑         | Scan for module-deepening opportunities.                                   |
+| [`/general-guidelines`](#general-guidelines)                       | 🧑🤖       | Anti-overengineering behavioral guardrails.                                |
+| [`/teach`](#teach)                                                 | 🧑         | Learn a concept from this workspace, tutor-style.                          |
+| [`/writing-great-skills`](#writing-great-skills)                   | 🧑🤖       | The authoring standard, loaded before editing skills, AGENTS.md, or rules. |
+
+### The loop, skill by skill
+
+#### `/grilling`
+
+**A relentless, one-question-at-a-time interview that stress-tests a plan before any code exists.**
+
+- **When to use** — before `/spec` on anything non-trivial, or whenever a decision deserves
+  pressure. Fires on its own when you ask to be grilled or requirements are fuzzy.
+- **The intent** — agents default to agreeable: they fill gaps with silent assumptions and build
+  the wrong thing confidently. Grilling inverts the posture. Facts are looked up in the
+  environment; _decisions_ are yours, put to you one at a time.
+- **How it works** — questions are numbered across the interview (Q1, Q2, …); when candidates can
+  be enumerated they come as lettered options with the recommendation first. A decision that needs
+  empirical evidence routes to `/prototype`; one that hinges on external facts routes to
+  `/research`. The interview closes only when every branch of the decision tree is resolved.
+- **Next** — `/spec` for feature-sized outcomes (same session — it synthesizes the interview),
+  `/implement` directly for small fixes.
+
+#### `/spec`
+
+**Synthesize the conversation into `docs/specs/<feature>.md` — the contract `/implement` executes
+and `/review-gate` reviews against.**
+
+- **When to use** — feature-sized work, once the decisions exist (usually right after `/grilling`).
+- **The intent** — decisions decay in chat logs; a spec survives the session. It records the
+  **test seams** you approve up front, so implementation can TDD without relitigating design, and
+  its requirements are what the review gate's spec angle later checks the diff against.
+- **How it works** — explores the repo, folds in matching `docs/solutions/` learnings and past
+  specs, proposes the seams (approved by you before writing), then writes the spec: problem,
+  solution, user stories, implementation decisions, test seams, out of scope.
+- **Next** — `/tickets` when the work spans sessions, else `/implement` — a fresh context either
+  way; the spec _is_ the context.
+
+#### `/tickets`
+
+**Slice a big spec into tracer-bullet tickets, one per fresh context window.**
+
+- **When to use** — the spec is too big for one session.
+- **The intent** — context windows are the real budget. Each ticket is a **vertical slice**
+  (schema to UI to tests) that lands demoable and green on its own; **blocking edges** between
+  tickets expose which ones can start immediately. Wide mechanical refactors get expand–contract
+  sequencing instead of a forced vertical cut.
+- **How it works** — drafts the slices, quizzes you on granularity and edges until you approve,
+  then writes `docs/specs/<feature>/NN-<slug>.md` files with acceptance criteria.
+- **Next** — `/implement`, one ticket per fresh context, working the frontier of unblocked
+  tickets.
+
+#### `/implement`
+
+**Execute the spec or one ticket, driving `/tdd` at the agreed seams.**
+
+- **When to use** — a fresh session holding a spec or ticket.
+- **The intent** — deciding and building are separated on purpose: the spec already carries the
+  decisions and the approved seams, so implementation tests at them without re-asking, and states
+  explicit verification criteria wherever no seam was agreed.
+- **How it works** — reads the spec or ticket in full, drives `/tdd` at the agreed seams,
+  typechecks and runs scoped tests continuously, ticks acceptance criteria as each is verified,
+  and finishes with the full suite.
+- **Next** — `/simplify` (optional), then `/review-gate` with a suggested effort level scaled to
+  the diff it just produced, then `/commit` — all in-session; the working diff is the context.
+
+#### `/tdd`
+
+**The red → green loop, plus the reference that makes it produce tests worth keeping.**
+
+- **When to use** — building features or fixing bugs test-first. Fires on its own when you mention
+  red-green-refactor or test-first work.
+- **The intent** — agent-written test suites rot in three named ways the skill blocks:
+  **implementation-coupled** tests that break on refactor, **tautological** assertions that
+  recompute the expected value the way the code does, and **horizontal slicing** (all tests first,
+  then all code) that verifies imagined behavior. Tests live only at **seams** you agreed — via
+  the spec, or confirmed before the first test — so effort lands on critical paths.
+
+```mermaid
+flowchart LR
+    seam["agree the seam"] --> red["🔴 failing test"]
+    red --> green["🟢 minimal code to pass"]
+    green -- "next slice" --> red
+    green --> tail["refactoring waits for<br/>🧹 /simplify<br/>🔍 /review-gate"]
+
+    classDef redNode fill:#b91c1c,stroke:#fca5a5,color:#ffffff
+    classDef greenNode fill:#15803d,stroke:#86efac,color:#ffffff
+    class red redNode
+    class green greenNode
+```
+
+- **Next** — refactoring is deliberately not part of the cycle; it belongs to the review tail,
+  `/simplify` and `/review-gate`.
+
+#### `/simplify`
+
+**An optional behavior-preserving quality pass between implementation and review.**
+
+- **When to use** — the diff works but feels heavier than the problem deserved.
+- **The intent** — cleanup and bug-hunting are different jobs; this one only cleans. Three
+  parallel reviewer personas (reuse, quality, efficiency) propose fixes; every fix must preserve
+  exact behavior, and **safety checks are never simplified away** — code that drops one is not
+  simpler, it is unfinished.
+- **How it works** — resolves the scope (your words, or the branch diff), dispatches the personas,
+  applies the worthwhile findings directly, then verifies with typecheck, lint, and tests scoped
+  to the blast radius.
+- **Next** — `/review-gate`, in this session, with a suggested effort level scaled to the diff.
+
+#### `/review-gate`
+
+**The gate between implementation and commit: effort-scaled, multi-angle review of the working
+diff (or the changes since a fixed point), every finding independently verified.**
+
+- **When to use** — after implementation and the optional `/simplify`, before `/commit`. Pick the
+  effort level — upstream skills suggest one scaled to the diff: `low` for a trivial or mechanical
+  diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise.
+- **The intent** — a single reviewer reading a diff top to bottom misses bugs for two reasons:
+  attention dilutes across concerns, and the finder of a candidate bug is a poor judge of it. The
+  gate fixes both. **Finders** each hold exactly one concern; **verifiers** judge every candidate
+  independently, so a finder never silently drops a bug it half-believes. A dedicated **spec
+  angle** compares the diff against the spec's requirements — catching "built the wrong thing
+  correctly", which no code-only review can — and matched `docs/solutions/` learnings are re-checked
+  by every finder, so past root causes stay caught.
+
+```mermaid
+flowchart TD
+    scope["🔭 <b>Scope</b><br/>target diff · spec · standards · docs/solutions/ learnings"]
+    scope ==> corr["🐞 Correctness finders — one per angle<br/>A line-by-line · B removed behavior · C cross-file<br/>D spec conformance · E language pitfalls* · F wrappers*"]
+    scope ==> qual["🧹 Quality finders<br/>reuse · simplification · efficiency<br/>design (Fowler smells) · conventions"]
+    corr ==> verify["⚖️ <b>Verify</b> — one independent verifier per location<br/>CONFIRMED / PLAUSIBLE / REFUTED, with evidence"]
+    qual ==> verify
+    verify -- "high only" --> sweep["🕵️ Sweep — a fresh finder<br/>hunting only gaps"]
+    sweep -- "re-verified" --> verify
+    verify ==> report["📋 Ranked report, capped per level<br/>correctness before quality · confirmed before plausible"]
+
+    classDef gateNode fill:#0f766e,stroke:#5eead4,color:#ffffff
+    class scope,verify,report gateNode
+```
+
+<sup>\* `high` effort only.</sup>
+
+- **How it works** — three effort levels: `low` is one inline diff pass (≤4 findings); `medium`
+  dispatches 4 correctness + 2 quality finders reviewing for **precision** (≤8); `high` dispatches
+  6 correctness + 5 quality finders reviewing for **recall**, then a gap-hunting sweep (≤15).
+  Finders run as parallel sub-agents, each briefed on a single angle or lens; every candidate must
+  name a concrete failure scenario. Verifiers judge per location and refuted or unverified
+  candidates never reach the report. Findings flow through the harness's typed findings tool where
+  one exists; `--fix` applies the surviving findings on the spot. On a harness without sub-agents
+  (Codex CLI), the same angles run inline as a single-pass review that says so.
+- **Next** — fix what's worth fixing, re-run after substantial fixes, then `/commit`. Findings
+  that exposed a durable gotcha are flagged as `/compound` material for commit's opening scan.
+
+#### `/commit`
+
+**Close the loop: harvest the session's learnings, then craft the commit(s).**
+
+- **When to use** — the gate has passed and the tree holds the finished work.
+- **The intent** — the learnings scan comes _first_ so `/compound`'s approved writes join the
+  working tree and ride into the same commit ceremony, instead of dirtying the tree right after
+  you committed. Messages communicate value ("why"), follow the repo's observed convention, and
+  distinct concerns split into at most two or three file-level commits.
+- **How it works** — scans the session for compound candidates and invokes `/compound` when any
+  might clear its bar; then gathers git context, picks the branch per the repo's workflow,
+  matches the message convention, and stages files by name, group by group.
+- **Next** — the loop is closed; the next unit of work deserves a fresh session.
+
+#### `/compound`
+
+**The loop's memory: capture durable learnings and route each to the right knowledge store, every
+write user-gated.**
+
+- **When to use** — `/commit`'s opening scan invokes it with candidates; `/diagnosing-bugs` closes
+  out through it; it also fires ad-hoc when you ask to capture or remember something.
+- **The intent** — automatic memory fails by hoarding trivia. Every candidate faces a two-part
+  quality bar — _would it change a future agent's behavior in a different session, and is it
+  non-obvious and stable?_ — and session-specific noise dies there. Survivors go to the cheapest
+  store that serves them, and nothing is ever written without your approval.
+
+```mermaid
+flowchart TD
+    scan["session scan"] --> bar{{"quality bar<br/>changes a future agent's behavior?<br/>non-obvious and stable?"}}
+    bar -- no --> dies["dies here"]
+    bar -- yes --> gate["🚪 user gate<br/>approve / redirect / kill"]
+    gate --> agentsmd["AGENTS.md<br/>shared conventions"]
+    gate --> solutions["docs/solutions/<br/>problem-shaped learnings"]
+    gate --> rules["rules files<br/>path-scoped conventions"]
+    gate --> skills["skills<br/>procedures"]
+    gate --> global["user-global memory<br/>personal preferences"]
+
+    classDef memoryNode fill:#b45309,stroke:#fcd34d,color:#ffffff
+    class agentsmd,solutions,rules,skills,global memoryNode
+```
+
+- **Next** — the writes join the working tree; `/commit`'s flow picks them up.
+
+#### `/diagnosing-bugs`
+
+**The bug entry point: a feedback-loop-first diagnosis discipline that replaces grill/spec.**
+
+- **When to use** — something is broken, throwing, failing, or slow. Fires on its own on
+  "diagnose" or "debug this".
+- **The intent** — in the skill's own words, the feedback loop _is_ the skill; everything else is
+  mechanical. A **tight**, red-capable, deterministic repro command is built before any theory is
+  entertained — jumping straight to a hypothesis is the exact failure the skill prevents — and
+  hypotheses are generated 3–5 at a time, each falsifiable, because single-hypothesis debugging
+  anchors on the first plausible idea.
+
+```mermaid
+flowchart TD
+    p0["0 · search docs/solutions/ for the symptom"] --> p1["1 · build a tight feedback loop<br/><b>this is the skill</b>"]
+    p1 --> p2["2 · reproduce, then minimise the repro"]
+    p2 --> p3["3 · rank 3–5 falsifiable hypotheses"]
+    p3 --> p4["4 · instrument — one variable at a time"]
+    p4 -- "hypothesis falsified" --> p3
+    p4 --> p5["5 · regression test red → fix → green"]
+    p5 --> p6["6 · cleanup + post-mortem"]
+
+    classDef loopNode fill:#b91c1c,stroke:#fca5a5,color:#ffffff
+    class p1 loopNode
+```
+
+- **Next** — `/review-gate` the fix, then `/commit`, whose opening scan turns the root cause, the
+  gotchas, and what didn't work into a `docs/solutions/` learning.
+
+### The utilities, skill by skill
+
+#### `/compound-refresh`
+
+**Garbage collection for the knowledge stores.** Audits every `docs/solutions/` doc against the
+current code (cited paths still exist, the fix still matches reality) and `AGENTS.md` for bloat,
+contradictions, and staleness. Verdict per doc — keep, update, consolidate, or delete — with the
+prime directive _match docs to reality, never the reverse_; every change is user-gated. Run it
+when the stores feel stale, not on a schedule.
+
+#### `/handoff`
+
+**Compaction for resuming work.** Writes a handoff document to the OS temp directory — outside the
+workspace — that a fresh session can pick up: state, references to specs and commits by path, and
+a suggested-skills section naming what the next session should invoke. Deliberately _not_ a spec
+substitute: decisions that should outlive the session go to `docs/specs/` first.
+
+#### `/prototype`
+
+**Throwaway code that answers a design question.** Two branches: a logic question gets a tiny
+interactive terminal app that pushes the state model through hard cases; a UI question gets
+radically different variations switchable on one route. No tests, no polish, no persistence — and
+when the question is answered, the validated decision folds into the real code while the prototype
+itself is committed to a throwaway branch as a primary source. Fires on its own when a `/grilling`
+decision needs empirical evidence.
+
+#### `/research`
+
+**Background primary-source research.** Spins up a background agent so the session keeps working
+while it reads. Official docs, source code, specs — never a secondary write-up — with every claim
+cited, captured as a Markdown file where the repo keeps such notes. Fires on its own when a
+question hinges on facts living outside the codebase.
+
+#### `/resolving-merge-conflicts`
+
+**Principled conflict resolution.** Reads the primary sources behind each conflicting change —
+commit messages, PRs, the specs in `docs/specs/` — resolves each hunk preserving both intents
+where possible, never inventing behavior and never aborting, then runs the project's checks and
+finishes the merge or rebase.
+
+#### `/codebase-design`
+
+**The deep-module vocabulary the rest of the loop leans on.** Module, interface, seam, adapter,
+depth, leverage, locality, the deletion test — used exactly, so design conversations, specs, and
+reviews share one language. `/spec` uses it to place test seams, `/review-gate`'s design lens
+judges in it, `/improve-codebase-architecture` is built on it. Also carries the deepening playbook
+and a design-it-twice pattern that explores alternative interfaces with parallel sub-agents.
+
+#### `/improve-codebase-architecture`
+
+**A deepening-opportunity scan.** Walks the codebase's hot spots (recent-change history first),
+hunts shallow modules and friction with the deletion test, and presents candidates as a
+self-contained HTML report — before/after diagrams, locality/leverage benefits, recommendation
+strength. Pick one and it grills you through the redesign decision tree.
+
+#### `/general-guidelines`
+
+**Anti-overengineering guardrails, always on when writing code.** Surface assumptions instead of
+hiding confusion; minimum code that solves the problem — no speculative abstractions, flexibility,
+or impossible-scenario error handling; turn vague tasks into verifiable success criteria and loop
+until they pass.
+
+#### `/teach`
+
+**A tutor that lives in a workspace.** Grounds every lesson in your stated mission, tracks
+resources and learning records, and produces short, beautiful, self-contained HTML lessons built
+for retention — retrieval practice, spacing, tight feedback loops — with printable reference
+sheets as the durable output.
+
+#### `/writing-great-skills`
+
+**The authoring standard behind every skill in this repo.** Predictability as the root virtue:
+leading words, checkable completion criteria, progressive disclosure, positive phrasing, no
+no-ops, prune sediment. Loaded before editing any skill, `AGENTS.md`, or rules file — a session
+that only reads them leaves it unloaded.
+
+## Install
+
+Add the marketplace once, then install the plugin(s) you want.
+
+### Claude Code
+
+```
+/plugin marketplace add toverux/grimoire
+/plugin install cantrips@grimoire
+/plugin install wards@grimoire
+/plugin install typescript@grimoire
+/plugin install csharp@grimoire
+```
+
+Or from your terminal: `claude plugin marketplace add …` / `claude plugin install …` with the same
+arguments.
+
+### Codex CLI
+
+```sh
+codex plugin marketplace add toverux/grimoire
+codex plugin add cantrips@grimoire
+codex plugin add wards@grimoire
+codex plugin add typescript@grimoire
+codex plugin add csharp@grimoire
+```
+
+> [!IMPORTANT]
+> **Migrating from the upstreams?** Cantrips _replaces_ the Matt Pocock skills and the
+> Compound Engineering plugin it forks (renamed: `to-spec` → `/spec`, `ce-commit` → `/commit`,
+> `code-review` → `/review-gate`, …). Uninstall those first, or the duplicate triggers will fight
+> each other.
+
+## wards — the style guard
+
+> _Protective spells that trigger at a boundary._
+
+Opinionated: wards encodes one specific taste — breathing room, a hard line limit, high-value
+comments — rather than a neutral lowest common denominator. Install it if you share the taste.
+
+- **`/general-code-style` skill** — language-agnostic style (line breaks, 100-char limit, comments,
+  docblocks), loaded by the agent _before writing or editing code_, never on read-only sessions.
+- **`check-line-length` hook** — a `PostToolUse` hook (TypeScript, run directly by Node ≥ 22.6 via
+  type stripping) that warns the agent with the offending line numbers when a file it just edited
+  exceeds the limit. Lint-suppression one-liners are exempt.
+
+Per-project tuning via an optional `wards.config.json` at the project root:
 
 ```json
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "CHECK_LINE_LENGTH_EXTENSIONS='ts tsx js jsx mjs cjs' CHECK_LINE_LENGTH_SUPPRESSION='oxlint-disable|eslint-disable|biome-ignore|@ts-expect-error|@ts-ignore' bash .claude/hooks/check-line-length.sh"
-          }
-        ]
-      }
-    ]
+  "checkLineLength": {
+    "extensions": ["cs"],
+    "suppressions": "#pragma warning disable|ReSharper disable",
+    "maxLength": 100
   }
 }
 ```
 
-## Versioning
+Each key present replaces its default wholesale — a config listing `extensions` must name every
+extension it wants checked. Defaults target JS/TS (`ts tsx js jsx mjs cjs`, oxlint/eslint/biome/ts
+suppressions, 100 chars). Opt out per project by disabling the plugin.
 
-Every skill, rule, and hook carries a [semver](https://semver.org) `version` so a copy pulled into a
-project can be compared against the source of truth here:
+## typescript & csharp — language style
 
-- **Skills and rules:** a `version` field in the frontmatter.
-- **Hooks:** a `# Version:` comment near the top of the script.
+One model-invoked style skill each, loaded before writing or editing the target language. The
+TypeScript skill detects whether your project has the `nn()`/`ensure*()` assertion helpers and
+adapts its nullability guidance either way.
 
-Bump the version whenever you change a component's content, so downstream copies can tell they are out
-of date.
+## Bonus: an AGENTS.md starter template
 
-## Authoring documents
+[agents-md-template.md](agents-md-template.md) is the AGENTS.md starter used across my projects —
+a compact skeleton (overview, stack, structure, commands, glossary, boundaries) already wired for
+the cantrips conventions (`docs/specs/`, `docs/solutions/`, the glossary → CONCEPTS.md graduation
+path). Copy it, fill the gaps, delete what your project doesn't need.
 
-I recommend installing this skill globally:
-`skills add mattpocock/skills --skill writing-great-skills`.
+## Development
 
-Run `oxfmt` to format Markdown files in this repo (no configuration committed, defaults are fine).
+```sh
+bun install    # install tooling deps (also installs the git hooks)
+mise check     # verify (read-only): type-check, lint, format, manifest sync
+mise fix       # auto-fix lint + format in place
+```
 
-> [!TIP]
-> To run `skills` or `oxfmt`, you can use npx and alikes, ex. `bunx skills@latest`.
+See [AGENTS.md](AGENTS.md) for the architecture, authoring standards, and release process
+(release-please, per-plugin versioning). Deferred ideas live in [IDEAS.md](IDEAS.md); the v1
+design spec in [docs/specs/grimoire-v1.md](docs/specs/grimoire-v1.md).
+
+### Trying your changes locally
+
+The fastest loop is Claude Code's dev mode — it loads a plugin straight from the working tree,
+session-scoped, no install (repeat the flag per plugin):
+
+```sh
+claude --plugin-dir path/to/grimoire/plugins/cantrips --plugin-dir path/to/grimoire/plugins/wards
+```
+
+To exercise the real install path instead, add the checkout itself as a marketplace — plain local
+paths work in both harnesses:
+
+```
+/plugin marketplace add path/to/grimoire
+/plugin install cantrips@grimoire
+```
+
+```sh
+codex plugin marketplace add path/to/grimoire
+codex plugin add cantrips@grimoire
+```
+
+Installs are copies, not links: after editing files, run `/reload-plugins` in a live Claude Code
+session, or `/plugin marketplace update grimoire` and reinstall to refresh an install. The wards
+hook needs Node ≥ 22.6 on PATH (it runs as TypeScript via type stripping).
+
+## License
+
+MIT — see [LICENSE](LICENSE). Forked material is credited in [NOTICE.md](NOTICE.md)
+([mattpocock/skills](https://github.com/mattpocock/skills), MIT, © Matt Pocock;
+[EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin),
+MIT, © Every); every forked skill records its upstream in its frontmatter `source` key.

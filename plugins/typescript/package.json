@@ -1,0 +1,6 @@
+{
+  "name": "@grimoire/typescript-plugin-anchor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "release-please version anchor for the typescript plugin; the real metadata lives in the plugin.json manifests"
+}

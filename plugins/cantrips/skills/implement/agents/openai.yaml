@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Implement'
+  short_description: 'Implement a spec or ticket, TDD at agreed seams'
+policy:
+  allow_implicit_invocation: false

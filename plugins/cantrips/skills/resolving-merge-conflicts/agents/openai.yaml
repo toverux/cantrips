@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Resolving Merge Conflicts'
+  short_description: 'Principled merge/rebase conflict resolution'
+policy:
+  allow_implicit_invocation: true

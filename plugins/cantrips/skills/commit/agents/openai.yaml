@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Commit'
+  short_description: 'Scan for learnings, then craft commits'
+policy:
+  allow_implicit_invocation: false
