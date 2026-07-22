@@ -21,10 +21,10 @@ Forked from and inspired by [Matt Pocock's skills](https://github.com/mattpocock
 
 | Plugin            | Gives your agent…                                                                                                                            | Type         |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| ✨ **cantrips**   | The core engineering loop: `/grilling` → `/spec` → `/implement` (TDD at agreed seams) → `/review-gate` → `/commit` → `/compound`.            | Skills       |
-| 🛡️ **wards**      | Opinionated language-agnostic code style, enforced at the boundary: a style skill loaded before writing, and a line-length hook after edits. | Skill + hook |
-| 🟦 **typescript** | TypeScript style: strictness, nullability discipline, `readonly` data, assertion-based type guards.                                          | Skill        |
-| 🟪 **csharp**     | C# style for modern C# under `Nullable` + `TreatWarningsAsErrors`.                                                                           | Skill        |
+| ✨&nbsp;**cantrips**   | The core engineering loop: `/grilling` → `/spec` → `/implement` (TDD at agreed seams) → `/review-gate` → `/commit` → `/compound`.            | Skills       |
+| 🛡️&nbsp;**wards**      | Opinionated language-agnostic code style, enforced at the boundary: a style skill loaded before writing, and a line-length hook after edits. | Skill + hook |
+| 🟦&nbsp;**typescript** | TypeScript style: strictness, nullability discipline, `readonly` data, assertion-based type guards.                                          | Skill        |
+| 🟪&nbsp;**csharp**     | C# style for modern C# under `Nullable` + `TreatWarningsAsErrors`.                                                                           | Skill        |
 
 > Plugin names are plain; skill names are plain and verb-like (`/spec`, `/implement`,
 > `/compound`) — the plugin namespace disambiguates.
