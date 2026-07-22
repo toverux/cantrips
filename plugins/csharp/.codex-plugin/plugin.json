@@ -1,6 +1,6 @@
 {
   "name": "csharp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "C# code style for coding agents (Claude Code, Codex CLI): modern C# conventions under Nullable and TreatWarningsAsErrors, loaded before writing or editing C#.",
   "author": {
     "name": "Morgan Touverey Quilling"
@@ -8,5 +8,9 @@
   "homepage": "https://github.com/toverux/grimoire",
   "repository": "https://github.com/toverux/grimoire",
   "license": "MIT",
-  "keywords": ["skills", "csharp", "code-style"]
+  "keywords": [
+    "skills",
+    "csharp",
+    "code-style"
+  ]
 }
