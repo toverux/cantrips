@@ -1,6 +1,6 @@
 {
   "name": "wards",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Style guard for coding agents (Claude Code, Codex CLI): a language-agnostic code style skill loaded before writing code, plus a line-length hook that flags overlong lines right after an edit. Protective spells that trigger at a boundary.",
   "author": {
     "name": "Morgan Touverey Quilling"
@@ -8,5 +8,11 @@
   "homepage": "https://github.com/toverux/grimoire",
   "repository": "https://github.com/toverux/grimoire",
   "license": "MIT",
-  "keywords": ["skills", "hooks", "code-style", "formatting", "line-length"]
+  "keywords": [
+    "skills",
+    "hooks",
+    "code-style",
+    "formatting",
+    "line-length"
+  ]
 }

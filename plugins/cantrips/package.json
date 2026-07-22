@@ -1,6 +1,6 @@
 {
   "name": "@grimoire/cantrips-plugin-anchor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "release-please version anchor for the cantrips plugin; the real metadata lives in the plugin.json manifests"
 }
