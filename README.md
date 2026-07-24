@@ -19,8 +19,8 @@ Forked from and inspired by [Matt Pocock's skills](https://github.com/mattpocock
 
 ## Plugins
 
-| Plugin            | Gives your agent…                                                                                                                            | Type         |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Plugin                 | Gives your agent…                                                                                                                            | Type         |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
 | ✨&nbsp;**cantrips**   | The core engineering loop: `/grilling` → `/spec` → `/implement` (TDD at agreed seams) → `/review-gate` → `/commit` → `/compound`.            | Skills       |
 | 🛡️&nbsp;**wards**      | Opinionated language-agnostic code style, enforced at the boundary: a style skill loaded before writing, and a line-length hook after edits. | Skill + hook |
 | 🟦&nbsp;**typescript** | TypeScript style: strictness, nullability discipline, `readonly` data, assertion-based type guards.                                          | Skill        |
