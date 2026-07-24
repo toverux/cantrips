@@ -1,7 +1,7 @@
 ---
 name: general-code-style
 description: Load before writing or editing any source file, in any language, the moment a task will create or modify code and before the first edit. Covers line breaks, the 100-character line limit, comments, and docblocks. The trigger is writing; a session that only reads code leaves it unloaded.
-version: 2.0.0
+version: 2.1.0
 ---
 
 # General Code Style
@@ -15,7 +15,7 @@ Apply every rule below to all code you write or edit.
 - Break every `{}` block across multiple lines, even a short one.
 - Pass at most 4 parameters to a function; beyond that, group them into an object.
   Symmetry with neighboring code wins over this rule.
-- Punctuate prose in comments, docblocks, and docs with commas, semicolons, or colons; never em dashes (—).
+- Punctuate prose in comments, docblocks, and docs with commas, semicolons, colons, or `--` (with parsimony); never actual em dashes (—).
   When you meet an em dash, remove it or find a simpler formulation.
 - Enforce a strict 100-character line length limit in source files, comments and docblock decoration included.
   Exceptions:
@@ -23,8 +23,6 @@ Apply every rule below to all code you write or edit.
   - Long strings that would read worse split across lines.
   - AGENTS.md and other Markdown documents intended for agents (ex. skills, rules).
   - Any file where the limit is not applicable or desirable.
-
-  On Claude Code, the wards plugin also ships a `check-line-length` hook that mechanically warns on limit breaches after edits, tunable per project via an optional `wards.config.json`.
 
 ## Comments and Docblocks
 
