@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix]'
 disable-model-invocation: true
-version: 1.0.0
+version: 1.0.1
 source: mattpocock/skills@1.1.0 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 ---
 
@@ -88,10 +88,10 @@ Sweep candidates go through Verify like any others.
 
 Rank: correctness and spec findings outrank quality findings; CONFIRMED outranks PLAUSIBLE.
 Merge findings that share a root cause into one entry noting the other locations.
-Cap at the level's maximum, dropping the least severe — the cap sizes one fix batch, and whatever it squeezes out resurfaces on the re-run after the fixes land.
+Cap at the level's maximum, dropping the least severe — the cap sizes one fix batch; dropped findings stay available on request in this session and get another chance on the re-run after the fixes land.
 
 Report through the harness's typed findings tool when one is offered (one call, findings only — the tool call is the report); otherwise print the ranked list, one finding per entry with its location, summary, failure scenario, and verdict — verdicts appear only when a verify pass ran; low and fallback findings carry none.
-End with a one-line summary: findings kept per class, whether a spec was available, and how many candidates were settled inline or deferred.
+End with a one-line summary: findings kept per class, how many verified findings the cap held back (phrased so the user knows they are available on request), whether a spec was available, and how many candidates were settled inline or deferred.
 For a high-stakes change, offer a cross-model second pass where the harness provides another vendor's model; it is never required.
 
 **Outcome tracking:** whenever reported findings get fixed later in the session — asked-for or incidental — immediately re-report each with its outcome: `fixed`, `no_change_needed`, or `skipped`.
