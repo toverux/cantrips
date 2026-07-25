@@ -1,5 +1,0 @@
-interface:
-  display_name: 'TypeScript Code Style'
-  short_description: 'TypeScript style rules, loaded before writing TS/JS'
-policy:
-  allow_implicit_invocation: true

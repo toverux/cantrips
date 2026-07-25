@@ -42,42 +42,6 @@
           "jsonpath": "$.version"
         }
       ]
-    },
-    "plugins/typescript": {
-      "release-type": "node",
-      "component": "typescript",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": false,
-      "extra-files": [
-        {
-          "type": "json",
-          "path": ".claude-plugin/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": ".codex-plugin/plugin.json",
-          "jsonpath": "$.version"
-        }
-      ]
-    },
-    "plugins/csharp": {
-      "release-type": "node",
-      "component": "csharp",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": false,
-      "extra-files": [
-        {
-          "type": "json",
-          "path": ".claude-plugin/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": ".codex-plugin/plugin.json",
-          "jsonpath": "$.version"
-        }
-      ]
     }
   }
 }

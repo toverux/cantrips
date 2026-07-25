@@ -64,4 +64,4 @@ Present the verdicts: Keeps as one summarized list; every Update, Consolidate, D
 Apply only approved changes.
 
 Close with counts (kept / updated / consolidated / deleted / AGENTS.md findings) and a one-liner per touched file.
-Changes applied → next: `/commit`.
+Changes applied → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/commit` (user-invoked) — to land the refreshed docs.

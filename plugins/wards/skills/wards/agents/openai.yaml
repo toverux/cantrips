@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Wards'
+  short_description: 'Install, update, and check status of scrolls'
+policy:
+  allow_implicit_invocation: false

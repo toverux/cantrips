@@ -1,7 +1,7 @@
 ---
 name: diagnosing-bugs
 description: Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
-version: 1.0.2
+version: 1.0.0
 source: mattpocock/skills@1.1.0 (diagnosing-bugs)
 ---
 
@@ -181,7 +181,7 @@ Required before declaring done:
 - [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns
 
 **Then ask: what would have prevented this bug?**
-If the answer involves architectural change (no good test seam, tangled callers, hidden coupling), recommend `/improve-codebase-architecture` with the specifics.
+If the answer involves architectural change (no good test seam, tangled callers, hidden coupling), recommend `/improve-codebase-architecture` (user-invoked) with the specifics.
 Make the recommendation **after** the fix is in, not before — you have more information now than when you started.
 
-Bug fixed → next: `/review-gate` the fix (suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise), then `/commit` — its opening `/compound` scan is where the root cause, the gotchas, and what didn't work become a `docs/solutions/` learning — all in this session, stating the winning hypothesis in the commit message.
+Bug fixed → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/review-gate` (user-invoked) the fix (suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise), then `/commit` (user-invoked) — its opening `/compound` scan is where the root cause, the gotchas, and what didn't work become a `docs/solutions/` learning — all in this session, stating the winning hypothesis in the commit message.

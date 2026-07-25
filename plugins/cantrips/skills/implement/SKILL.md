@@ -3,7 +3,7 @@ name: implement
 description: Implement a spec or a single ticket, driving TDD at the seams agreed in the spec.
 argument-hint: '[spec or ticket path; blank asks]'
 disable-model-invocation: true
-version: 1.0.2
+version: 1.0.0
 source: mattpocock/skills@1.1.0 (implement)
 ---
 
@@ -17,5 +17,5 @@ Run typechecking regularly, single test files regularly, and the full test suite
 
 When working from a ticket, tick its acceptance criteria as each one is verified.
 
-Done when every criterion is verified and the full suite passes → next: `/simplify` (optional quality pass), then `/review-gate` (suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise), then `/commit` — all in this session; the working diff is the context.
-If context runs low anywhere in that chain, recommend `/handoff` to the user and resume in a fresh session instead of pushing on degraded.
+Done when every criterion is verified and the full suite passes → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)) naming the review tail, all in this session with the working diff as context: `/simplify` (user-invoked) for an optional quality pass, then `/review-gate` (user-invoked) — suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise — then `/commit` (user-invoked).
+If context runs low anywhere in that chain, recommend `/handoff` (user-invoked) and resume in a fresh session instead of pushing on degraded.

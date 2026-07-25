@@ -12,17 +12,7 @@
     {
       "name": "wards",
       "source": "./plugins/wards",
-      "description": "Style guard for coding agents (Claude Code, Codex CLI): a language-agnostic code style skill loaded before writing code, plus a line-length hook that flags overlong lines right after an edit. Protective spells that trigger at a boundary."
-    },
-    {
-      "name": "typescript",
-      "source": "./plugins/typescript",
-      "description": "TypeScript code style for coding agents (Claude Code, Codex CLI): strict compiler settings, nullability discipline, readonly data, and assertion-based type guards, loaded before writing or editing TypeScript."
-    },
-    {
-      "name": "csharp",
-      "source": "./plugins/csharp",
-      "description": "C# code style for coding agents (Claude Code, Codex CLI): modern C# conventions under Nullable and TreatWarningsAsErrors, loaded before writing or editing C#."
+      "description": "Agent-driven scroll installer for coding agents (Claude Code, Codex CLI): transcribes rules, hooks, and templates (\"scrolls\") from any git repository into your project or user config, recording provenance so updates pull upstream improvements without erasing your local customizations. Protective spells that trigger at a boundary."
     }
   ]
 }

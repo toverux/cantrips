@@ -1,7 +1,7 @@
 ---
 name: tdd
 description: Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests.
-version: 1.0.1
+version: 1.0.0
 source: mattpocock/skills@1.1.0 (tdd)
 ---
 
@@ -33,7 +33,7 @@ You can't test everything — agreeing the seams up front is how testing effort 
 
 **Bug fixes start red on the bug.**
 The first test is a failing repro of the bug; the fix turns it green.
-Whether a truly trivial fix warrants a test at all is judgment — per `/general-guidelines`.
+Whether a truly trivial fix warrants a test at all is judgment — defer to your general coding guidelines.
 
 ## Anti-patterns
 

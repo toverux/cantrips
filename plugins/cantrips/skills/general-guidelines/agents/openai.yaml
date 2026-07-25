@@ -1,5 +1,0 @@
-interface:
-  display_name: 'General Guidelines'
-  short_description: 'Anti-overcomplication behavioral guardrails'
-policy:
-  allow_implicit_invocation: true

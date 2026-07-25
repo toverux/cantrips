@@ -2,7 +2,7 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.1.0
+version: 1.0.0
 source: EveryInc/compound-engineering-plugin@3.19.0 (ce-commit)
 ---
 

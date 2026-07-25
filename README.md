@@ -5,13 +5,15 @@
 **A marketplace of curated agent skills for Claude Code and Codex CLI.**
 
 One coherent engineering loop — grill, spec, implement, review, commit — that _remembers what it
-learns_, plus style-guard satellites.
+learns_, plus an agent-driven installer that pulls versioned rules, hooks, and templates from any
+git repo and keeps them updatable.
 
 Forked from and inspired by [Matt Pocock's skills](https://github.com/mattpocock/skills) and
 [Every's Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin).
 
-[The loop](#cantrips--the-engineering-loop) · [The skills](#the-loop-skill-by-skill) ·
-[Install](#install) · [Plugins](#plugins) · [Development](#development)
+[Plugins](#plugins) · [The loop](#cantrips--the-engineering-loop) ·
+[The skills](#the-loop-skill-by-skill) · [Wards](#wards--the-scroll-installer) ·
+[Install](#install) · [Development](#development)
 
 </div>
 
@@ -19,12 +21,10 @@ Forked from and inspired by [Matt Pocock's skills](https://github.com/mattpocock
 
 ## Plugins
 
-| Plugin                 | Gives your agent…                                                                                                                            | Type         |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| ✨&nbsp;**cantrips**   | The core engineering loop: `/grilling` → `/spec` → `/implement` (TDD at agreed seams) → `/review-gate` → `/commit` → `/compound`.            | Skills       |
-| 🛡️&nbsp;**wards**      | Opinionated language-agnostic code style, enforced at the boundary: a style skill loaded before writing, and a line-length hook after edits. | Skill + hook |
-| 🟦&nbsp;**typescript** | TypeScript style: strictness, nullability discipline, `readonly` data, assertion-based type guards.                                          | Skill        |
-| 🟪&nbsp;**csharp**     | C# style for modern C# under `Nullable` + `TreatWarningsAsErrors`.                                                                           | Skill        |
+| Plugin               | Gives your agent…                                                                                                                                                             | Type        |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| ✨&nbsp;**cantrips** | The core engineering loop: `/grilling` → `/spec` → `/implement` (TDD at agreed seams) → `/review-gate` → `/commit` → `/compound`.                                             | Skills      |
+| 🛡️&nbsp;**wards**    | An agent-driven installer that transcribes rules, hooks, and templates ("scrolls") from any git repo into your project, with provenance-tracked, judgment-preserving updates. | Skill + CLI |
 
 > Plugin names are plain; skill names are plain and verb-like (`/spec`, `/implement`,
 > `/compound`) — the plugin namespace disambiguates.
@@ -145,7 +145,6 @@ can still type them).
 | [`/resolving-merge-conflicts`](#resolving-merge-conflicts)         | 🧑🤖       | Principled merge/rebase conflict resolution.                               |
 | [`/codebase-design`](#codebase-design)                             | 🧑🤖       | Deep-module vocabulary other skills lean on.                               |
 | [`/improve-codebase-architecture`](#improve-codebase-architecture) | 🧑         | Scan for module-deepening opportunities.                                   |
-| [`/general-guidelines`](#general-guidelines)                       | 🧑🤖       | Anti-overengineering behavioral guardrails.                                |
 | [`/teach`](#teach)                                                 | 🧑         | Learn a concept from this workspace, tutor-style.                          |
 | [`/writing-great-skills`](#writing-great-skills)                   | 🧑🤖       | The authoring standard, loaded before editing skills, AGENTS.md, or rules. |
 
@@ -423,13 +422,6 @@ hunts shallow modules and friction with the deletion test, and presents candidat
 self-contained HTML report — before/after diagrams, locality/leverage benefits, recommendation
 strength. Pick one and it grills you through the redesign decision tree.
 
-#### `/general-guidelines`
-
-**Anti-overengineering guardrails, always on when writing code.** Surface assumptions instead of
-hiding confusion; minimum code that solves the problem — no speculative abstractions, flexibility,
-or impossible-scenario error handling; turn vague tasks into verifiable success criteria and loop
-until they pass.
-
 #### `/teach`
 
 **A tutor that lives in a workspace.** Grounds every lesson in your stated mission, tracks
@@ -444,6 +436,149 @@ leading words, checkable completion criteria, progressive disclosure, positive p
 no-ops, prune sediment. Loaded before editing any skill, `AGENTS.md`, or rules file — a session
 that only reads them leaves it unloaded.
 
+## wards — the scroll installer
+
+> _Protective spells that trigger at a boundary._
+
+A **scroll** is a single self-describing file — a **rule**, a **hook**, or a **template** — carrying
+`ward:` metadata. Wards transcribes scrolls from any git repository into your project (or your
+user-global config), where they are committed and versioned like any other file. It is not a
+skill and a hook anymore; it is one user-invoked `/wards` skill driving a zero-dependency TypeScript
+CLI. You supply the judgment — which scrolls, what to customize, how to merge — and the CLI supplies
+the mechanics: cloning, scanning, version comparison, three-way-merge materialization.
+
+### Not a static copier
+
+Tools like `npx skills` copy a file into your repo and record where it came from, but that is where
+the relationship ends: no way to pull the author's later fixes without hand-diffing, no notion of
+your local edits. Wards is dynamic where those are static:
+
+- **It tracks provenance.** Every installed scroll records its source, its path within that source,
+  and the exact version (or commit) it came from — so an update knows precisely what to compare
+  against.
+- **It preserves your changes.** Relax a line limit or trim a section at install time and that delta
+  is written into the file's provenance as a prose note; updates read it as context and merge around
+  it instead of clobbering it.
+- **It installs more than skills.** Rules with glob-scoped loading, executable hooks wired into your
+  settings, AGENTS.md templates, and even _foreign_ files from a repo that never heard of wards — any
+  document on GitHub, one command from being a managed, updatable part of your project.
+- **It speaks both harnesses from one file.** The canonical scroll lives once under `.agents/`; wards
+  derives the Claude Code and Codex CLI integrations from it, so they never drift.
+
+### How a scroll lands
+
+`/wards install <source>` runs an interview, not a copy:
+
+1. **The offering.** Wards clones the source, scans it for files carrying `ward:` metadata (there is
+   **no manifest** — the files are self-describing), and shows you what's on offer: each scroll's
+   kind, description, applicability globs, and recommended scope.
+2. **Scope.** Each scroll suggests `project` (committed with the repo, applies to every contributor)
+   or `user` (follows you across projects, under `~/.agents/`); you confirm or override.
+3. **The customization dialog.** Before a scroll lands, wards offers to adapt it to your project —
+   say, loosening a rule to match your codebase's reality. Each change you accept becomes a delta
+   note in the file's provenance.
+4. **The canonical write.** The scroll is written into `.agents/rules/` or `.agents/hooks/` with a
+   `ward.provenance` entry. The provenance is a _list_, because a composite file (an AGENTS.md that
+   is both a template descendant and a managed pointer block) can aggregate several upstreams.
+5. **The integrations.** For each harness present, wards derives the wiring: Claude Code gets a
+   symlink under `.claude/rules/` with the globs translated to `paths:` frontmatter (a wards-managed
+   copy where symlinks don't work), and hooks wired into the committed `.claude/settings.json`; Codex
+   CLI gets a clearly-marked managed block in `AGENTS.md` with conditional pointer lines. You edit
+   only the canonical file — wards owns the derivations and regenerates them.
+
+### How an update stays yours
+
+`/wards update` finds drift from the recorded provenance (no source to name — it's inferred from what
+you installed), then, for each outdated scroll, performs a three-way merge: your local file, the old
+upstream baseline recovered from the source's git history, and the new upstream, via `git
+merge-file`. Conflicts are resolved by the agent — using your delta notes as the reason your side
+diverges — not by discarding one side. Unversioned upstreams are tracked by commit hash so updates
+work even without version numbers. **Templates** get a gentler posture: an AGENTS.md diverges ~100%
+by design, so wards diffs old-template against new-template and proposes the _structural_
+improvements against your customized file, never re-transcribing it.
+
+`/wards status` classifies every installed scroll across both scopes, with the recorded-versus-source
+detail, so you can see drift at a glance: **up-to-date**, **outdated**, **unverified** (nothing could
+be compared — an unreachable source, a path that moved upstream), **foreign** (present but
+unmanaged), or **invalid** (the ward header does not parse, with the diagnostics to fix it).
+
+### Sources: bring your own
+
+Wards ships with **no baked-in default source** — it carries no one's opinions. A source is a git
+URL, an `owner/repo` GitHub shorthand, or a local path, each with an optional `#ref`; private repos
+work through your existing git auth. This repo's [`example-scrolls/`](example-scrolls/) is exactly
+that — an _example_ source you can point wards at, not a blessed registry:
+
+| Scroll                  | Kind     | Applies to             | Scope   |
+| ----------------------- | -------- | ---------------------- | ------- |
+| `general-code-style`    | rule     | every file             | project |
+| `typescript-code-style` | rule     | TypeScript / JS files  | project |
+| `cs-code-style`         | rule     | `**/*.cs`              | project |
+| `general-guidelines`    | rule     | always loaded          | user    |
+| `check-line-length`     | hook     | fires after file edits | project |
+| `agents-md-template`    | template | AGENTS.md scaffold     | project |
+
+These are opinionated — breathing room, a hard 100-character limit, high-value comments, a compact
+AGENTS.md skeleton wired for the cantrips conventions. Install the ones whose taste you share, or
+fork them into your own source. A personal default source belongs in your own global `CLAUDE.md`,
+per the repo's personalization philosophy — never hardcoded into the tool.
+
+Grimoire dogfoods this: its own `.agents/` is populated by a real `/wards install`, so the end-to-end
+flow is exercised continuously.
+
+### Authoring your own scrolls
+
+Point wards at your repo and any file that carries a top-level `ward:` mapping becomes a scroll —
+**no manifest, nothing to keep in sync.** Markdown scrolls carry the metadata as YAML frontmatter:
+
+```markdown
+---
+ward:
+  kind: rule
+  description: Language-agnostic code style — line breaks, comments, docblocks.
+  version: 2.1.0
+  applicability:
+    - '**/*'
+  scope: project
+---
+
+# General Code Style
+
+…
+```
+
+Executable scrolls (hooks) carry the same YAML in a leading **line-comment header** — so a hook stays
+a single self-contained file in any language. The parser auto-detects the comment token from the
+first line (`//`, `#`, `--`, `;`) and strips it:
+
+```ts
+// ward:
+//   kind: hook
+//   description: Flag source lines exceeding the 100-character limit right after an edit.
+//   version: 2.1.0
+//   scope: project
+//   event: fires-after-file-edit
+
+// PostToolUse hook: warns when a file it just edited exceeds the limit.
+…
+```
+
+The source-side fields (the installer writes the `provenance` list itself):
+
+| Field           | Required | Notes                                                                  |
+| --------------- | -------- | ---------------------------------------------------------------------- |
+| `kind`          | yes      | `rule`, `hook`, or `template` — fixes the file shape and integration.  |
+| `description`   | yes      | One-line human summary shown in a source's offering.                   |
+| `version`       | yes      | Per-scroll semver, hand-bumped on every content change.                |
+| `applicability` | no       | Neutral globs the scroll applies to; omit for an always-loaded scroll. |
+| `scope`         | no       | Recommended install scope (`project`/`user`), overridable at install.  |
+| `event`         | no       | Hooks only: the neutral trigger, currently `fires-after-file-edit`.    |
+
+The grammar's single source of truth is
+[plugins/wards/cli/ward-grammar.ts](plugins/wards/cli/ward-grammar.ts), and CI fails when the tables
+above drift from it. The CLI's `validate` subcommand checks a whole tree against the same grammar,
+and CI runs it over `example-scrolls/`, so a malformed header fails the build, not a user's install.
+
 ## Install
 
 Add the marketplace once, then install the plugin(s) you want.
@@ -454,8 +589,6 @@ Add the marketplace once, then install the plugin(s) you want.
 /plugin marketplace add toverux/grimoire
 /plugin install cantrips@grimoire
 /plugin install wards@grimoire
-/plugin install typescript@grimoire
-/plugin install csharp@grimoire
 ```
 
 Or from your terminal: `claude plugin marketplace add …` / `claude plugin install …` with the same
@@ -467,8 +600,6 @@ arguments.
 codex plugin marketplace add toverux/grimoire
 codex plugin add cantrips@grimoire
 codex plugin add wards@grimoire
-codex plugin add typescript@grimoire
-codex plugin add csharp@grimoire
 ```
 
 > [!IMPORTANT]
@@ -476,48 +607,6 @@ codex plugin add csharp@grimoire
 > Compound Engineering plugin it forks (renamed: `to-spec` → `/spec`, `ce-commit` → `/commit`,
 > `code-review` → `/review-gate`, …). Uninstall those first, or the duplicate triggers will fight
 > each other.
-
-## wards — the style guard
-
-> _Protective spells that trigger at a boundary._
-
-Opinionated: wards encodes one specific taste — breathing room, a hard line limit, high-value
-comments — rather than a neutral lowest common denominator. Install it if you share the taste.
-
-- **`/general-code-style` skill** — language-agnostic style (line breaks, 100-char limit, comments,
-  docblocks), loaded by the agent _before writing or editing code_, never on read-only sessions.
-- **`check-line-length` hook** — a `PostToolUse` hook (TypeScript, run directly by Node ≥ 22.6 via
-  type stripping) that warns the agent with the offending line numbers when a file it just edited
-  exceeds the limit. Lint-suppression one-liners are exempt.
-
-Per-project tuning via an optional `wards.config.json` at the project root:
-
-```json
-{
-  "checkLineLength": {
-    "extensions": ["cs"],
-    "suppressions": "#pragma warning disable|ReSharper disable",
-    "maxLength": 100
-  }
-}
-```
-
-Each key present replaces its default wholesale — a config listing `extensions` must name every
-extension it wants checked. Defaults target JS/TS (`ts tsx js jsx mjs cjs`, oxlint/eslint/biome/ts
-suppressions, 100 chars). Opt out per project by disabling the plugin.
-
-## typescript & csharp — language style
-
-One model-invoked style skill each, loaded before writing or editing the target language. The
-TypeScript skill detects whether your project has the `nn()`/`ensure*()` assertion helpers and
-adapts its nullability guidance either way.
-
-## Bonus: an AGENTS.md starter template
-
-[agents-md-template.md](agents-md-template.md) is the AGENTS.md starter used across my projects —
-a compact skeleton (overview, stack, structure, commands, glossary, boundaries) already wired for
-the cantrips conventions (`docs/specs/`, `docs/solutions/`, the glossary → CONCEPTS.md graduation
-path). Copy it, fill the gaps, delete what your project doesn't need.
 
 ## Development
 
@@ -554,8 +643,8 @@ codex plugin add cantrips@grimoire
 ```
 
 Installs are copies, not links: after editing files, run `/reload-plugins` in a live Claude Code
-session, or `/plugin marketplace update grimoire` and reinstall to refresh an install. The wards
-hook needs Node ≥ 22.6 on PATH (it runs as TypeScript via type stripping).
+session, or `/plugin marketplace update grimoire` and reinstall to refresh an install. The wards CLI
+needs Node ≥ 22.6 on PATH (it runs as TypeScript via type stripping).
 
 ## License
 

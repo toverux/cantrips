@@ -3,7 +3,7 @@ name: simplify
 description: Optional pre-review quality pass — behavior-preserving fixes for reuse, dead weight, altitude, and clarity. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify the current branch's changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.0.2
+version: 1.0.0
 source: EveryInc/compound-engineering-plugin@3.19.0 (ce-simplify-code)
 ---
 
@@ -59,4 +59,4 @@ If no checks are configured, state that in the summary.
 Report fixes applied per dimension (reuse, quality, efficiency), findings skipped as false positives or not worthwhile, and which checks ran with their results.
 The measure is what improved and that behavior held — many clarity and safety fixes preserve or add lines.
 
-**Next:** `/review-gate` — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise.
+Close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/review-gate` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise.

@@ -26,6 +26,14 @@ run = [
   "mise exec bun -- bun update"
 ]
 
+# TEST TASKS
+# ==========
+
+[tasks."test"]
+description = "Runs the test suite with bun test (drives the wards CLI as a subprocess)."
+raw = true
+run = "bun test"
+
 # CHECK TASKS
 # ===========
 
@@ -34,11 +42,23 @@ run = [
 # Run `mise fix` locally to apply, `mise check` to verify.
 
 [tasks."check"]
-description = "Verify read-only: typescript, oxlint, oxfmt, and plugin-sync. Writes nothing, run `mise fix` to auto-fix."
-run = ["mise check:tsc", "mise check:oxlint", "mise check:oxfmt", "mise check:plugin-sync"]
+description = "Verify read-only: typescript, oxlint, then the repo-consistency checks. Writes nothing, run `mise fix` to auto-fix."
+run = ["mise check:tsc", "mise check:oxlint", "mise check:repo"]
+
+# The steps `check` and `check:agents` share, so a new one is added once and both suites get it;
+# only the tsc and oxlint variants differ between them.
+[tasks."check:repo"]
+description = "Formatting, plugin sync, ward docs, and the scroll checks (source and installed)."
+run = [
+  "mise check:oxfmt",
+  "mise check:plugin-sync",
+  "mise check:ward-docs",
+  "mise check:scrolls",
+  "mise check:installed-scrolls"
+]
 
 [tasks."check:tsc"]
-description = "Type-checks the config files, scripts, and the wards hook with tsc (read-only)."
+description = "Type-checks the config files, scripts, the wards CLI and its tests, and the installed hook (read-only)."
 raw = true
 run = "bun --bun tsc --noEmit"
 
@@ -56,17 +76,28 @@ run = "bun --bun oxlint --deny-warnings"
 description = "Checks that each plugin's Claude and Codex manifests and the marketplace pair stay in sync."
 run = "bun scripts/check-plugin-sync.ts"
 
+[tasks."check:ward-docs"]
+description = "Checks that the README's ward-grammar tables still render plugins/wards/cli/ward-grammar.ts."
+run = "bun scripts/check-ward-grammar-docs.ts"
+
+[tasks."check:installed-scrolls"]
+description = "Checks that the scrolls installed under .agents/ still match their example-scrolls/ sources."
+run = "bun scripts/check-installed-scrolls.ts"
+
+[tasks."check:scrolls:all"]
+description = "Runs both scroll checks: the example-scrolls/ headers and the installed copies under .agents/."
+run = ["mise check:scrolls", "mise check:installed-scrolls"]
+
+[tasks."check:scrolls"]
+description = "Validates the example-scrolls/ ward metadata via the wards CLI; a malformed header fails the build."
+run = "node --disable-warning=ExperimentalWarning --experimental-strip-types plugins/wards/cli/wards-cli.ts validate example-scrolls"
+
 # CHECK TASKS (AGENTS)
 # ====================
 
 [tasks."check:agents"]
-description = "Verify read-only (typescript, oxlint, oxfmt, plugin-sync), output optimized for AI agents. Writes nothing."
-run = [
-  "mise check:agents:tsc",
-  "mise check:agents:oxlint",
-  "mise check:oxfmt",
-  "mise check:plugin-sync"
-]
+description = "Verify read-only (as `mise check`), output optimized for AI agents. Writes nothing."
+run = ["mise check:agents:tsc", "mise check:agents:oxlint", "mise check:repo"]
 
 [tasks."check:agents:tsc"]
 description = "Type-checks with tsc, output optimized for AI agents."

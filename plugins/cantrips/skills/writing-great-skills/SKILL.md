@@ -90,7 +90,7 @@ Be aggressive — most prose that fails should go, not be rewritten.
 ## Leading words
 
 A **leading word** is a compact concept already living in the model's pretraining that the agent thinks with while running the skill (e.g. _lesson_, _fog of war_, _tracer bullets_).
-Repeated throughout the text (though not necessarily - a strong leading word might only be needed once), it accumulates a distributed definition and anchors a whole region of behaviour in the fewest tokens, by recruiting priors the model already holds.
+Repeated throughout the text (though not necessarily — a strong leading word might only be needed once), it accumulates a distributed definition and anchors a whole region of behaviour in the fewest tokens, by recruiting priors the model already holds.
 
 It serves predictability twice.
 In the body it anchors _execution_: the agent reaches for the same behaviour every time the word appears.
@@ -105,6 +105,11 @@ Examples include:
 
 You win twice over: fewer tokens, _and_ a sharper hook for the agent to hang its thinking on.
 Assume every skill is carrying restatements that leading words retire — go find them.
+
+## Pipeline closings
+
+A skill that hands off to the next step of a loop ends on a **flow pointer**.
+Author that closing to carry the next step and its rationale, mark a user-invoked target `(user-invoked)`, and point the agent at the shared presentation format ([`flow-pointers.md`](flow-pointers.md)) rather than restating it.
 
 ## Failure modes
 

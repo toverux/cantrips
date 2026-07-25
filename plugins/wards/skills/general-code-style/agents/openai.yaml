@@ -1,5 +1,0 @@
-interface:
-  display_name: 'General Code Style'
-  short_description: 'Language-agnostic style rules, loaded before writing code'
-policy:
-  allow_implicit_invocation: true

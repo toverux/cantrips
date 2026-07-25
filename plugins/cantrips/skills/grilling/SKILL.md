@@ -25,9 +25,9 @@ When a decision needs empirical evidence rather than debate, propose `/prototype
 ## Closing
 
 The interview is done when every branch of the decision tree is resolved.
-Close with a single sentence stating that shared understanding is reached — no summary — then recommend the next step and wait for my go-ahead:
+Close with a single sentence stating that shared understanding is reached — no summary — then recommend the next step as a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)) and wait for my go-ahead:
 
-- `/spec` when the outcome is a feature worth a written contract — in this session, since it synthesizes the interview; implementation then starts fresh.
-- `/implement` directly when it's a small fix that needs no spec — in this session, which already carries the context.
+- `/spec` (user-invoked) when the outcome is a feature worth a written contract — in this session, since it synthesizes the interview; implementation then starts fresh.
+- `/implement` (user-invoked) directly when it's a small fix that needs no spec — in this session, which already carries the context.
 - `/prototype` when an unresolved question survived the interview and needs empirical evidence — in this session, feeding the verdict back here.
 - `/research` when an unresolved question needs facts from primary sources — it runs in the background while this session continues.

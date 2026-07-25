@@ -90,4 +90,4 @@ Avoid specific file paths or code snippets in tickets — they go stale fast.
 Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype.
 Trim to the decision-rich parts — not a working demo, just the important bits.
 
-Tickets written → next: `/implement`, one ticket per fresh context window, working the **frontier** — any ticket whose blockers are all done (for a purely linear chain, top to bottom).
+Tickets written → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/implement` (user-invoked), one ticket per fresh context window, working the **frontier** — any ticket whose blockers are all done (for a purely linear chain, top to bottom).
