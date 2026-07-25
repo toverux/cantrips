@@ -1,6 +1,6 @@
 {
   "name": "grimoire",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Workspace root: lint/format tooling and git hooks for the grimoire agent-skills marketplace",
   "license": "MIT",
