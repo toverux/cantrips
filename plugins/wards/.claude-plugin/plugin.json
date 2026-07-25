@@ -1,6 +1,6 @@
 {
   "name": "wards",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Agent-driven scroll installer for coding agents (Claude Code, Codex CLI): transcribes rules, hooks, and templates (\"scrolls\") from any git repository into your project or user config, recording provenance so updates pull upstream improvements without erasing your local customizations. Protective spells that trigger at a boundary.",
   "author": {
     "name": "Morgan Touverey Quilling"
