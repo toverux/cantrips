@@ -1,5 +1,5 @@
 {
-  "name": "grimoire",
+  "name": "cantrips",
   "owner": {
     "name": "Morgan Touverey Quilling"
   },
@@ -8,17 +8,9 @@
       "name": "cantrips",
       "source": {
         "source": "local",
-        "path": "./plugins/cantrips"
+        "path": "./"
       },
       "description": "The core engineering loop for coding agents (Claude Code, Codex CLI): grill, spec, tickets, implement with TDD at agreed seams, review, commit, plus a user-gated compound step that turns session learnings into durable project memory. Basic spells a caster always has prepared."
-    },
-    {
-      "name": "wards",
-      "source": {
-        "source": "local",
-        "path": "./plugins/wards"
-      },
-      "description": "Agent-driven scroll installer for coding agents (Claude Code, Codex CLI): transcribes rules, hooks, and templates (\"scrolls\") from any git repository into your project or user config, recording provenance so updates pull upstream improvements without erasing your local customizations. Protective spells that trigger at a boundary."
     }
   ]
 }

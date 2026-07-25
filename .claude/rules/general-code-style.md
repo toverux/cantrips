@@ -1,1 +1,0 @@
-../../.agents/rules/general-code-style.md

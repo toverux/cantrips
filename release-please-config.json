@@ -1,46 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-  "separate-pull-requests": false,
+  "release-type": "simple",
+  "include-component-in-tag": false,
+  "bootstrap-sha": "3e69f802bf5ba66dab178ff6979b4fbd9f2fa24e",
   "packages": {
-    "plugins/cantrips": {
-      "release-type": "node",
-      "component": "cantrips",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": false,
+    ".": {
       "extra-files": [
-        {
-          "type": "json",
-          "path": ".claude-plugin/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": ".codex-plugin/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": "/package.json",
-          "jsonpath": "$.version"
-        }
-      ]
-    },
-    "plugins/wards": {
-      "release-type": "node",
-      "component": "wards",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": false,
-      "extra-files": [
-        {
-          "type": "json",
-          "path": ".claude-plugin/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": ".codex-plugin/plugin.json",
-          "jsonpath": "$.version"
-        }
+        { "type": "json", "path": ".claude-plugin/plugin.json", "jsonpath": "$.version" },
+        { "type": "json", "path": ".codex-plugin/plugin.json", "jsonpath": "$.version" }
       ]
     }
   }
