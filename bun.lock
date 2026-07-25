@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "grimoire",
+      "name": "cantrips",
       "devDependencies": {
         "@toverux/blanc-hopital": "^3.0.0",
         "@types/node": "^24.13.3",

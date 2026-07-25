@@ -1,14 +1,3 @@
-// ward:
-//   kind: hook
-//   description: Flag source lines exceeding the 100-character limit right after an edit.
-//   version: 1.0.0
-//   scope: project
-//   event: fires-after-file-edit
-//   provenance:
-//     - source: toverux/grimoire
-//       path: example-scrolls/check-line-length.ts
-//       version: 1.0.0
-
 // oxlint-disable node/no-sync -- one-shot hook process, synchronous IO is intentional.
 // oxlint-disable unicorn/no-process-exit -- the hook protocol communicates via exit codes.
 

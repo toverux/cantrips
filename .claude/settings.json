@@ -1,7 +1,6 @@
 {
   "enabledPlugins": {
-    "cantrips@grimoire": true,
-    "wards@grimoire": true
+    "cantrips@cantrips": true
   },
   "hooks": {
     "PostToolUse": [

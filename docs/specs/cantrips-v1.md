@@ -1,28 +1,21 @@
-# Grimoire v1
+# Cantrips v1
 
 Status: approved spec, pending implementation.
 Origin: grilling interview of 2026-07-22 (Q1–Q19 + amendments), audited for completeness by a separate agent.
 
 ## Vision
 
-Convert this repo (`toverux-skills`, to be renamed **`toverux/grimoire`**) into a multi-plugin, multi-harness (Claude Code + Codex CLI) marketplace of curated agent skills.
+Convert this repo (`toverux-skills`, to be renamed **`toverux/cantrips`**) into a multi-harness (Claude Code + Codex CLI) plugin repository of curated agent skills.
 The core plugin, **`cantrips`**, implements a coherent engineering loop forked from the best of [mattpocock/skills](https://github.com/mattpocock/skills) (MIT) and [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) (MIT): Pocock-style drivers with Compound-Engineering-style learning capture.
-Satellite plugins ship enforcement hooks and language style skills.
 
 Community-validated thesis: "Pocock to steer, CE-style pipeline to execute and remember."
 
 ## Identity
 
-- Repo: `toverux/grimoire` (rename of `toverux-skills`).
-  Marketplace name: **`grimoire`**.
-- Plugins (each under `plugins/<name>/`):
-  - **`cantrips`** — the core engineering loop (this spec's main subject).
-    "Basic spells a caster always has prepared."
-  - **`wards`** — style guard: the `general-code-style` skill + the `check-line-length` hook (rewritten in TypeScript).
-    "Protective spells that trigger at a boundary."
-  - **`typescript`** — TypeScript style skill(s).
-  - **`csharp`** — C# style skill(s).
-- Future plugins are plainly named (`<topic>@grimoire`).
+- Repo: `toverux/cantrips` (rename of `toverux-skills`).
+  Catalog name: **`cantrips`**; the repository is both the catalog and the single plugin it publishes.
+- **`cantrips`** — the core engineering loop (this spec's main subject).
+  "Basic spells a caster always has prepared."
 - Skill names are plain and verb-like (`/spec`, `/implement`, `/compound`); the plugin namespace disambiguates.
   Renames from upstream (`to-spec` → `spec`, `ce-commit` → `commit`) are deliberate: these are forks, not mirrors.
 
@@ -57,7 +50,7 @@ Small-tier bug fixes get a failing repro test first; otherwise judgment (per `ge
 2. `code-review` (fork of Pocock's) — the gate.
    Two axes in parallel subagents:
    - **Spec axis** reads `docs/specs/<feature>.md`.
-   - **Standards axis** reads the project's documented standards wherever they live: `AGENTS.md`, project-local rules if present, and loaded style skills (wards / language plugins).
+   - **Standards axis** reads the project's documented standards wherever they live: `AGENTS.md`, project-local rules if present, and any loaded style skills.
 3. Cross-model review (Codex plugin) mentioned as an _option_ for high-stakes changes, never mandatory.
 
 ## The compounding system (cantrips)
@@ -116,38 +109,20 @@ All changes user-gated.
 | `general-guidelines`            | model      | existing own                             | Unchanged.                                                                                      |
 | `teach`                         | user       | Pocock `teach`                           | Forked close to upstream; orthogonal to the pipeline.                                           |
 
-## Satellite plugins
-
-### `wards`
-
-- `general-code-style` skill: fork of the current rule (line breaks, 100-char limit, comments, docblocks).
-  Model-invoked with a strong description mandating load **before writing or editing code** — never on read-only sessions.
-- `check-line-length` hook: rewritten in **TypeScript on Node** (current bash+jq+awk is not Windows-portable).
-  Same behavior (PostToolUse warning with offending line numbers, suppression exemptions).
-  Per-project tuning via an optional project config file read by the hook (plugin hooks get no per-project env); per-project opt-out via plugin enablement.
-- Any hook written in JS/TS (this one and future ones) uses the [`@toverux/blanc-hopital`](https://github.com/toverux/blanc-hopital-config) npm package **directly as a dependency** (extends-style shared configs).
-  Consumption examples in `../HallOfFameServer` (up-to-date, `@toverux/blanc-hopital` v3: `oxfmt.config.ts`, `oxlint.config.ts`, and `tsconfig.json` extending the package's presets).
-
-### `typescript` and `csharp`
-
-- Current rules become ordinary model-invoked skills with strong descriptions mandating load before writing/editing the target language (same "write-trigger, not read-trigger" principle).
-- The two TypeScript variants (with/without `nn()`/`ensure*()` helpers) collapse into **one** skill that detects whether the project has the helpers.
-- Content is revised (not just ported) during the move.
-
 ## Repo infrastructure
 
 Structural template: `../coherent-gameface-mcp` (analyzed; recipe on file).
 Concretely:
 
-- `plugins/<name>/.claude-plugin/plugin.json` + `plugins/<name>/.codex-plugin/plugin.json` with identical shared metadata (Codex manifest is a superset; `./`-relative component pointers).
-- Root `.claude-plugin/marketplace.json` (string sources `./plugins/<name>`) + root `.agents/plugins/marketplace.json` (object-form sources) with identical entries.
-- Single shared `skills/` tree per plugin — both harnesses auto-discover it.
+- Root `.claude-plugin/plugin.json` + root `.codex-plugin/plugin.json` with identical shared metadata (the Codex manifest is a superset).
+- Root `.claude-plugin/marketplace.json` (Claude Code's plugin catalog; string source `./`) + root `.agents/plugins/marketplace.json` (Codex CLI's, object-form source) with identical entries.
+- Single shared root `skills/` tree — both harnesses auto-discover it.
   No MCP servers, so the dual-mcp.json machinery is not needed.
 - One `AGENTS.md` per relevant level with committed relative symlink `CLAUDE.md → AGENTS.md` (Claude Code reads CLAUDE.md, not AGENTS.md; symlink-capable checkout assumed, as in the template repo).
-- Sync-check script (modeled on the template's `check-plugin-sync.ts`): deep-equal shared manifest fields, marketplace-pair consistency, version anchors.
+- Sync-check script (modeled on the template's `check-plugin-sync.ts`): deep-equal shared manifest fields, catalog-pair consistency, version anchors.
   Wired into CI and pre-commit.
-- **release-please** integration, per-plugin versioning (template repo demonstrates the manifest setup).
-- Versioning: existing per-skill semver `version` frontmatter continues (unofficial field, ignored by loaders, harmless); plugin versions in `plugin.json`.
+- **release-please** integration, one release unit for the repo (template repo demonstrates the manifest setup).
+- Versioning: existing per-skill semver `version` frontmatter continues (unofficial field, ignored by loaders, harmless); the plugin version lives in `plugin.json`.
 - Repo-root assets that are _not_ plugin components: `agents-md-template.md` (updated to reference `docs/specs/`, `docs/solutions/`, the AGENTS.md glossary section and CONCEPTS.md graduation).
   The old `rules/` and `hooks/` dirs dissolve into the plugins per this spec.
 - The repo is formatted with **oxfmt** (Markdown and JS/TS alike), consuming [`@toverux/blanc-hopital`](https://github.com/toverux/blanc-hopital-config)'s configuration directly (see `../HallOfFameServer`'s `oxfmt.config.ts` for the consumption example); wire it into the pre-commit/CI checks alongside the sync check.
@@ -162,15 +137,15 @@ Concretely:
 ## Distributability (design principle)
 
 Every plugin must be installable by _anybody_: no user-specific paths, names, or personal conventions inside skill bodies.
-Morgan's personalization (e.g. pointing compound's "personal skills collection" at the local grimoire checkout) lives in their user-global `CLAUDE.md`, never in the plugins.
+Morgan's personalization (e.g. pointing compound's "personal skills collection" at the local cantrips checkout) lives in their user-global `CLAUDE.md`, never in the plugins.
 
 ## Docs deliverables
 
-- `README.md` rewritten: grimoire marketplace, **cantrips front and center** (the loop, a diagram of the tiers, install instructions for both harnesses), satellite plugins documented secondarily, migration note (uninstall the upstream Pocock/CE installs cantrips replaces).
+- `README.md` rewritten: **cantrips front and center** (the loop, a diagram of the tiers, install instructions for both harnesses), migration note (uninstall the upstream Pocock/CE installs cantrips replaces).
   Presentation matters: sexy, skimmable markdown — strong visual hierarchy, clear plain language, tasteful use of GitHub-flavored features (tables, callouts, badges where they earn their place).
   A reader should get the pitch in 30 seconds of scanning and the details on a second pass.
 - `IDEAS.md` — analyzed-but-deferred, mostly team/big-project-scale, with a note on when each becomes worth adopting: wayfinder (adapted-to-local-files design sketched in the interview), `triage`, `babysit-pr` + `resolve-pr-feedback`, CE `brainstorm`/`plan`/`work`/`lfg`, per-repo setup skill + issue-tracker override, standalone domain-modeling discipline, skill-creator eval harness as a permanent test bench, `paths:` frontmatter experiment for rule-like skills.
-- Root `AGENTS.md` (with committed `CLAUDE.md → AGENTS.md` symlink) authored for **maintaining this repo with agents** going forward: repo layout and where each kind of component lives; how to add or revise a skill (write against `writing-great-skills`, provenance frontmatter, version bump, flow-pointers, distributability rule); how the dual-manifest/marketplace pairs stay in sync (the check script) and how releases work (release-please); pointer to this spec and to `IDEAS.md`.
+- Root `AGENTS.md` (with committed `CLAUDE.md → AGENTS.md` symlink) authored for **maintaining this repo with agents** going forward: repo layout and where each kind of component lives; how to add or revise a skill (write against `writing-great-skills`, provenance frontmatter, version bump, flow-pointers, distributability rule); how the dual-manifest/catalog pairs stay in sync (the check script) and how releases work (release-please); pointer to this spec and to `IDEAS.md`.
   Follows `agents-md-template.md` where it fits.
   The point: a fresh session in this repo should be able to maintain it correctly from AGENTS.md alone.
 - This spec stays in `docs/specs/` (dogfooding the convention).

@@ -1,15 +1,4 @@
 ---
-ward:
-  kind: rule
-  description: Language-agnostic code style — line breaks, the 100-character limit, comments, docblocks.
-  version: 1.0.0
-  applicability:
-    - '**/*'
-  scope: project
-  provenance:
-    - source: toverux/grimoire
-      path: example-scrolls/general-code-style.md
-      version: 1.0.0
 paths:
   - '**/*'
 ---

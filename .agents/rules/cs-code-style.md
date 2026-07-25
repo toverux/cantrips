@@ -1,15 +1,4 @@
 ---
-ward:
-  kind: rule
-  description: C# style — language level, member declaration style, type choice, and naming.
-  version: 1.0.0
-  applicability:
-    - '**/*.cs'
-  scope: project
-  provenance:
-    - source: toverux/grimoire
-      path: example-scrolls/cs-code-style.md
-      version: 1.0.0
 paths:
   - '**/*.cs'
 ---

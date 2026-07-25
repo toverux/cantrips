@@ -1,20 +1,20 @@
-# Multi-harness plugin integrations for grimoire
+# Multi-harness plugin integrations for cantrips
 
 Research date: 2026-07-22. All sources checked on that date against official docs, GitHub repos, and
 changelogs. Facts are cited; anything marked _unverified_ could not be confirmed in a primary source
 and must not be assumed.
 
-Context: grimoire currently serves two harnesses from one tree — Claude Code
-(`.claude-plugin/marketplace.json` + `plugins/<name>/.claude-plugin/plugin.json`) and Codex CLI
-(`.agents/plugins/marketplace.json` + `plugins/<name>/.codex-plugin/plugin.json`), with one shared
-`plugins/<name>/skills/<skill>/SKILL.md` tree. The question: which other harnesses could the same
+Context: cantrips currently serves two harnesses from one tree — Claude Code
+(`.claude-plugin/marketplace.json` + `.claude-plugin/plugin.json`) and Codex CLI
+(`.agents/plugins/marketplace.json` + `.codex-plugin/plugin.json`), with one shared
+`skills/<skill>/SKILL.md` tree at the repo root. The question: which other harnesses could the same
 repo serve, and at what cost.
 
 ## Summary table
 
 | Harness                              | Skills support                                                     | Manifest needed                                                                  | Marketplace story                                                                             | Hooks (PostToolUse-like)                                                          | Integration cost                                                  |
 | ------------------------------------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| GitHub Copilot CLI                   | Native SKILL.md (open standard)                                    | `plugin.json` at plugin root; `.claude-plugin/` reportedly read too              | Git-based `marketplace.json`; `.claude-plugin/` location recognized — grimoire may work as-is | Yes: `postToolUse` (+ pre, session, error)                                        | Very low, possibly zero                                           |
+| GitHub Copilot CLI                   | Native SKILL.md (open standard)                                    | `plugin.json` at plugin root; `.claude-plugin/` reportedly read too              | Git-based `marketplace.json`; `.claude-plugin/` location recognized — cantrips may work as-is | Yes: `postToolUse` (+ pre, session, error)                                        | Very low, possibly zero                                           |
 | Google Antigravity (IDE + `agy` CLI) | Native SKILL.md inside plugins                                     | `plugin.json` at plugin root (only `name` required)                              | None; `agy plugin install <git-url\|path>` per plugin                                         | Yes: `hooks.json` (events not enumerated in docs)                                 | Low (one additive file per plugin)                                |
 | Goose (Block)                        | Native SKILL.md; reads `.agents/skills`, `.claude/skills`          | `plugin.json` at plugin root ("Open Plugins")                                    | None central; `goose plugin install <git-url>`; also consumes Gemini extensions               | Yes: `hooks/hooks.json` with `PostToolUse`, matchers, `${PLUGIN_ROOT}`            | Low (same root manifest as Antigravity)                           |
 | Cursor (IDE + CLI)                   | Native SKILL.md incl. `disable-model-invocation`                   | `.cursor-plugin/plugin.json` per plugin + root `.cursor-plugin/marketplace.json` | Central marketplace with human review; team marketplaces on paid plans                        | Yes: `hooks/hooks.json` (agent lifecycle events)                                  | Low files / medium distribution (review gate)                     |
@@ -32,11 +32,11 @@ products on the official site, including every harness investigated here except 
 support SKILL.md natively. Sources: https://agentskills.io/home (adopter carousel with per-product
 doc links), https://github.com/agentskills/agentskills.
 
-Two de-facto conventions matter to grimoire:
+Two de-facto conventions matter to cantrips:
 
 - **`.agents/skills/`** is the cross-tool skills directory. Read natively by Gemini CLI, Cursor,
   Copilot, Goose, Amp, Crush, and OpenCode (Factory reads a `.agent/` compatibility folder —
-  singular in its docs). Grimoire's skills live in `plugins/<name>/skills/`, so this mostly matters
+  singular in its docs). Cantrips' skills live in `skills/`, so this mostly matters
   for _consumers_ who vendor skills, not for the repo layout.
 - **A root `plugin.json` per plugin directory** is converging as a shared plugin manifest:
   Antigravity, Goose "Open Plugins", and Copilot CLI all expect `plugin.json` at the plugin root
@@ -49,7 +49,7 @@ ships, from one repo: `.claude-plugin/` (plugin + marketplace), `.codex-plugin/`
 `.agents/plugins/marketplace.json` (Codex), an `.agy/` bundle for Antigravity CLI, and an
 `.opencode/` JS plugin that registers its skills directory. Verified by listing the repo contents
 via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$schema`, `name`,
-`version`, `description`) — the same shared fields grimoire already syncs.
+`version`, `description`) — the same shared fields cantrips already syncs.
 
 ## Per-harness details
 
@@ -66,9 +66,9 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
   and .../how-tos/copilot-cli/customize-copilot/plugins-creating
 - Marketplace: any git repo with a `marketplace.json` (name, owner, metadata, `plugins[]` with
   relative `source` paths). The docs state the file may live in `.github/plugin` **and that
-  `.claude-plugin/` is recognized as an alternative location** — i.e. grimoire's existing
+  `.claude-plugin/` is recognized as an alternative location** — i.e. cantrips' existing
   `.claude-plugin/marketplace.json` should be registrable via
-  `copilot plugin marketplace add toverux/grimoire`.
+  `copilot plugin marketplace add toverux/cantrips`.
   Source: https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace
 - A third-party writeup reports Copilot CLI also reads `.claude-plugin/plugin.json` inside plugin
   dirs and ignores unknown fields (https://cora7.com/blog/copilot-cli-plugin-portability/) —
@@ -76,8 +76,8 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
   Antigravity/Goose.
 - Hooks: JSON files in `.github/hooks/` (repo-wide) or plugin `hooks.json`; events `sessionStart`,
   `sessionEnd`, `userPromptSubmitted`, `preToolUse`, `postToolUse`, `errorOccurred`. camelCase, not
-  Claude's PascalCase; the wards hook would need a small config translation, the TS script itself
-  can likely be reused. Source: https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-hooks
+  Claude's PascalCase; a Claude-style hook would need a small config translation, the TS script
+  itself can likely be reused. Source: https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-hooks
 - Status: Copilot CLI GA 2026-02-25 (github.blog changelog); enterprise-managed plugins public
   preview 2026-05-06.
 
@@ -95,7 +95,7 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
   subdirectory of a multi-plugin repo is _unverified_ — EveryInc's repo root _is_ the plugin, so
   their one-command install does not answer it; the documented fallback is clone +
   `agy plugin install ./repo/plugins/<name>`.
-- Note: grimoire's `.agents/plugins/marketplace.json` (Codex) sits in the directory Antigravity
+- Note: cantrips' `.agents/plugins/marketplace.json` (Codex) sits in the directory Antigravity
   scans for workspace plugins; a lone JSON file without a plugin dir should be ignored, but this
   cohabitation is _untested_.
 - Hooks: `hooks.json` supported ("intercept agent actions right before or immediately after
@@ -119,8 +119,8 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
   Source: https://goose-docs.ai/docs/guides/context-engineering/plugins
 - Hooks: 10 lifecycle events including `PreToolUse`, `PostToolUse`, `PostToolUseFailure`,
   `AfterFileEdit`, `AfterShellExecution`; config shape is strikingly Claude-like (`matcher` regex,
-  `hooks: [{type: "command", command: "${PLUGIN_ROOT}/…"}]`) and ships inside plugins — the wards
-  hook ports with minor config edits, assuming Node is present on the user's machine.
+  `hooks: [{type: "command", command: "${PLUGIN_ROOT}/…"}]`) and ships inside plugins — a
+  Claude-style hook ports with minor config edits, assuming Node is present on the user's machine.
   Source: https://goose-docs.ai/docs/guides/context-engineering/hooks
 
 ### Cursor
@@ -134,8 +134,8 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
   optional metadata fields as Claude's manifest, plus `logo`, component paths, `variables`);
   multi-plugin repos declare a root `.cursor-plugin/marketplace.json` (`name`, `owner`, `plugins[]`
   with `source` paths — same shape as Claude's, max 500 entries). Auto-discovery of `skills/`,
-  `rules/`, `agents/`, `commands/`, `hooks/hooks.json` inside the plugin dir; note grimoire's
-  skills are at `plugins/<name>/skills/`, which matches.
+  `rules/`, `agents/`, `commands/`, `hooks/hooks.json` inside the plugin dir; note cantrips'
+  skills are at `skills/`, which matches.
   Sources: https://cursor.com/docs/reference/plugins, https://github.com/cursor/plugins
 - Distribution: submission to https://cursor.com/marketplace/publish with review by the Cursor
   team; public git hosting required. Teams/Enterprise get private marketplaces. Whether an end user
@@ -150,8 +150,8 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
 - Skills: four tiers (built-in, extension, user `~/.gemini/skills/` or `~/.agents/skills/`,
   workspace `.gemini/skills/` or `.agents/skills/`); `.agents/skills` wins within a tier. Commands:
   `gemini skills list/install/uninstall`, `/skills enable|disable|reload`; install takes a git URL
-  with `--path` for a subdirectory — so individual grimoire skills are installable **today**:
-  `gemini skills install https://github.com/toverux/grimoire --path plugins/cantrips/skills/tdd`
+  with `--path` for a subdirectory — so individual cantrips skills are installable **today**:
+  `gemini skills install https://github.com/toverux/cantrips --path skills/tdd`
   (exact flag usage _unverified_ beyond the docs' mention of `--path`). Skills activate behind a
   per-skill consent prompt; no `disable-model-invocation` documented.
   Source: https://geminicli.com/docs/cli/skills/
@@ -159,7 +159,7 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
   mcpServers, settings, themes, etc. optional); bundle `skills/`, `commands/`, `hooks/hooks.json`,
   `policies/`. Install: `gemini extensions install <github-url|local path> [--ref --auto-update]`.
   Curated gallery at geminicli.com/extensions. One-repo-many-extensions is not documented;
-  installing an extension from a repo subdirectory is _unverified_ — grimoire would likely need
+  installing an extension from a repo subdirectory is _unverified_ — cantrips would likely need
   either one extension per plugin in separate installs from a local clone, or to accept
   skills-level (not plugin-level) distribution. Source: https://geminicli.com/docs/extensions/reference
 - Hooks: official hooks system in `settings.json` and extension `hooks/hooks.json`; tool events are
@@ -178,10 +178,10 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
 - Plugins: JS/TS modules loaded from `.opencode/plugins/`, `~/.config/opencode/plugins/`, or the
   `"plugin"` array in opencode.json — which accepts npm packages **and git URLs**
   (`name@git+https://…#tag`, as EveryInc's install doc demonstrates). A ~30-line plugin can
-  register grimoire's `plugins/*/skills/` directories (EveryInc does exactly this).
+  register cantrips' `skills/` directory (EveryInc does exactly this).
   Source: https://opencode.ai/docs/plugins/
 - Hooks: plugin event API includes `tool.execute.before/after`, `file.edited`, permission events —
-  a wards port is possible but as TypeScript against OpenCode's API, not a portable hooks.json.
+  a hook port is possible but as TypeScript against OpenCode's API, not a portable hooks.json.
 
 ### Amp (Sourcegraph)
 
@@ -193,7 +193,7 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
   function over `PluginAPI`; events `session.start`, `agent.start/end`, `tool.call`,
   `tool.result`; can register tools/commands/UI ("Plugins, Everywhere", 2026-05-28,
   https://ampcode.com/news/plugins-everywhere). No install-from-git distribution documented.
-- For grimoire: nothing additive to ship; Amp users get grimoire skills by copying/symlinking into
+- For cantrips: nothing additive to ship; Amp users get cantrips skills by copying/symlinking into
   `.agents/skills/`. `disable-model-invocation` support _unverified_ (not in the manual's field
   list).
 
@@ -214,7 +214,7 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
   `~/.config/crush/skills/`, `~/.agents/skills/`, `~/.claude/skills/` (+ Windows LocalAppData
   variants); project paths `.agents/skills`, `.crush/skills`, `.claude/skills`, `.cursor/skills`;
   extra dirs via `options.skills_paths` (relative paths resolve from project root — a consuming
-  project could point at a vendored grimoire checkout). `disable-model-invocation` is honored
+  project could point at a vendored cantrips checkout). `disable-model-invocation` is honored
   (present in README and `internal/skills/skills.go`); `options.disabled_skills` hides skills.
   Source: https://github.com/charmbracelet/crush README (skills section), checked via API.
 - No plugin system, no marketplace, no hooks documented. Nothing additive to ship.
@@ -223,44 +223,44 @@ via the GitHub API on 2026-07-22. Their Antigravity manifest is four fields (`$s
 
 - `disable-model-invocation`: honored by Claude Code, Cursor, Factory, Crush. Absent from OpenCode
   (permission config instead), Gemini CLI (consent prompts instead), and undocumented for Copilot,
-  Goose, Amp, Antigravity. Per the open spec, unknown keys are tolerated, so grimoire's
+  Goose, Amp, Antigravity. Per the open spec, unknown keys are tolerated, so cantrips'
   `version`/`source` keys and `disable-model-invocation` are safe everywhere; user-invoked-only
   semantics just degrade to model-invocable on harnesses that ignore the key.
-- The wards `check-line-length` hook is TypeScript run via Node type-stripping. Every hooks-capable
+- This repo's `check-line-length` hook is TypeScript run via Node type-stripping. Every hooks-capable
   harness above runs arbitrary shell commands, so the script reuses; only the hook _config_ format
   differs (event name casing, matcher semantics, `${PLUGIN_ROOT}`-style variables).
 
 ## Recommendation
 
-Ranked by value for cost, for grimoire specifically:
+Ranked by value for cost, for cantrips specifically:
 
 1. **GitHub Copilot CLI — do first.** Potentially zero repo changes: the existing
    `.claude-plugin/marketplace.json` location is recognized, and plugin dirs may already resolve.
-   Action: test `copilot plugin marketplace add toverux/grimoire` + `/plugin install cantrips`;
-   if plugin manifests fail, the fix is item 2's root `plugin.json`. Hooks port for wards is a
-   small `hooks.json` translation (camelCase events). Largest reachable audience per unit effort.
+   Action: test `copilot plugin marketplace add toverux/cantrips` + `/plugin install cantrips`;
+   if plugin manifests fail, the fix is item 2's root `plugin.json`. Porting a hook is a small
+   `hooks.json` translation (camelCase events). Largest reachable audience per unit effort.
 2. **Shared root `plugin.json` per plugin — cheap triple play.** One additive file
-   `plugins/<name>/plugin.json` (`$schema` antigravity, `name`, `version`, `description` — fields
-   grimoire already syncs) simultaneously satisfies Antigravity, Goose Open Plugins, and Copilot
+   `plugin.json` at the repo root (`$schema` antigravity, `name`, `version`, `description` — fields
+   cantrips already syncs) simultaneously satisfies Antigravity, Goose Open Plugins, and Copilot
    CLI's documented manifest location. Extend `check-plugin-sync.ts` and release-please
    `extra-files` to cover it. Caveat: per-plugin install from a multi-plugin repo is unverified for
-   `agy` and `goose` (clone + local-path install definitely works); Goose additionally gets the
-   wards hook almost for free via `hooks/hooks.json` (`PostToolUse`, `${PLUGIN_ROOT}`).
-3. **Cursor plugins — high value, one process gate.** Add `plugins/<name>/.cursor-plugin/plugin.json`
+   `agy` and `goose` (clone + local-path install definitely works); Goose additionally runs
+   Claude-style plugin hooks almost for free via `hooks/hooks.json` (`PostToolUse`, `${PLUGIN_ROOT}`).
+3. **Cursor plugins — high value, one process gate.** Add a root `.cursor-plugin/plugin.json`
    (same fields as the Claude manifest, so sync-check extension is trivial) and a root
    `.cursor-plugin/marketplace.json` mirroring the existing ones. Cost is mostly the
    cursor.com/marketplace review submission; big audience once listed. Skills-only users can
-   already consume grimoire via `.agents/skills` copies today.
+   already consume cantrips via `.agents/skills` copies today.
 4. **Gemini CLI — partial support is already free; full support is medium.** Document
    `gemini skills install <repo> --path plugins/<plugin>/skills/<skill>` now. Full plugin parity
    needs a `gemini-extension.json` per plugin plus an answer to subdirectory installs (open
    question); revisit when Antigravity/Gemini plugin stories converge (both are Google, both scan
    `.agents/`-family paths).
 5. **OpenCode — small shim, decent payoff.** A tiny committed JS plugin (EveryInc pattern) that
-   registers `plugins/*/skills/`, installed via `"plugin": ["grimoire@git+https://…"]`. Also the
-   only route to a wards-equivalent there (`tool.execute.after`).
+   registers `skills/`, installed via `"plugin": ["cantrips@git+https://…"]`. Also the
+   only route to a hook equivalent there (`tool.execute.after`).
 6. **Amp, Factory, Crush — documentation only.** No packaging/manifest exists to target; add a
-   README section telling users to copy or symlink `plugins/<name>/skills/*` into `.agents/skills/`
+   README section telling users to copy or symlink `skills/*` into `.agents/skills/`
    (works for all three plus most others). Zero repo restructuring; low ongoing cost.
 
 Nothing investigated requires restructuring the tree: every viable integration is additive files
@@ -270,7 +270,7 @@ worth extending `check-plugin-sync.ts` before adding any of them.
 
 ### Open questions
 
-- Does `copilot plugin install` resolve grimoire's `.claude-plugin/plugin.json` manifests, or does
+- Does `copilot plugin install` resolve cantrips' `.claude-plugin/plugin.json` manifests, or does
   it require root `plugin.json`? (Primary docs say root; a secondary source says `.claude-plugin/`
   works. Test empirically.)
 - Can `agy plugin install` and `goose plugin install` target a subdirectory of a multi-plugin git

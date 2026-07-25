@@ -1,33 +1,33 @@
 # /review-gate — the merged review skill (and the /grilling rename)
 
 Decision record of the 2026-07 grill-me interview that replaced `/code-review` with `/review-gate` and renamed `/grill-me` to `/grilling`.
-Supersedes the `code-review` rows of [grimoire-v1.md](grimoire-v1.md).
+Supersedes the `code-review` rows of [cantrips-v1.md](cantrips-v1.md).
 
 ## Problem Statement
 
-Grimoire's `/code-review` skill collided with Claude Code's built-in `/code-review`, so the harness surfaced both (`/code-review` and `/cantrips:code-review`) and the user had to disambiguate every time.
-The user strongly preferred the built-in's behavior — a multi-angle finder/verifier pipeline — but the built-in is Claude-Code-only (grimoire also targets Codex CLI), is proprietary (no verbatim reuse), and has no notion of a spec, so it cannot catch "built the wrong thing correctly".
+Cantrips' `/code-review` skill collided with Claude Code's built-in `/code-review`, so the harness surfaced both (`/code-review` and `/cantrips:code-review`) and the user had to disambiguate every time.
+The user strongly preferred the built-in's behavior — a multi-angle finder/verifier pipeline — but the built-in is Claude-Code-only (cantrips also targets Codex CLI), is proprietary (no verbatim reuse), and has no notion of a spec, so it cannot catch "built the wrong thing correctly".
 Keeping both as separate steps would put two review gates in one loop.
 
 ## Solution
 
-One skill, `/review-gate`, that reimplements the built-in reviewer's _architecture_ (finder angles → independent verify → sweep → capped ranked report) in grimoire's own words, merged with the old two-axis skill's distinctive assets: the spec-conformance axis, the Fowler smell baseline, `docs/solutions/` read-back, and the explicit fixed-point argument.
+One skill, `/review-gate`, that reimplements the built-in reviewer's _architecture_ (finder angles → independent verify → sweep → capped ranked report) in cantrips' own words, merged with the old two-axis skill's distinctive assets: the spec-conformance axis, the Fowler smell baseline, `docs/solutions/` read-back, and the explicit fixed-point argument.
 It runs identically on any harness (inline fallback where sub-agents are unavailable) and no longer collides with any built-in name.
 `/grill-me` becomes `/grilling` — model-invokable, with a closing that recommends the next skill and whether to stay in the session.
 
 ## User Stories
 
-1. As a grimoire user, I want a single review step in the loop, so that I never choose between two same-named review skills.
-2. As a grimoire user, I want the review to check the diff against the spec in `docs/specs/`, so that correct-but-wrong implementations are caught.
-3. As a grimoire user, I want finder angles with independent verification, so that findings are high-precision without sacrificing recall.
-4. As a grimoire user, I want an effort ladder (`low`/`medium`/`high`), so that a quick sanity pass and a pre-ship deep review use the same skill.
+1. As a cantrips user, I want a single review step in the loop, so that I never choose between two same-named review skills.
+2. As a cantrips user, I want the review to check the diff against the spec in `docs/specs/`, so that correct-but-wrong implementations are caught.
+3. As a cantrips user, I want finder angles with independent verification, so that findings are high-precision without sacrificing recall.
+4. As a cantrips user, I want an effort ladder (`low`/`medium`/`high`), so that a quick sanity pass and a pre-ship deep review use the same skill.
 5. As a Codex CLI user, I want the review to degrade to a single-pass inline review, so that the loop works without sub-agent support.
-6. As a grimoire user, I want a `--fix` mode, so that surviving findings can be applied immediately after the report.
-7. As a grimoire user, I want finding outcomes re-reported when fixes land later in the session, so that the report never goes stale.
+6. As a cantrips user, I want a `--fix` mode, so that surviving findings can be applied immediately after the report.
+7. As a cantrips user, I want finding outcomes re-reported when fixes land later in the session, so that the report never goes stale.
 8. As a Claude Code user, I want findings reported through the harness's typed findings tool when present, so that the host UI renders them natively.
-9. As a grimoire user, I want design-smell findings expressed in `/codebase-design` vocabulary, so that reviews and design conversations share one language.
-10. As a grimoire user, I want `/grilling` to fire on its own when I ask to have a plan stress-tested, so that I don't have to remember the skill name.
-11. As a grimoire user, I want each pipeline skill to name the next step and whether to start a fresh session, so that the loop navigates itself.
+9. As a cantrips user, I want design-smell findings expressed in `/codebase-design` vocabulary, so that reviews and design conversations share one language.
+10. As a cantrips user, I want `/grilling` to fire on its own when I ask to have a plan stress-tested, so that I don't have to remember the skill name.
+11. As a cantrips user, I want each pipeline skill to name the next step and whether to start a fresh session, so that the loop navigates itself.
 
 ## Implementation Decisions
 
@@ -75,7 +75,7 @@ Verification is: `mise check:agents` (tsc, oxlint, oxfmt, plugin-sync) green, pl
 - Verbatim reuse of the built-in reviewer's text (license) or of its harness plumbing (typed tool schemas, effort flags, workflow engine).
 - A portable equivalent of `/code-review ultra` (cloud multi-agent review).
 - Reproducing the built-in's `low`-level variants (fixed-cap vs `min(files, 4)` targets) — one `low` shape suffices.
-- Renaming any other skill; updating [grimoire-v1.md](grimoire-v1.md) (kept as historical record).
+- Renaming any other skill; updating [cantrips-v1.md](cantrips-v1.md) (kept as historical record).
 
 ## Further Notes
 

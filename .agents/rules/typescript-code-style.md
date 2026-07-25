@@ -1,15 +1,4 @@
 ---
-ward:
-  kind: rule
-  description: TypeScript and JavaScript style — strictness, the type system, nullability, immutability.
-  version: 1.0.0
-  applicability:
-    - '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}'
-  scope: project
-  provenance:
-    - source: toverux/grimoire
-      path: example-scrolls/typescript-code-style.md
-      version: 1.0.0
 paths:
   - '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}'
 ---

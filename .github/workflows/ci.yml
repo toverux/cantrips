@@ -1,4 +1,4 @@
-# Checks that pushed code passes lint/typecheck/format/manifest-sync.
+# Checks that pushed code passes lint/typecheck/format/plugin-sync.
 
 name: ci
 
@@ -15,4 +15,3 @@ jobs:
       - uses: jdx/mise-action@v4
       - run: bun install --frozen-lockfile
       - run: mise check:agents
-      - run: mise test
