@@ -1,6 +1,6 @@
 {
   "name": "cantrips",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "release-please version anchor and dev tooling for the cantrips plugin; the shipped metadata lives in the plugin.json manifests",
   "license": "MIT",
