@@ -2,7 +2,7 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.0.2
+version: 1.0.4
 source: EveryInc/compound-engineering-plugin@3.20.0 (ce-commit)
 ---
 
@@ -50,7 +50,9 @@ In priority order:
 Message discipline, whatever the convention:
 
 - **Subject**: concise, imperative mood, focused on _why_ the change has value, not what changed.
-- **Body**: for non-trivial changes, a blank line then motivation, trade-offs, anything a future reader needs.
+- **Body**: for non-trivial changes, a blank line then the problem the change solves and why this approach — a few short paragraphs at most.
+  The body records _why_ the code is now this way; the diff already shows _how_, and the process — attempts, dead ends, how the change was verified — dies with the session.
+  Write it plain and self-contained: direct declarative sentences a stranger can skim years later, each claim one that stays true about the code; non-obvious trade-offs and costs qualify, the story of the work does not.
   Omit for obvious single-purpose changes.
 - **Formatting details** (wrapping, trailers, sign-offs) follow the repo's documented rules and the user's own global instructions; where neither says anything, keep the message plain prose.
 
@@ -63,10 +65,11 @@ For each group, stage specific files by name — a targeted `git add` keeps sens
 Commit with a heredoc to preserve formatting:
 
 ```bash
-git add file1 file2 && git commit -m "$(cat <<'EOF'
+git add file1 file2 file3 && git commit -m "$(cat <<'EOF'
 type(scope): subject line here
 
-Optional body explaining why this change was made.
+Optional body explaining why this change was made,
+not just what changed.
 EOF
 )"
 ```
