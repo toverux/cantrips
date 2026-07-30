@@ -24,9 +24,10 @@ Check callees too: does a parallel change in the same diff make a call unsafe?
 
 ### Angle D — spec conformance
 
-Compare the diff against the spec identified in Scope.
-Surface: requirements the spec asks for that are missing or partial; behavior the diff adds that the spec never asked for (scope creep); requirements that look implemented but wrongly.
-Quote the spec line for each candidate; anchor location-less candidates to the spec file and requirement line.
+Compare the diff against the spec fetched in Scope, as amended by its annotations — a decision an annotation already revised is not a mismatch, and code matching the revision conforms.
+The spec is a point-in-time decision record, so a candidate presumes neither side is wrong — the code may miss the decision, or the decision may have been revised without the spec being annotated.
+Surface: requirements the spec asks for that the diff leaves missing or partial; behavior the diff adds that the spec never asked for; requirements implemented differently than the spec states.
+Quote the spec line for each candidate; anchor location-less candidates to the spec and its requirement line.
 
 ### Angle E — language-pitfall specialist (high)
 

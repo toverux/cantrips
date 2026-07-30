@@ -1,21 +1,23 @@
 ---
 name: compound-refresh
-description: Garbage-collect the knowledge stores — audit docs/solutions/ and AGENTS.md against the current code.
+description: Garbage-collect the knowledge stores — audit AGENTS.md, and docs/solutions/ where that store is enabled, against the current code.
 argument-hint: '[optional: scope — directory, module, or keyword; blank audits everything]'
 disable-model-invocation: true
-version: 1.0.1
+version: 1.1.0
 source: EveryInc/compound-engineering-plugin@3.20.0 (ce-compound-refresh)
 ---
 
 Audit the knowledge stores against the current codebase and prune what no longer earns its place.
-Two stores: `docs/solutions/` and the project's `AGENTS.md`.
+Two stores: the project's `AGENTS.md`, always, and `docs/solutions/` when the loop config enables it.
+The loop config is `docs/agents/cantrips-loop.md`; when that doc is absent, the solutions store is off.
+The opt-in `docs/adr/` store stays out of scope by design — supersession is its own hygiene mechanism.
 Every change is user-gated.
 
 ## Scope
 
 An argument narrows the sweep to matching `docs/solutions/` docs — try it as a filename, then a frontmatter `area`/`tags` value, then a content keyword.
 No argument → every doc plus `AGENTS.md`.
-If nothing matches, say so in one line and stop.
+`AGENTS.md` is in scope on every run: when the solutions store is off, or no doc matches the argument, say so in one line and audit `AGENTS.md` alone.
 
 ## Audit docs/solutions/
 

@@ -2,7 +2,7 @@
 name: improve-codebase-architecture
 description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 disable-model-invocation: true
-version: 1.0.1
+version: 1.1.0
 source: mattpocock/skills@1.1.0 (improve-codebase-architecture)
 ---
 
@@ -26,7 +26,8 @@ Decide _where_ to look before you look:
 - Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots — the files and areas that keep coming up — and let those paths pull your attention first.
   If the changes are scattered with no clear hot spot, widen the net.
 
-Read the project's domain glossary first, and search `docs/solutions/` for learnings and recorded rejections in the area — decisions already settled there should not be re-litigated.
+Read the project's domain glossary first, then — for whichever of the two stores the loop config enables — search `docs/adr/` for standing decisions and `docs/solutions/` for learnings and recorded rejections in the area: decisions already settled there should not be re-litigated.
+The loop config is `docs/agents/cantrips-loop.md`; when that doc is absent, both stores are off and neither search runs.
 
 Then dispatch an exploration subagent to walk the codebase.
 Don't follow rigid heuristics — explore organically and note where you experience friction:
@@ -65,7 +66,7 @@ End the report with a **Top recommendation** section: which candidate you'd tack
 **Use the project's domain glossary for the domain, and the `/codebase-design` vocabulary for the architecture.**
 If the glossary defines "Order," talk about "the Order intake module" — not "the FooBarHandler," and not "the Order service."
 
-**Settled-decision conflicts**: if a candidate contradicts a decision recorded in `docs/solutions/`, only surface it when the friction is real enough to warrant revisiting the decision.
+**Settled-decision conflicts**: if a candidate contradicts a decision recorded in an enabled store — a `docs/adr/` record or a `docs/solutions/` rejection — only surface it when the friction is real enough to warrant revisiting the decision.
 Mark it clearly in the card (e.g. a warning callout: _"contradicts a recorded rejection — but worth reopening because…"_).
 
 See [HTML-REPORT.md](HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance.

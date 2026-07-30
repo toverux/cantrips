@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Setup Cantrips Loop'
+  short_description: 'Configure knowledge stores and storage backend'
+policy:
+  allow_implicit_invocation: false

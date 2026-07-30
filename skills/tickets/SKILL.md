@@ -1,21 +1,22 @@
 ---
 name: tickets
-description: Break a spec, plan, or the current conversation into tracer-bullet ticket files alongside the spec, each declaring its blocking edges.
+description: Break a spec, plan, or the current conversation into tracer-bullet tickets, each declaring its blocking edges.
 disable-model-invocation: true
-version: 1.0.1
+version: 1.1.0
 source: mattpocock/skills@1.1.0 (to-tickets)
 ---
 
 # Tickets
 
-Break a plan, spec, or conversation into a set of **tickets** — tracer-bullet vertical slices, each declaring the tickets that **block** it, written as markdown files alongside the spec.
+Break a plan, spec, or conversation into a set of **tickets** — tracer-bullet vertical slices, each declaring the tickets that **block** it.
 
 ## Process
 
 ### 1. Gather context
 
 Work from whatever is already in the conversation context.
-If the user passes a spec path (usually `docs/specs/<feature>.md`), read it in full.
+If the user names a spec, fetch it in full — the fetch-spec verb.
+The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.md`, and when that doc is absent the plugin defaults ([defaults.md](../setup-cantrips-loop/defaults.md)) govern.
 
 ### 2. Explore the codebase
 
@@ -67,11 +68,12 @@ Ask the user:
 
 Iterate until the user approves the breakdown.
 
-### 5. Write the ticket files
+### 5. Publish the tickets
 
-Write one file per ticket to `docs/specs/<feature>/NN-<slug>.md` — a directory named after the spec file it sits beside — numbered from `01` in dependency order (blockers first).
-Each file's "Blocked by" lists the numbers/titles it depends on.
-Use the template below — one ticket per file, never a single combined file.
+Publish the tickets — the publish-tickets verb, translated by the loop config from step 1 — in dependency order (blockers first).
+Use the template below — one ticket per artifact, never a single combined one.
+Blocking edges ride the backend's native dependency links where it has them (e.g. tracker issue links); otherwise each ticket's "Blocked by" line carries them as prose.
+Publishing leaves the parent spec untouched.
 
 <ticket-template>
 
@@ -90,4 +92,4 @@ Avoid specific file paths or code snippets in tickets — they go stale fast.
 Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype.
 Trim to the decision-rich parts — not a working demo, just the important bits.
 
-Tickets written → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/implement` (user-invoked), one ticket per fresh context window, working the **frontier** — any ticket whose blockers are all done (for a purely linear chain, top to bottom).
+Tickets published → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/implement` (user-invoked), one ticket per fresh context window, working the **frontier** — any ticket whose blockers are all done (for a purely linear chain, top to bottom).

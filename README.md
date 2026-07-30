@@ -13,8 +13,8 @@ And a set of utilities for day to day needs.
 Inspired by and kept in sync with [Matt Pocock's skills](https://github.com/mattpocock/skills) and
 [Every's Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin).
 
-[The loop](#a-loop-that-navigates-itself) · [The skills](#the-loop-skill-by-skill) ·
-[Install](#install) · [Development](#development)
+[The loop](#a-loop-that-navigates-itself) · [Storage](#pluggable-storage) ·
+[The skills](#the-loop-skill-by-skill) · [Install](#install) · [Development](#development)
 
 </div>
 
@@ -38,6 +38,8 @@ Cantrips is not a bag of independent commands — it is one dynamic, discoverabl
 - **Skills brief each other.** The spec records the seams `/tdd` will bite at; `/implement`
   suggests a `/review-gate` effort level scaled to the diff it just produced; `/review-gate` flags
   compound-worthy findings for `/commit`'s learnings scan.
+- **Storage is pluggable.** Skills speak six storage verbs, never a path or a CLI. Local markdown
+  out of the box; a GitHub tracker, or your own described workflow, once you configure one.
 - **The loop remembers.** `/compound` routes what a session learned into knowledge stores, and
   `/spec`, `/review-gate`, and `/diagnosing-bugs` read those stores back — each unit of work makes
   the next one easier.
@@ -85,6 +87,59 @@ flowchart TD
   learning at commit time.
 - `/handoff` breaks context at any tier (compaction for resuming — never a substitute for a spec).
 
+## Pluggable storage
+
+No skill hard-codes where a spec or a ticket lives. The storage-touching skills speak **six
+verbs** — _publish_, _fetch_, and _annotate_ the spec; _publish_, _fetch_, and _resolve_ the
+ticket — and one per-repo doc, `docs/agents/cantrips-loop.md`, translates each verb for the repo's
+backend and lists which knowledge stores are enabled. When that doc is absent, the plugin's defaults
+govern, so a bare install runs with no configuration step.
+
+What lives where, by default:
+
+| Artifact  | Default home                                  | Role                                                                           |
+| --------- | --------------------------------------------- |--------------------------------------------------------------------------------|
+| Specs     | `.scratch/<feature>/spec.md`, gitignored      | Point-in-time record of one feature's decisions; deleted at feature close.     |
+| Tickets   | `.scratch/<feature>/NN-<slug>.md`, gitignored | Execution slices of a spec; resolved by `/implement`, deleted with it.         |
+| ADRs      | `docs/adr/`, committed — **opt-in**           | Durable decisions with supersession chains; `/compound` writes, `/spec` reads. |
+| Solutions | `docs/solutions/`, committed — **opt-in**     | Problem-shaped learnings; re-read by reviews and diagnoses.                    |
+
+> [!IMPORTANT]
+> Nothing breaks without it, but one [`/setup-cantrips-loop`](#setup-cantrips-loop) run per repo is
+> what makes the loop *remember*: on the bare defaults both knowledge stores stay **off**, so the
+> loop executes and never accumulates decision memory. The same run picks the storage backend —
+> committed specs, or a tracker, instead of scratch.
+
+### Three backend seeds
+
+- **Local markdown** — the defaults above, written into the doc; the setup run can instead pick
+  a committed location (e.g. `docs/specs/`) for repos whose specs should travel with branches,
+  worktrees, and pull requests.
+- **GitHub** — the `gh` CLI: the spec and each ticket published as issues, annotations as issue
+  comments, ticket resolution as an issue close, blocking edges via native issue links.
+- **Freeform** — describe your tracker workflow in a paragraph; the setup skill derives each
+  verb's translation from it.
+
+### Specs are point-in-time records
+
+A spec's body **freezes at publication**: work-status lines (pending, in-progress, done) never
+enter it — execution state lives in git and in the backend's own machinery. Afterthoughts — a
+`/prototype` verdict, a decision revised mid-implementation — arrive as **dated annotations**
+through the annotate-spec verb, so the original decision and its revisions stay distinguishable.
+Post-loop drift between spec and code is not an error: code and git are truth, the spec is
+history. And no skill ever closes a spec — closing a feature is your act through the backend's
+native machinery (one click on a tracker; on local markdown, deleting the feature's `.scratch/`
+folder — the durable outcome lives in code, git, and the knowledge stores, not the spec).
+
+### Two opt-in knowledge stores
+
+The stores are the loop's memory — the durable layer that outlives disposable specs — and skills
+skip reads and writes against a store that is off. **`docs/adr/`** gives decisions history
+instead of silent drift: an outdated record names the record that replaced it, and every write
+passes `/compound`'s user gate. **`docs/solutions/`** captures root cause, gotcha, and what
+didn't work, so the next session that hits the same problem starts from the answer.
+[The compounding system](#the-compounding-system) below shows how both are written and read back.
+
 ## The compounding system
 
 The part that makes each unit of work easier than the last:
@@ -92,13 +147,17 @@ The part that makes each unit of work easier than the last:
 - **`/compound`** fires inside `/commit`'s opening scan (or typed ad-hoc, or agent-fired when a
   learning surfaces mid-session), scans the session for learnings that would change a future
   agent's behavior — non-obvious and stable ones only — and routes each to the right store: the
-  project's `AGENTS.md`, a `docs/solutions/` entry, a rules file, a skill, or your user-global
-  memory file (`CLAUDE.md`, `AGENTS.md`, or your harness's equivalent). **Every write is
-  user-gated**: approve, redirect, or kill.
-- **Read-back arrows:** `/spec`, `/review-gate`, and `/diagnosing-bugs` search `docs/solutions/`
-  and past specs, so captured knowledge actually gets used.
-- **`/compound-refresh`** garbage-collects the stores when they age: audits `docs/solutions/`
-  against the current code and `AGENTS.md` for bloat and contradictions.
+  project's `AGENTS.md`, a `docs/adr/` decision record, a `docs/solutions/` entry, a rules file,
+  a skill, or your user-global memory file (`CLAUDE.md`, `AGENTS.md`, or your harness's
+  equivalent). The two opt-in stores take writes only where the repo enables them. **Every write
+  is user-gated**: approve, redirect, or kill.
+- **Read-back arrows:** `/spec` reads the repo's decision memory — `AGENTS.md`, plus ADRs for
+  decisions already made and solutions for gotchas where those stores are enabled (never past
+  specs) — and `/review-gate` and `/diagnosing-bugs` re-check `docs/solutions/` learnings when
+  that store is on, so captured knowledge actually gets used.
+- **`/compound-refresh`** garbage-collects the stores when they age: audits `AGENTS.md` for
+  bloat and contradictions, plus `docs/solutions/` against the current code when that store is
+  enabled. (`docs/adr/` needs no collection — supersession is its own hygiene.)
 
 ## Full roster
 
@@ -112,7 +171,7 @@ can still type them).
 | Skill                                  | Invoked by | Role                                                                         |
 | -------------------------------------- | ---------- | ---------------------------------------------------------------------------- |
 | [`/grilling`](#grilling)               | 🧑🤖       | Relentless one-question-at-a-time interview to stress-test the plan.         |
-| [`/spec`](#spec)                       | 🧑         | Turn the conversation into `docs/specs/<feature>.md`, test seams included.   |
+| [`/spec`](#spec)                       | 🧑         | Publish the conversation as a spec, test seams included.                     |
 | [`/tickets`](#tickets)                 | 🧑         | Slice a big spec into tracer-bullet tickets, one per fresh context.          |
 | [`/implement`](#implement)             | 🧑         | Execute the spec or one ticket, driving `tdd` at the agreed seams.           |
 | [`/tdd`](#tdd)                         | 🧑🤖       | Red-green-refactor discipline, with its anti-patterns catalogue.             |
@@ -126,7 +185,8 @@ can still type them).
 
 | Skill                                                              | Invoked by | Role                                                                       |
 | ------------------------------------------------------------------ | ---------- | -------------------------------------------------------------------------- |
-| [`/compound-refresh`](#compound-refresh)                           | 🧑         | Garbage-collect `docs/solutions/` and `AGENTS.md` when they age.           |
+| [`/setup-cantrips-loop`](#setup-cantrips-loop)                     | 🧑         | Configure a repo's storage backend and opt-in knowledge stores.            |
+| [`/compound-refresh`](#compound-refresh)                           | 🧑         | Garbage-collect `AGENTS.md`, and `docs/solutions/` where enabled.          |
 | [`/handoff`](#handoff)                                             | 🧑         | Compact the session into a handoff for a fresh context.                    |
 | [`/prototype`](#prototype)                                         | 🧑🤖       | Throwaway prototype to answer a design question empirically.               |
 | [`/research`](#research)                                           | 🧑🤖       | Background primary-source research, captured in the repo.                  |
@@ -156,16 +216,20 @@ can still type them).
 
 ### `/spec`
 
-**Synthesize the conversation into `docs/specs/<feature>.md` — the contract `/implement` executes
-and `/review-gate` reviews against.**
+**Synthesize the conversation into a published spec — the contract `/implement` executes and
+`/review-gate` reviews against.**
 
 - **When to use** — feature-sized work, once the decisions exist (usually right after `/grilling`).
 - **The intent** — decisions decay in chat logs; a spec survives the session. It records the
   **test seams** you approve up front, so implementation can TDD without relitigating design, and
   its requirements are what the review gate's spec angle later checks the diff against.
-- **How it works** — explores the repo, folds in matching `docs/solutions/` learnings and past
-  specs, proposes the seams (approved by you before writing), then writes the spec: problem,
-  solution, user stories, implementation decisions, test seams, out of scope.
+- **The lifecycle** — a spec is a **point-in-time decision record**: body frozen at publication,
+  afterthoughts as dated annotations — see [Pluggable storage](#pluggable-storage).
+- **How it works** — explores the repo, reads the decision memory (`AGENTS.md`, plus ADRs and
+  solutions where those stores are enabled — never past specs), flags any conflict with a
+  standing ADR explicitly instead of silently overriding it, proposes the seams (approved by you
+  before writing), then publishes the spec: problem, solution, user stories, implementation
+  decisions, test seams, out of scope.
 - **Next** — `/tickets` when the work spans sessions, else `/implement` — a fresh context either
   way; the spec _is_ the context.
 
@@ -179,7 +243,8 @@ and `/review-gate` reviews against.**
   tickets expose which ones can start immediately. Wide mechanical refactors get expand–contract
   sequencing instead of a forced vertical cut.
 - **How it works** — drafts the slices, quizzes you on granularity and edges until you approve,
-  then writes `docs/specs/<feature>/NN-<slug>.md` files with acceptance criteria.
+  then publishes one ticket per slice, numbered in dependency order, with acceptance criteria —
+  blocking edges ride the backend's native issue links where it has them, prose otherwise.
 - **Next** — `/implement`, one ticket per fresh context, working the frontier of unblocked
   tickets.
 
@@ -191,9 +256,11 @@ and `/review-gate` reviews against.**
 - **The intent** — deciding and building are separated on purpose: the spec already carries the
   decisions and the approved seams, so implementation tests at them without re-asking, and states
   explicit verification criteria wherever no seam was agreed.
-- **How it works** — reads the spec or ticket in full, drives `/tdd` at the agreed seams,
+- **How it works** — fetches the spec or ticket in full, drives `/tdd` at the agreed seams,
   typechecks and runs scoped tests continuously, ticks acceptance criteria as each is verified,
-  and finishes with the full suite.
+  and finishes with the full suite. A ticket whose criteria are all verified is **resolved**
+  through the backend (a wrong resolve is one human reopen away); the spec itself is never
+  closed.
 - **Next** — `/simplify` (optional), then `/review-gate` with a suggested effort level scaled to
   the diff it just produced, then `/commit` — all in-session; the working diff is the context.
 
@@ -252,8 +319,11 @@ diff (or the changes since a fixed point), every finding independently verified.
   gate fixes both. **Finders** each hold exactly one concern; **verifiers** judge every candidate
   independently, so a finder never silently drops a bug it half-believes. A dedicated **spec
   angle** compares the diff against the spec's requirements — catching "built the wrong thing
-  correctly", which no code-only review can — and matched `docs/solutions/` learnings are re-checked
-  by every finder, so past root causes stay caught.
+  correctly", which no code-only review can. A code-vs-spec mismatch is reported neutrally with
+  both fixes — align the code, or annotate the spec with the mid-implementation revision — because
+  a spec is a point-in-time record and the code may be the side that is right. Matched
+  `docs/solutions/` learnings (when that store is enabled) are re-checked by every finder, so past
+  root causes stay caught.
 
 ```mermaid
 flowchart TD
@@ -315,13 +385,14 @@ flowchart TD
     bar -- no --> dies["dies here"]
     bar -- yes --> gate["🚪 user gate<br/>approve / redirect / kill"]
     gate --> agentsmd["AGENTS.md<br/>shared conventions"]
-    gate --> solutions["docs/solutions/<br/>problem-shaped learnings"]
+    gate --> adr["docs/adr/ <i>(opt-in)</i><br/>durable decisions"]
+    gate --> solutions["docs/solutions/ <i>(opt-in)</i><br/>problem-shaped learnings"]
     gate --> rules["rules files<br/>path-scoped conventions"]
     gate --> skills["skills<br/>procedures"]
     gate --> global["user-global memory<br/>personal preferences"]
 
     classDef memoryNode fill:#b45309,stroke:#fcd34d,color:#ffffff
-    class agentsmd,solutions,rules,skills,global memoryNode
+    class agentsmd,adr,solutions,rules,skills,global memoryNode
 ```
 
 - **Next** — the writes join the working tree; `/commit`'s flow picks them up.
@@ -340,7 +411,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    p0["0 · search docs/solutions/ for the symptom"] --> p1["1 · build a tight feedback loop<br/><b>this is the skill</b>"]
+    p0["0 · search docs/solutions/ for the symptom<br/><i>(when the store is enabled)</i>"] --> p1["1 · build a tight feedback loop<br/><b>this is the skill</b>"]
     p1 --> p2["2 · reproduce, then minimise the repro"]
     p2 --> p3["3 · rank 3–5 falsifiable hypotheses"]
     p3 --> p4["4 · instrument — one variable at a time"]
@@ -353,33 +424,44 @@ flowchart TD
 ```
 
 - **Next** — `/review-gate` the fix, then `/commit`, whose opening scan turns the root cause, the
-  gotchas, and what didn't work into a `docs/solutions/` learning.
+  gotchas, and what didn't work into a durable learning — a `docs/solutions/` entry where that
+  store is enabled.
 
 ## The utilities, skill by skill
 
+### `/setup-cantrips-loop`
+
+**Configure how a repo runs the loop.** Explains each opt-in knowledge store's role in plain
+words and asks which to enable, asks which backend seed translates the six storage verbs — local
+markdown, GitHub, or freeform — then writes `docs/agents/cantrips-loop.md`, the one prose doc the
+storage-touching skills read in place of the plugin defaults. Re-runnable: a second run edits the
+existing doc. Not required to run the loop — but the knowledge stores stay off until it does, so
+a repo that never runs it never compounds.
+
 ### `/compound-refresh`
 
-**Garbage collection for the knowledge stores.** Audits every `docs/solutions/` doc against the
-current code (cited paths still exist, the fix still matches reality) and `AGENTS.md` for bloat,
-contradictions, and staleness. Verdict per doc — keep, update, consolidate, or delete — with the
-prime directive _match docs to reality, never the reverse_; every change is user-gated. Run it
-when the stores feel stale, not on a schedule.
+**Garbage collection for the knowledge stores.** Audits `AGENTS.md` for bloat, contradictions,
+and staleness — and, when the solutions store is enabled, every `docs/solutions/` doc against the
+current code (cited paths still exist, the fix still matches reality). Verdict per doc — keep,
+update, consolidate, or delete — with the prime directive _match docs to reality, never the
+reverse_; every change is user-gated. Run it when the stores feel stale, not on a schedule.
 
 ### `/handoff`
 
 **Compaction for resuming work.** Writes a handoff document to the OS temp directory — outside the
 workspace — that a fresh session can pick up: state, references to specs and commits by path, and
 a suggested-skills section naming what the next session should invoke. Deliberately _not_ a spec
-substitute: decisions that should outlive the session go to `docs/specs/` first.
+substitute: decisions that should outlive the session are annotated onto the feature's spec first.
 
 ### `/prototype`
 
 **Throwaway code that answers a design question.** Two branches: a logic question gets a tiny
 interactive terminal app that pushes the state model through hard cases; a UI question gets
 radically different variations switchable on one route. No tests, no polish, no persistence — and
-when the question is answered, the validated decision folds into the real code while the prototype
-itself is committed to a throwaway branch as a primary source. Fires on its own when a `/grilling`
-decision needs empirical evidence.
+when the question is answered, the validated decision folds into the real code, the prototype
+itself is committed to a throwaway branch as a primary source, and the branch pointer and verdict
+land on the feature's spec as a dated annotation. Fires on its own when a `/grilling` decision
+needs empirical evidence.
 
 ### `/research`
 
@@ -391,9 +473,9 @@ question hinges on facts living outside the codebase.
 ### `/resolving-merge-conflicts`
 
 **Principled conflict resolution.** Reads the primary sources behind each conflicting change —
-commit messages, PRs, the specs in `docs/specs/` — resolves each hunk preserving both intents
-where possible, never inventing behavior and never aborting, then runs the project's checks and
-finishes the merge or rebase.
+commit messages, PRs, the specs fetched through the storage contract — resolves each hunk
+preserving both intents where possible, never inventing behavior and never aborting, then runs
+the project's checks and finishes the merge or rebase.
 
 ### `/codebase-design`
 
@@ -459,8 +541,8 @@ There is nothing to install and nothing to build — this repository is Markdown
 JSON manifests. Clone it and edit.
 
 See [AGENTS.md](AGENTS.md) for the layout, the authoring standard, and the release process
-(release-please). Deferred ideas live in [IDEAS.md](IDEAS.md); specs for the work done here are in
-[docs/specs/](docs/specs/).
+(release-please). Deferred ideas live in [IDEAS.md](IDEAS.md), and cantrips runs its own loop on
+itself — [docs/agents/cantrips-loop.md](docs/agents/cantrips-loop.md) is the config that says how.
 
 ### Trying your changes locally
 

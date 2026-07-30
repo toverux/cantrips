@@ -3,7 +3,7 @@
 ## Project overview
 
 `cantrips` is a multi-harness (Claude Code + Codex) plugin of curated agent skills: the core engineering loop (/grilling → /spec → /tickets → /implement + /tdd → /simplify → /review-gate → /commit → /compound) plus its supporting skills.
-Specs for individual skills live in `docs/specs/` (e.g. [review-gate.md](docs/specs/review-gate.md)); deferred ideas live in [IDEAS.md](IDEAS.md).
+A feature's spec and tickets are disposable working material under a gitignored `.scratch/`, deleted once the feature closes ([docs/agents/cantrips-loop.md](docs/agents/cantrips-loop.md)); what survives is the skills, git history, the decision records in `docs/adr/`, and the deferred ideas in [IDEAS.md](IDEAS.md).
 
 The repository **is** the plugin: the manifests, the skills tree, and the catalog files that publish it all sit at the root, and an install copies the whole checkout.
 Everything else here (`docs/`, this file) therefore rides along into an install; keep it small and keep nothing secret in it.
@@ -23,7 +23,10 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 - `.claude-plugin/plugin.json` + `.codex-plugin/plugin.json`: the dual manifests; shared fields must stay identical.
 - `.claude-plugin/marketplace.json` + `.agents/plugins/marketplace.json`: the catalog files that publish this repo as an installable plugin (Claude Code takes a string `source`, Codex CLI the object form; both point at `./`).
 - `FORKS.md`: the fork divergence ledger — every upstream skill listed, forks with how they deliberately differ and why, the rest marked not ported; `/sync-upstream` and human readers both consult it.
-- `docs/specs/`: specs for the work done here (dogfooding the `/spec` convention).
+- `docs/agents/cantrips-loop.md`: the per-repo loop config — what the six storage verbs translate to here, and which knowledge stores are enabled (`docs/adr/` on, `docs/solutions/` off).
+  Storage-touching skills read it instead of `skills/setup-cantrips-loop/defaults.md`; `/setup-cantrips-loop` rewrites it.
+- `.scratch/<feature>/`: the spec and tickets of a feature in flight, gitignored and disposable — deleted when the feature closes, which is the human's act.
+- `docs/adr/`: durable decision records with supersession chains, written only through `/compound`'s user gate and read back by `/spec`.
 - `docs/research/`: primary-source research notes, written by `/research`.
 
 ## How to add or revise a skill

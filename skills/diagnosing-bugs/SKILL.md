@@ -1,7 +1,7 @@
 ---
 name: diagnosing-bugs
 description: Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
-version: 1.0.0
+version: 1.1.0
 source: mattpocock/skills@1.1.0 (diagnosing-bugs)
 ---
 
@@ -12,7 +12,8 @@ Skip phases only when explicitly justified.
 
 ## Phase 0 — Search past learnings
 
-Search `docs/solutions/` (if the project has one) for learnings matching the symptom — the error message, the module, the failure mode.
+When the loop config enables the solutions store, search `docs/solutions/` for learnings matching the symptom — the error message, the module, the failure mode.
+The loop config is `docs/agents/cantrips-loop.md`; when that doc is absent, the solutions store is off.
 A past solution may short-circuit the whole diagnosis: when one matches, verify its root cause applies here before building anything, and carry its gotchas into the phases below.
 
 ## Phase 1 — Build a feedback loop
@@ -184,4 +185,4 @@ Required before declaring done:
 If the answer involves architectural change (no good test seam, tangled callers, hidden coupling), recommend `/improve-codebase-architecture` (user-invoked) with the specifics.
 Make the recommendation **after** the fix is in, not before — you have more information now than when you started.
 
-Bug fixed → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/review-gate` (user-invoked) the fix (suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise), then `/commit` (user-invoked) — its opening `/compound` scan is where the root cause, the gotchas, and what didn't work become a `docs/solutions/` learning — all in this session, stating the winning hypothesis in the commit message.
+Bug fixed → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/review-gate` (user-invoked) the fix (suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise), then `/commit` (user-invoked) — its opening `/compound` scan is where the root cause, the gotchas, and what didn't work become a durable learning — a `docs/solutions/` entry where that store is enabled — all in this session, stating the winning hypothesis in the commit message.

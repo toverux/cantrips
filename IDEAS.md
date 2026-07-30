@@ -33,9 +33,9 @@ costs five minutes and may already work.
 
 Pocock's `wayfinder` plans work too big for one agent session as a shared map of decision tickets
 on an issue tracker, resolved one at a time until the way is clear. The cantrips adaptation
-sketched in the design interview keeps the map/decision-ticket model but stores the map and its
-tickets as local markdown (same spirit as `docs/specs/<feature>/` tickets), removing the tracker
-dependency.
+sketched in the design interview keeps the map/decision-ticket model but carries the map and its
+tickets through the storage verb contract, so it runs on local markdown or a tracker exactly as
+the rest of the loop does.
 
 **Adopt when:** a single effort's decision surface outgrows what `/grilling` → `/spec` can chew
 through in a session or two, i.e. multi-week efforts with dozens of open decisions.
@@ -80,15 +80,6 @@ EveryInc/compound-engineering-plugin as the autonomous outer wrapper.
 
 **Adopt when:** the grilling happens; the manual run already proved the shape carries.
 
-## Per-repo setup skill + issue-tracker override
-
-A Pocock-style `setup` skill that configures a consuming repo for the pipeline (where specs live,
-which tracker to use, label vocabulary), letting projects override the local-markdown default with
-a real tracker.
-
-**Adopt when:** a second storage/tracker configuration actually exists; today local markdown is
-the only backend, so there is nothing to configure.
-
 ## Standalone domain-modeling discipline
 
 Pocock's `domain-modeling` (ubiquitous language, architectural decisions, domain model upkeep) as
@@ -130,35 +121,3 @@ their fixer-gating rules.
 
 **Adopt when:** the next substantive edit to either taxonomy lands — reconcile then instead of
 patching one side.
-
-## A documented spec lifecycle after implementation
-
-`/spec` is the only skill that creates `docs/specs/<feature>.md`, and every downstream skill reads
-it without writing back: `/tickets` breaks it into files beside it, `/implement` executes it,
-`/review-gate`'s Angle D checks the diff against it, `/resolving-merge-conflicts` mines it for
-intent, `/handoff` defers to it for anything durable, and a later `/spec` run reads past specs for
-"decisions already made". The single exception is `/prototype`, which appends a branch pointer and
-verdict. So a spec is de facto a forever document: written once, amended only by a later spec that
-supersedes it. That convention is real — this repo practices it — but it lives in one project's
-prose and no skill states it. Four consequences follow:
-
-- **No terminal state.** `/implement` ticks a ticket's acceptance criteria; nothing marks a spec
-  implemented, dated, or superseded. This repo's own v1 spec still read "Status: approved spec,
-  pending implementation" long after it shipped, and was eventually deleted rather than closed out.
-- **Drift resolves in one direction.** Angle D frames every mismatch as the code being wrong
-  (missing requirements, scope creep). When the code is right and the spec is stale — a decision
-  revised mid-implementation — there is no sanctioned move, so the gate re-reports it forever.
-- **`/compound` cannot route to a spec.** Its destinations are AGENTS.md, `docs/solutions/`, rules,
-  skills, and the user-global memory file. A revised decision has no path back into the contract
-  that recorded the original.
-- **Post-merge authority is unstated.** `/spec`'s read-back step mines past specs for prior
-  decisions; if specs are never corrected, it propagates decisions that implementation abandoned.
-
-The fix is likely three sentences rather than a new skill: a lifecycle statement in `/spec` (a spec
-is a point-in-time record, amended by a later spec rather than rewritten, carrying a status line
-something updates on completion), a stale-spec resolution path in ANGLES.md reported as a
-spec-side finding, and possibly a sixth `/compound` destination for decisions revised during
-implementation.
-
-**Adopt when:** the next spec-touching edit to `/spec`, `/review-gate`, or `/compound` lands — or
-sooner, if a stale spec misleads a session for real rather than just reading wrong.

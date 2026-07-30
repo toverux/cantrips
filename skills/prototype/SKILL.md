@@ -1,7 +1,7 @@
 ---
 name: prototype
 description: Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, explore what a UI should look like, or when a decision in a grilling interview needs empirical evidence.
-version: 1.0.1
+version: 1.1.0
 source: mattpocock/skills@1.1.0 (prototype)
 ---
 
@@ -39,7 +39,9 @@ If the question is genuinely ambiguous and the user isn't reachable, default to 
 5. **Surface the state.**
    After every action (logic) or on every variant switch (UI), print or render the full relevant state so the user can see what changed.
 6. **Capture it when done.**
-   Fold any validated decision into the real code, then capture the prototype itself as a **primary source**: commit it to a throwaway branch, out of main, and leave a context pointer to that branch — with the verdict and the question it settled — in the feature's spec (`docs/specs/<feature>.md`) if one exists, otherwise in the commit that folds the decision in.
+   Fold any validated decision into the real code, then capture the prototype itself as a **primary source**: commit it to a throwaway branch, out of main, and annotate the feature's spec — the annotate-spec verb, a dated annotation carrying the branch pointer, the verdict, and the question it settled.
+   The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.md`, and when that doc is absent the plugin defaults ([defaults.md](../setup-cantrips-loop/defaults.md)) govern.
+   When the feature has no spec, leave the pointer in the commit that folds the decision in.
    The main branch keeps only the validated decision.
 
 Question answered → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): feed the verdict back into the decision that spawned the prototype — the `/grilling` interview or the spec being written.

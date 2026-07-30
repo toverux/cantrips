@@ -1,8 +1,8 @@
 ---
 name: spec
-description: Synthesize the current conversation into a spec at docs/specs/<feature>.md, test seams included.
+description: Synthesize the current conversation into a published spec, test seams included.
 disable-model-invocation: true
-version: 1.0.1
+version: 1.1.0
 source: mattpocock/skills@1.1.0 (to-spec)
 ---
 
@@ -14,8 +14,10 @@ Synthesize what you already know — the interview, if any, already happened (`/
 1. Explore the repo to understand the current state of the codebase, if you haven't already.
    Use the project's domain vocabulary throughout the spec.
 
-2. Search `docs/solutions/` and existing `docs/specs/` for learnings that bear on this feature — root causes, gotchas, approaches that failed before, decisions already made.
+2. Read the repo's decision memory: the `AGENTS.md` conventions already in context, plus the records bearing on this feature from whichever knowledge stores the loop config enables — ADRs for decisions already made, solutions for gotchas and approaches that failed before.
+   The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.md`, and when that doc is absent the plugin defaults ([defaults.md](../setup-cantrips-loop/defaults.md)) govern.
    Fold whatever applies into the spec's decisions.
+   When this feature's decisions conflict with a standing ADR — one whose status is `accepted` — flag the conflict explicitly in the spec — name the ADR and the revised decision — and note that the revision routes through `/compound` at loop end; `/compound` is the ADR store's sole writer, so the standing record stays as written until then.
 
 3. Propose the **test seams** — the places `/implement` will drive TDD (seam vocabulary: `/codebase-design`).
    Prefer existing seams to new ones; place any new seam at the highest point you can.
@@ -23,7 +25,9 @@ Synthesize what you already know — the interview, if any, already happened (`/
 
    Check the seams with the user before writing the spec: approving them now, while the decisions are fresh, lets implementation test at them later without relitigating the design.
 
-4. Write the spec to `docs/specs/<feature>.md` (kebab-case feature slug) using the template below.
+4. Publish the spec — the publish-spec verb, translated by the loop config from step 2 — using the template below.
+   The published body is frozen: a spec is a point-in-time decision record, and execution state lives in git and the backend, so work-status lines (pending, in-progress, done) never enter the body.
+   Afterthoughts arrive as dated annotations through the annotate-spec verb.
 
 <spec-template>
 
@@ -82,4 +86,4 @@ Any further notes about the feature.
 
 </spec-template>
 
-Spec written → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/tickets` (user-invoked) if the work spans multiple sessions or context windows, else `/implement` (user-invoked) — in a fresh context either way.
+Spec published → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/tickets` (user-invoked) if the work spans multiple sessions or context windows, else `/implement` (user-invoked) — in a fresh context either way.
