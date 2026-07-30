@@ -3,8 +3,8 @@ name: compound-refresh
 description: Garbage-collect the knowledge stores — audit docs/solutions/ and AGENTS.md against the current code.
 argument-hint: '[optional: scope — directory, module, or keyword; blank audits everything]'
 disable-model-invocation: true
-version: 1.0.0
-source: EveryInc/compound-engineering-plugin@3.19.0 (ce-compound-refresh)
+version: 1.0.1
+source: EveryInc/compound-engineering-plugin@3.20.0 (ce-compound-refresh)
 ---
 
 Audit the knowledge stores against the current codebase and prune what no longer earns its place.

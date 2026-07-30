@@ -12,6 +12,8 @@ For each change:
 5. **Flag code that hand-maintains a guarantee the platform, framework, or downstream layer already provides.**
    Name the layer providing the guarantee and what the code collapses to without the hand-maintained version.
    Suggest removal only when it preserves every output, error, side effect, and ordering for current consumers — and scope the removal to the behavior the guarantee directly owns, keeping surrounding transformations in place.
+   Pair the removal with a serializer or coercion swap only when tests or direct comparisons prove exact output equivalence for every relevant value type.
+   Branches that become reachable only because a filter was removed are live code, not dead code.
 
 Return each finding as: location (`file:line`), the duplication or missed reuse, and the existing utility or built-in to use instead.
 If there is nothing to flag, say so explicitly.

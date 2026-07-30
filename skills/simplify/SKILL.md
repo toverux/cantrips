@@ -3,8 +3,8 @@ name: simplify
 description: Optional pre-review quality pass — behavior-preserving fixes for reuse, dead weight, altitude, and clarity. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify the current branch's changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.0.0
-source: EveryInc/compound-engineering-plugin@3.19.0 (ce-simplify-code)
+version: 1.1.0
+source: EveryInc/compound-engineering-plugin@3.20.0 (ce-simplify-code)
 ---
 
 Simplify recently changed code while preserving exact behavior: same output for every input, same error behavior, same side effects and ordering.

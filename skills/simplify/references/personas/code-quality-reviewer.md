@@ -6,7 +6,8 @@ Review for:
 1. **Redundant state**: state that duplicates existing state, cached values that could be derived, observers/effects that could be direct calls.
 2. **Parameter sprawl**: adding new parameters to a function instead of generalizing or restructuring existing ones.
 3. **Copy-paste with slight variation**: near-duplicate code blocks.
-   Before proposing a shared abstraction, check whether the duplicated construct can be derived from an existing source of truth; consolidate only when elimination is not behavior-preserving.
+   Before proposing a shared abstraction, check whether the duplicated construct can be eliminated outright — derived from an existing source of truth, or covered by a verified platform, framework, or downstream guarantee; consolidate only when elimination is not behavior-preserving.
+   Scope any elimination to the behavior the guarantee directly owns, keep surrounding value transformations in place, and treat branches that become reachable only because a filter was removed as live code.
 4. **Leaky abstractions**: exposing internal details that should be encapsulated, or breaking existing abstraction boundaries.
 5. **Stringly-typed code**: raw strings where constants, enums (string unions), or branded types already exist in the codebase.
 6. **Unnecessary wrapper elements (framework-gated)**: in component-tree UI frameworks (React, Vue, Svelte, SwiftUI, Compose…), wrapper containers that add no layout value — check whether inner component props already provide the behavior.

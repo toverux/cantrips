@@ -2,8 +2,8 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.0.0
-source: EveryInc/compound-engineering-plugin@3.19.0 (ce-commit)
+version: 1.0.1
+source: EveryInc/compound-engineering-plugin@3.20.0 (ce-commit)
 ---
 
 Close the loop: harvest the session's learnings first, then create well-crafted git commits from the working tree — learning writes included, so the tree is clean when the loop ends.
@@ -21,7 +21,7 @@ Session-specific trivia dies here.
 
 ## Step 2: Gather context
 
-Run each as its own shell call and read the exit status directly — a non-zero exit is a state to interpret, not a failure:
+Run each as its own shell call — plain argv, no `;`/`&&` joins or redirects, which parse only under POSIX shells — and read the exit status directly: a non-zero exit is a state to interpret, not a failure.
 
 - `git status` — working-tree state.
   Clean tree → report there is nothing to commit and stop.
@@ -30,6 +30,8 @@ Run each as its own shell call and read the exit status directly — a non-zero 
 - `git log --oneline -10` — recent commit style.
 - `git rev-parse --abbrev-ref origin/HEAD` — the default branch (strip the `origin/` prefix).
   If unset, fall back to `main`.
+
+These values are a snapshot; re-read anything consequential (the current branch, the staged set) immediately before committing.
 
 ## Step 3: Choose the branch
 
