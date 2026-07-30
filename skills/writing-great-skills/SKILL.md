@@ -1,7 +1,7 @@
 ---
 name: writing-great-skills
 description: Load before writing or editing any file an agent will load and act on — a skill (SKILL.md), an AGENTS.md or CLAUDE.md, or a rules file. The vocabulary and principles that make those files predictable. A session that only reads them leaves this unloaded.
-version: 1.0.0
+version: 1.0.1
 source: mattpocock/skills@1.1.0 (writing-great-skills)
 ---
 
@@ -90,7 +90,7 @@ Be aggressive — most prose that fails should go, not be rewritten.
 ## Leading words
 
 A **leading word** is a compact concept already living in the model's pretraining that the agent thinks with while running the skill (e.g. _lesson_, _fog of war_, _tracer bullets_).
-Repeated throughout the text (though not necessarily — a strong leading word might only be needed once), it accumulates a distributed definition and anchors a whole region of behaviour in the fewest tokens, by recruiting priors the model already holds.
+Repeated throughout the text (though not necessarily - a strong leading word might only be needed once), it accumulates a distributed definition and anchors a whole region of behaviour in the fewest tokens, by recruiting priors the model already holds.
 
 It serves predictability twice.
 In the body it anchors _execution_: the agent reaches for the same behaviour every time the word appears.

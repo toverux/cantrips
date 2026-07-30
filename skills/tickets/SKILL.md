@@ -2,13 +2,13 @@
 name: tickets
 description: Break a spec, plan, or the current conversation into tracer-bullet ticket files alongside the spec, each declaring its blocking edges.
 disable-model-invocation: true
-version: 1.0.0
+version: 1.0.1
 source: mattpocock/skills@1.1.0 (to-tickets)
 ---
 
 # Tickets
 
-Break a plan, spec, or conversation into **tickets** — tracer-bullet vertical slices, each declaring the tickets that **block** it, written as markdown files alongside the spec.
+Break a plan, spec, or conversation into a set of **tickets** — tracer-bullet vertical slices, each declaring the tickets that **block** it, written as markdown files alongside the spec.
 
 ## Process
 

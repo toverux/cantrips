@@ -1,15 +1,15 @@
 ---
 name: grilling
 description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to be grilled about a plan, wants a decision stress-tested, or when requirements are fuzzy before a spec is written.
-version: 1.0.0
+version: 1.0.1
 source: mattpocock/skills@1.1.0 (grilling)
 ---
 
 Interview me relentlessly about every aspect of this until we reach a shared understanding.
 Walk down each branch of the decision tree, resolving dependencies between decisions one-by-one.
 
-If a _fact_ can be found by exploring the environment (filesystem, tools, etc.), look it up rather than asking me.
-The _decisions_, though, are mine — put each one to me and wait for my answer.
+If a *fact* can be found by exploring the environment (filesystem, tools, etc.), look it up rather than asking me.
+The *decisions*, though, are mine — put each one to me and wait for my answer.
 
 ## How to ask
 

@@ -2,7 +2,7 @@
 name: spec
 description: Synthesize the current conversation into a spec at docs/specs/<feature>.md, test seams included.
 disable-model-invocation: true
-version: 1.0.0
+version: 1.0.1
 source: mattpocock/skills@1.1.0 (to-spec)
 ---
 
@@ -19,7 +19,7 @@ Synthesize what you already know — the interview, if any, already happened (`/
 
 3. Propose the **test seams** — the places `/implement` will drive TDD (seam vocabulary: `/codebase-design`).
    Prefer existing seams to new ones; place any new seam at the highest point you can.
-   The fewer seams across the codebase, the better — the ideal number is one.
+   The fewer seams across the codebase, the better - the ideal number is one.
 
    Check the seams with the user before writing the spec: approving them now, while the decisions are fresh, lets implementation test at them later without relitigating the design.
 

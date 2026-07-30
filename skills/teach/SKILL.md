@@ -3,12 +3,12 @@ name: teach
 description: Teach the user a new skill or concept, within this workspace.
 argument-hint: 'What would you like to learn about?'
 disable-model-invocation: true
-version: 1.0.0
+version: 1.0.1
 source: mattpocock/skills@1.1.0 (teach)
 ---
 
 The user has asked you to teach them something.
-This is a stateful request — they intend to learn the topic over multiple sessions.
+This is a stateful request - they intend to learn the topic over multiple sessions.
 
 ## Teaching Workspace
 
@@ -24,7 +24,7 @@ The state of their learning is captured in this directory in several files:
   A **lesson** is a single, self-contained HTML output that teaches one tightly-scoped thing tied to the mission.
   This is the primary unit of teaching in this workspace.
 - `./reference/*.html`: A directory of reference materials.
-  These are the compressed learnings from the lessons — cheat sheets, reference algorithms, syntax, yoga poses, glossaries.
+  These are the compressed learnings from the lessons - cheat sheets, reference algorithms, syntax, yoga poses, glossaries.
   They are the raw units of learning.
   They should be beautiful documents which print out well, and are designed for quick reference.
 - `./learning-records/*.md`: A directory of learning records, which capture what the user has learned.
@@ -61,7 +61,7 @@ Try to design lessons which build long-term retention by desirable difficulty:
 
 - Using retrieval practice (recall from memory)
 - Spacing (distributing practice over time)
-- Interleaving (mixing up different but related topics in practice — for skills practice only)
+- Interleaving (mixing up different but related topics in practice - for skills practice only)
 
 ## Lessons
 
@@ -98,7 +98,7 @@ As the workspace grows, so should the component library.
 
 ## The Mission
 
-Every lesson should be tied into the mission — the reason that the user is interested in learning about the topic.
+Every lesson should be tied into the mission - the reason that the user is interested in learning about the topic.
 
 If the user is unclear about the mission, or the `MISSION.md` is not populated, your first job should be to question the user on why they want to learn this.
 
@@ -107,7 +107,7 @@ Lessons will feel too abstract.
 You will have no way of judging what the user should do next.
 
 Missions may change as the user develops more skills and knowledge.
-This is normal — make sure to update the `MISSION.md` and add a learning record to capture the change.
+This is normal - make sure to update the `MISSION.md` and add a learning record to capture the change.
 Confirm with the user before changing the mission.
 
 ## Zone Of Proximal Development
@@ -129,7 +129,7 @@ You teach the knowledge first, then get the user to practice the skills via an i
 
 Knowledge should first be gathered from trusted resources.
 Use `RESOURCES.md` to keep track of them.
-Lessons should be littered with citations — links to external resources to back up any claim made.
+Lessons should be littered with citations - links to external resources to back up any claim made.
 This increases the trustworthiness of the lesson.
 
 For acquiring knowledge, difficulty is the enemy.
@@ -149,16 +149,16 @@ There are several tools at your disposal:
 - Lessons which guide the user through a list of real-world steps to take (for instance, yoga poses)
 
 Each of these should be based on a **feedback loop**, where the user receives feedback on their performance.
-This feedback loop should be as tight as possible, giving feedback immediately — and ideally automatically.
+This feedback loop should be as tight as possible, giving feedback immediately - and ideally automatically.
 
 For quizzes, each answer should be exactly the same number of words (and characters, if possible).
 Don't give the user any clues about the answer through formatting.
 
 ## Acquiring Wisdom
 
-Wisdom comes from true real-world interaction — testing your skills outside the learning environment.
+Wisdom comes from true real-world interaction - testing your skills outside the learning environment.
 
-When the user asks a question that appears to require wisdom, your default posture should be to attempt to answer — but to ultimately delegate to a **community**.
+When the user asks a question that appears to require wisdom, your default posture should be to attempt to answer - but to ultimately delegate to a **community**.
 
 A community is a place (online or offline) where the user can test their skills in the real world.
 This might be a forum, a subreddit, a real-world class (budget permitting) or a local interest group.
@@ -169,9 +169,9 @@ If the user expresses a preference that they don't want to join a community, res
 ## Reference Documents
 
 While creating lessons, you should also create reference documents.
-Lessons can reference these documents — they are useful for tracking raw units of knowledge useful across lessons.
+Lessons can reference these documents - they are useful for tracking raw units of knowledge useful across lessons.
 
-Lessons will rarely be revisited later — reference documents will be.
+Lessons will rarely be revisited later - reference documents will be.
 They should be the compressed essence of the lesson, in a format designed for quick reference.
 
 Some learning topics lend themselves to reference:

@@ -12,16 +12,14 @@ Wisdom comes from the communities listed here.
 ## Knowledge
 
 - [Book: _The Science and Practice of Strength Training_ — Zatsiorsky & Kraemer](https://example.com)
-  Foundational text on programming and adaptation. Use for: anything to do with periodisation,
-  recovery, intensity zones.
+  Foundational text on programming and adaptation. Use for: anything to do with periodisation, recovery, intensity zones.
 - [Article: "How Much Should I Train?" — Greg Nuckols (Stronger By Science)](https://example.com)
   Evidence-based review of volume landmarks. Use for: weekly set targets per muscle group.
 
 ## Wisdom (Communities)
 
 - [r/weightroom](https://reddit.com/r/weightroom)
-  High-signal subreddit, moderated against bro-science. Use for: programme critique, plateau
-  troubleshooting.
+  High-signal subreddit, moderated against bro-science. Use for: programme critique, plateau troubleshooting.
 - Local: Tuesday strength class at {gym name}
   Use for: real-time coaching feedback on lifts.
 ```

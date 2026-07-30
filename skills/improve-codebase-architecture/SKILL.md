@@ -2,7 +2,7 @@
 name: improve-codebase-architecture
 description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 disable-model-invocation: true
-version: 1.0.0
+version: 1.0.1
 source: mattpocock/skills@1.1.0 (improve-codebase-architecture)
 ---
 
@@ -62,7 +62,7 @@ For each candidate, render a card with:
 
 End the report with a **Top recommendation** section: which candidate you'd tackle first and why.
 
-**Use the project's domain glossary for the domain, and the `codebase-design` vocabulary for the architecture.**
+**Use the project's domain glossary for the domain, and the `/codebase-design` vocabulary for the architecture.**
 If the glossary defines "Order," talk about "the Order intake module" — not "the FooBarHandler," and not "the Order service."
 
 **Settled-decision conflicts**: if a candidate contradicts a decision recorded in `docs/solutions/`, only surface it when the friction is real enough to warrant revisiting the decision.

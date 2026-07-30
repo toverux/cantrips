@@ -43,7 +43,7 @@ The right shape depends on the question:
   Good when there's no implicit current state — just transformations.
 - **A class or module with a clear method surface** when the logic genuinely owns ongoing internal state.
 
-Pick whichever shape best fits the question being asked, _not_ whichever is easiest to wire to a TUI.
+Pick whichever shape best fits the question being asked, *not* whichever is easiest to wire to a TUI.
 Keep it pure: no I/O, no terminal code, no `console.log` for control flow.
 The TUI imports it and calls into it; nothing flows the other direction.
 That purity is what makes the prototype useful past its own lifetime: when the question's been answered, the validated reducer / machine / function set can be lifted into the real module on its own.
@@ -59,7 +59,7 @@ Each frame has two parts, in this order:
    Use **bold** for field names or section headers and **dim** for less important context (timestamps, IDs, derived values).
    Native ANSI escape codes are fine — `\x1b[1m` bold, `\x1b[2m` dim, `\x1b[0m` reset.
    No need to pull in a styling library unless one is already in the project.
-2. **Keyboard shortcuts**, listed at the bottom: `[a] add user  [d] delete user  [t] tick clock [q] quit`.
+2. **Keyboard shortcuts**, listed at the bottom: `[a] add user  [d] delete user  [t] tick clock  [q] quit`.
    Bold the key, dim the description, or vice-versa — whatever reads cleanly.
 
 Behaviour:

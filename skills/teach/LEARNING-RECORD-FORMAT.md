@@ -10,8 +10,7 @@ They are used to calculate the zone of proximal development.
 ```md
 # {Short title of what was learned or established}
 
-{1-3 sentences: what was learned (or what prior knowledge was established), and why it matters for
-future sessions.}
+{1-3 sentences: what was learned (or what prior knowledge was established), and why it matters for future sessions.}
 ```
 
 That is the whole format.

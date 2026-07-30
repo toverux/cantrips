@@ -15,21 +15,15 @@ Mix the two — don't lean on Mermaid for everything, it'll start to look generi
     <title>Architecture review — {{repo name}}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
-      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-      mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose' });
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
     </script>
     <style>
       /* small custom layer for things Tailwind doesn't cover cleanly:
          dashed seam lines, hand-drawn-feeling arrow heads, etc. */
-      .seam {
-        stroke-dasharray: 4 4;
-      }
-      .leak {
-        stroke: #dc2626;
-      }
-      .deep {
-        background: linear-gradient(135deg, #0f172a, #1e293b);
-      }
+      .seam { stroke-dasharray: 4 4; }
+      .leak { stroke: #dc2626; }
+      .deep { background: linear-gradient(135deg, #0f172a, #1e293b); }
     </style>
   </head>
   <body class="bg-stone-50 text-slate-900 font-sans">
@@ -50,7 +44,7 @@ No introduction paragraph — straight into the candidates.
 ## Candidate card
 
 The diagrams carry the weight.
-Prose is sparse, plain, and uses the glossary terms (from `/codebase-design`) without ceremony.
+Prose is sparse, plain, and uses the glossary terms (from the `/codebase-design` skill) without ceremony.
 
 Each candidate is one `<article>`:
 
@@ -138,7 +132,7 @@ That's it.
 
 ## Tone
 
-Plain English, concise — but the architectural nouns and verbs come straight from `/codebase-design`.
+Plain English, concise — but the architectural nouns and verbs come straight from the `/codebase-design` skill.
 Concision is not an excuse to drift.
 
 **Use exactly:** module, interface, implementation, depth, deep, shallow, seam, adapter, leverage, locality.
@@ -152,8 +146,8 @@ Concision is not an excuse to drift.
 - "Deepen: one interface, one place to test."
 - "Two adapters justify the seam: HTTP in prod, in-memory in tests."
 
-**Wins bullets** name the gain in glossary terms: _"locality: bugs concentrate in one module"_, _"leverage: one interface, N call sites"_, _"interface shrinks; implementation absorbs the wrappers"_.
-Don't write _"easier to maintain"_ or _"cleaner code"_ — those terms aren't in the glossary and don't earn their place.
+**Wins bullets** name the gain in glossary terms: *"locality: bugs concentrate in one module"*, *"leverage: one interface, N call sites"*, *"interface shrinks; implementation absorbs the wrappers"*.
+Don't write *"easier to maintain"* or *"cleaner code"* — those terms aren't in the glossary and don't earn their place.
 
 No hedging, no throat-clearing, no "it's worth noting that…".
 If a sentence could be a bullet, make it a bullet.
