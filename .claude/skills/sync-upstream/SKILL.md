@@ -19,7 +19,9 @@ Scope the sync to the forks whose `source:` names the updated upstream.
 ## Step 3: Merge by content, never by the recorded version
 
 Treat `source:` as provenance, not ground truth: a fork may have been cut from upstream main between releases and already contain wording "newer" than its recorded version.
-For each upstream delta, read the fork's current text first and merge only what is genuinely absent, rewritten to fork conventions (leaner than upstream, one sentence per line, this repo's skill names).
+For each upstream delta, read the fork's current text first and merge only what is genuinely absent.
+Carry a merged delta **byte-identical** to upstream — verbatim text diffs empty at the next sync, so only real divergence ever shows up.
+Every deviation is a decision: a dropped delta goes to the ledger, and a reworded one (this repo's skill names, a deliberate lean rewrite) must be worth the diff noise it re-creates at every future sync.
 
 Consult the ledger below before merging: a delta listed there stays out, zero re-litigation.
 A delta tied to an upstream-only convention — caller skills, plan formats, variables this repo lacks — is a new skip: leave it out and add it to the ledger.
@@ -38,7 +40,6 @@ Deltas deliberately not carried; each reappears in every future upstream diff, s
 
 - ce-simplify-code "structure pins" paragraph — tied to ce-plan's `session-settled:` plan convention; nothing in this pipeline passes a plan to `/simplify`.
 - ce-simplify-code task-tracking paragraph and ce-work/lfg size-gate parenthetical — harness housekeeping and upstream-only callers.
-- ce-simplify-code model-selection paragraph — the fork dispatches reviewers without a model override.
 - ce-compound-refresh `references/` and `scripts/` — the fork does not bundle them.
 
 > _Next: `/commit` (user-invoked) — lands the merged deltas and the updated sync points._
