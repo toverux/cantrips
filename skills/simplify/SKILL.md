@@ -3,7 +3,7 @@ name: simplify
 description: Optional pre-review quality pass — behavior-preserving fixes for reuse, dead weight, altitude, and clarity. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify the current branch's changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.1.0
+version: 1.2.0
 source: EveryInc/compound-engineering-plugin@3.20.0 (ce-simplify-code)
 ---
 
@@ -32,6 +32,8 @@ For each, read its file and pass the **full file content verbatim** as the subag
 - [`references/personas/code-reuse-reviewer.md`](references/personas/code-reuse-reviewer.md) — existing utilities, duplicated functionality, reimplemented stdlib primitives.
 - [`references/personas/code-quality-reviewer.md`](references/personas/code-quality-reviewer.md) — dead weight, altitude (abstraction level), clarity.
 - [`references/personas/efficiency-reviewer.md`](references/personas/efficiency-reviewer.md) — wasted work, missed concurrency, memory.
+
+**Model selection.** Use the platform's balanced mid-tier model for these reviewers when the current harness exposes a known override. In Claude Code this is the Sonnet class. In Codex, apply this tier only when the active dispatch primitive exposes an explicit model or custom-agent selector; task wording alone does not select a different model. Otherwise omit the override and inherit the parent model -- a working pass on the parent model beats a broken dispatch.
 
 ## Step 3: Apply fixes
 

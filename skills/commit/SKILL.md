@@ -2,7 +2,7 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.0.1
+version: 1.0.2
 source: EveryInc/compound-engineering-plugin@3.20.0 (ce-commit)
 ---
 
@@ -21,7 +21,7 @@ Session-specific trivia dies here.
 
 ## Step 2: Gather context
 
-Run each as its own shell call — plain argv, no `;`/`&&` joins or redirects, which parse only under POSIX shells — and read the exit status directly: a non-zero exit is a state to interpret, not a failure.
+Gather the working-tree context by running each command below as its **own** shell tool call — a single argv-style invocation (just the program and its arguments). Do **not** join them with `;`, `&&`, `||`, pipes, `$(...)`, or redirects like `2>/dev/null`: that syntax parses only under POSIX shells and aborts under Windows PowerShell. Read each command's exit status directly — a non-zero exit is a normal state to interpret, not a failure to suppress.
 
 - `git status` — working-tree state.
   Clean tree → report there is nothing to commit and stop.
@@ -31,7 +31,7 @@ Run each as its own shell call — plain argv, no `;`/`&&` joins or redirects, w
 - `git rev-parse --abbrev-ref origin/HEAD` — the default branch (strip the `origin/` prefix).
   If unset, fall back to `main`.
 
-These values are a snapshot; re-read anything consequential (the current branch, the staged set) immediately before committing.
+These values are a snapshot taken before any action. Re-read anything consequential (the current branch, the staged set) immediately before committing, since the working tree can change between gathering context and acting on it.
 
 ## Step 3: Choose the branch
 
