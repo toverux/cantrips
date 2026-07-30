@@ -162,17 +162,3 @@ implementation.
 
 **Adopt when:** the next spec-touching edit to `/spec`, `/review-gate`, or `/compound` lands — or
 sooner, if a stale spec misleads a session for real rather than just reading wrong.
-
-## `/compound` inside `/commit` should pause before the commit
-
-`/commit` opens by invoking `/compound`, which gates every write on the user — but the gate is on the
-_destination_, not the text. The user approves "this learning goes to `docs/solutions/`", the agent then
-writes the prose and stages it into the same commit, so the first time anyone reads the actual document
-is after it has landed. Fixing a clumsy sentence then costs an amend. The two skills each behave
-correctly alone; the gap is at the seam, where `/compound`'s approval step and `/commit`'s staging step
-run without a checkpoint between them. The fix is a stop in `/commit`'s step 1: once `/compound` has
-written the approved files, present the diff of those writes and wait, so the user can bless the wording,
-edit it, or drop a document that reads worse than it sounded as a one-line proposal.
-
-**Adopt when:** the next `/commit` run whose compound scan produces a write — or sooner, since the cost
-is one prompt and the current behaviour has already shipped learning prose unread.

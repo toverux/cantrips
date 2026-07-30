@@ -2,7 +2,7 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.0.4
+version: 1.0.5
 source: EveryInc/compound-engineering-plugin@3.20.0 (ce-commit)
 ---
 
@@ -16,7 +16,8 @@ Judge each against compound's quality bar — _would it change a future agent's 
 Session-specific trivia dies here.
 
 - Any candidate might clear the bar → invoke `/compound` with the candidates; it routes each to a destination and gates every write on the user.
-  Approved writes join the working tree and ride into the commits below.
+  Once the approved writes land, present their diff and wait for the user's verdict on the wording — approve, edit, or drop each document — since the destination gate cleared a one-line proposal, not the prose itself.
+  Writes that survive ride into the commits below.
 - None → say so in one line and move on.
 
 ## Step 2: Gather context
