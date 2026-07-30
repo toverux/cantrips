@@ -492,4 +492,5 @@ session, or `/plugin marketplace update cantrips` and reinstall to refresh an in
 MIT — see [LICENSE](LICENSE). Forked material is credited in [NOTICE.md](NOTICE.md)
 ([mattpocock/skills](https://github.com/mattpocock/skills), MIT, © Matt Pocock;
 [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin),
-MIT, © Every); every forked skill records its upstream in its frontmatter `source` key.
+MIT, © Every); every forked skill records its upstream in its frontmatter `source` key, and
+[FORKS.md](FORKS.md) records how each fork deliberately differs from its upstream and why.

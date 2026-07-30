@@ -1,7 +1,7 @@
 ---
 name: sync-upstream
 description: Reconcile this repo's forked skills with a new upstream release. Use when the user says an upstream (compound-engineering, mattpocock/skills) was updated or asks to merge/sync upstream changes into the forks.
-version: 1.0.0
+version: 1.1.1
 ---
 
 Reconcile the forked skills with a new upstream release: merge what belongs, ledger what doesn't, and record the new sync point.
@@ -21,25 +21,16 @@ Scope the sync to the forks whose `source:` names the updated upstream.
 Treat `source:` as provenance, not ground truth: a fork may have been cut from upstream main between releases and already contain wording "newer" than its recorded version.
 For each upstream delta, read the fork's current text first and merge only what is genuinely absent.
 Carry a merged delta **byte-identical** to upstream — verbatim text diffs empty at the next sync, so only real divergence ever shows up.
-Every deviation is a decision: a dropped delta goes to the ledger, and a reworded one (this repo's skill names, a deliberate lean rewrite) must be worth the diff noise it re-creates at every future sync.
+Every deviation is a decision recorded in the divergence ledger, [FORKS.md](../../../FORKS.md) at the repo root: a dropped delta as a skip, a reworded one (this repo's skill names, a deliberate lean rewrite) only when worth the diff noise it re-creates at every future sync.
 
-Consult the ledger below before merging: a delta listed there stays out, zero re-litigation.
-A delta tied to an upstream-only convention — caller skills, plan formats, variables this repo lacks — is a new skip: leave it out and add it to the ledger.
+Consult the ledger before merging: a listed difference stands — a skipped delta stays out, a local rewrite stays ours — zero re-litigation.
+A delta tied to an upstream-only convention — caller skills, plan formats, variables this repo lacks — is a new skip: leave it out and ledger it.
+A local difference absent from the ledger has no recorded decision: raise it to the user, then ledger the outcome.
 
 ## Step 4: Record the sync point
 
 Bump each touched fork's `version` frontmatter (patch for clarifications, minor for new rules) and set its `source:` to the new upstream version — including forks where nothing merged, so the next sync starts from the right baseline.
 
-Done when every in-scope fork's `source:` names the new release and every upstream delta is either merged into the fork or entered in the ledger.
-
-## Skips ledger
-
-Deltas deliberately not carried; each reappears in every future upstream diff, so it stays listed here until the reason lapses.
-
-**compound-engineering** (reconciled at v3.20.0):
-
-- ce-simplify-code "structure pins" paragraph — tied to ce-plan's `session-settled:` plan convention; nothing in this pipeline passes a plan to `/simplify`.
-- ce-simplify-code task-tracking paragraph and ce-work/lfg size-gate parenthetical — harness housekeeping and upstream-only callers.
-- ce-compound-refresh `references/` and `scripts/` — the fork does not bundle them.
+Done when every in-scope fork's `source:` names the new release and every difference — an upstream delta merged or skipped, a local rewrite kept — is either in the fork or in the ledger.
 
 > _Next: `/commit` (user-invoked) — lands the merged deltas and the updated sync points._

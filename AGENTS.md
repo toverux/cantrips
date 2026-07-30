@@ -22,6 +22,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 - `skills/<skill>/SKILL.md`: the one shared skills tree; both harnesses auto-discover it.
 - `.claude-plugin/plugin.json` + `.codex-plugin/plugin.json`: the dual manifests; shared fields must stay identical.
 - `.claude-plugin/marketplace.json` + `.agents/plugins/marketplace.json`: the catalog files that publish this repo as an installable plugin (Claude Code takes a string `source`, Codex CLI the object form; both point at `./`).
+- `FORKS.md`: the fork divergence ledger — every upstream skill listed, forks with how they deliberately differ and why, the rest marked not ported; `/sync-upstream` and human readers both consult it.
 - `docs/specs/`: specs for the work done here (dogfooding the `/spec` convention).
 - `docs/research/`: primary-source research notes, written by `/research`.
 
@@ -31,6 +32,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
    Forks get leaner than upstream, never heavier.
 2. Frontmatter: `name`, `description` (trigger-rich for model-invoked skills; one human-facing line + `disable-model-invocation: true` for user-invoked ones), `argument-hint` where an argument is meaningful, `version` (per-skill semver; bump on every content change), and for forks `source` recording upstream provenance, e.g. `source: mattpocock/skills@1.1.0 (to-spec)`.
    `version` and `source` are unofficial keys the loaders ignore.
+   Changing a fork's body beyond its upstream text is a divergence: record it in [FORKS.md](FORKS.md) in the same edit, so `/sync-upstream` preserves it instead of merging upstream's wording back.
    Every skill carries an `agents/openai.yaml` sidecar (`interface.display_name`, `interface.short_description`, `policy.allow_implicit_invocation`): `false` for user-invoked skills — Codex CLI ignores `disable-model-invocation`, so the sidecar is what stops auto-firing there — and `true` for model-invoked ones, stating the intent explicitly rather than leaning on Codex defaults.
    The sidecar's `allow_implicit_invocation` is always the logical inverse of the SKILL.md `disable-model-invocation`; a skill shipped without a sidecar auto-fires in Codex whatever its frontmatter says.
 3. Pipeline skills end with a flow pointer naming the next step(s) of the loop and marking a user-invoked target `(user-invoked)`; keep those pointers consistent when renaming or inserting skills.
