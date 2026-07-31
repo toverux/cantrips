@@ -138,6 +138,7 @@ No divergences beyond the systematic conventions.
 
 - Second paragraph added, extending the principles to any file an agent loads and acts on (`AGENTS.md`, `CLAUDE.md`, rules files) and flagging Invocation as the one skill-specific section — this repo applies the standard to its own AGENTS.md and rules files, which upstream's skill-only framing leaves outside scope.
 - "Pipeline closings" section added, pointing at the sibling [flow-pointers.md](skills/writing-great-skills/flow-pointers.md) — the pipeline skills here all end on a flow pointer, and the shared presentation format needs one authoritative home rather than a restatement in each skill.
+  Its last line prescribes the pointer's verb-first wording, from an observed failure the section itself no longer names: an agent read the earlier `([presentation](…))` phrasing as a citation, never loaded the file, and invented a closing format.
 - Upstream's `disable-model-invocation: true` dropped in favour of a trigger-rich description, making the fork model-invoked — the standard has to load before any agent-facing file is written, and a session that merely reads such files would otherwise never pull it in.
 
 ### ask-matt

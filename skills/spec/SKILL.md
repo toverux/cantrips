@@ -2,7 +2,7 @@
 name: spec
 description: Synthesize the current conversation into a published spec, test seams included.
 disable-model-invocation: true
-version: 1.1.0
+version: 1.1.1
 source: mattpocock/skills@1.1.0 (to-spec)
 ---
 
@@ -86,4 +86,4 @@ Any further notes about the feature.
 
 </spec-template>
 
-Spec published → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/tickets` (user-invoked) if the work spans multiple sessions or context windows, else `/implement` (user-invoked) — in a fresh context either way.
+Spec published → close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/tickets` (user-invoked) if the work spans multiple sessions or context windows, else `/implement` (user-invoked) — in a fresh context either way.

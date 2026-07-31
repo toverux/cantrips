@@ -1,7 +1,7 @@
 ---
 name: writing-great-skills
 description: Load before writing or editing any file an agent will load and act on — a skill (SKILL.md), an AGENTS.md or CLAUDE.md, or a rules file. The vocabulary and principles that make those files predictable. A session that only reads them leaves this unloaded.
-version: 1.0.1
+version: 1.1.0
 source: mattpocock/skills@1.1.0 (writing-great-skills)
 ---
 
@@ -110,6 +110,7 @@ Assume every skill is carrying restatements that leading words retire — go fin
 
 A skill that hands off to the next step of a loop ends on a **flow pointer**.
 Author that closing to carry the next step and its rationale, mark a user-invoked target `(user-invoked)`, and point the agent at the shared presentation format ([`flow-pointers.md`](flow-pointers.md)) rather than restating it.
+Word that pointer verb-first as an instruction to read the file — `(read [flow-pointers.md](flow-pointers.md) for the format)` — so the agent loads a format instead of inventing one.
 
 ## Failure modes
 

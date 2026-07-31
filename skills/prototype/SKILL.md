@@ -1,7 +1,7 @@
 ---
 name: prototype
 description: Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, explore what a UI should look like, or when a decision in a grilling interview needs empirical evidence.
-version: 1.1.0
+version: 1.1.1
 source: mattpocock/skills@1.1.0 (prototype)
 ---
 
@@ -44,4 +44,4 @@ If the question is genuinely ambiguous and the user isn't reachable, default to 
    When the feature has no spec, leave the pointer in the commit that folds the decision in.
    The main branch keeps only the validated decision.
 
-Question answered → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): feed the verdict back into the decision that spawned the prototype — the `/grilling` interview or the spec being written.
+Question answered → close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): feed the verdict back into the decision that spawned the prototype — the `/grilling` interview or the spec being written.

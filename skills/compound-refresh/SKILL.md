@@ -3,7 +3,7 @@ name: compound-refresh
 description: Garbage-collect the knowledge stores — audit AGENTS.md, and docs/solutions/ where that store is enabled, against the current code.
 argument-hint: '[optional: scope — directory, module, or keyword; blank audits everything]'
 disable-model-invocation: true
-version: 1.1.0
+version: 1.1.1
 source: EveryInc/compound-engineering-plugin@3.20.0 (ce-compound-refresh)
 ---
 
@@ -66,4 +66,4 @@ Present the verdicts: Keeps as one summarized list; every Update, Consolidate, D
 Apply only approved changes.
 
 Close with counts (kept / updated / consolidated / deleted / AGENTS.md findings) and a one-liner per touched file.
-Changes applied → close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/commit` (user-invoked) — to land the refreshed docs.
+Changes applied → close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/commit` (user-invoked) — to land the refreshed docs.

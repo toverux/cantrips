@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix]'
 disable-model-invocation: true
-version: 1.1.0
+version: 1.1.1
 source: mattpocock/skills@1.1.0 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 ---
 
@@ -109,5 +109,5 @@ For a high-stakes change, offer a cross-model second pass where the harness prov
 
 Where the harness cannot run parallel sub-agents, work through every angle and lens inline in this context at the requested level's caps, dedup and self-check each candidate against the diff instead of dispatching verifiers, and state in the summary that this was a single-pass review without independent verification.
 
-Close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): fix the findings worth fixing (re-run this review after substantial fixes), then `/commit` (user-invoked) — in this session.
+Close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): fix the findings worth fixing (re-run this review after substantial fixes), then `/commit` (user-invoked) — in this session.
 A finding that exposed a durable gotcha or root cause is `/compound` material: flag it so `/commit`'s opening scan captures it, or invoke `/compound` directly.

@@ -2,7 +2,7 @@
 name: improve-codebase-architecture
 description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 disable-model-invocation: true
-version: 1.1.0
+version: 1.1.1
 source: mattpocock/skills@1.1.0 (improve-codebase-architecture)
 ---
 
@@ -85,4 +85,4 @@ Side effects happen inline as decisions crystallize — capture the durable ones
 - **The user rejects a candidate with a load-bearing reason** — capture it so future architecture reviews don't re-suggest the same thing.
   Skip ephemeral reasons ("not worth it right now") and self-evident ones.
 
-When alternative interfaces for the deepened module are worth exploring, close with a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)): `/codebase-design` — its design-it-twice parallel sub-agent pattern surfaces the options.
+When alternative interfaces for the deepened module are worth exploring, close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/codebase-design` — its design-it-twice parallel sub-agent pattern surfaces the options.

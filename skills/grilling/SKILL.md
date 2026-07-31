@@ -1,7 +1,7 @@
 ---
 name: grilling
 description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to be grilled about a plan, wants a decision stress-tested, or when requirements are fuzzy before a spec is written.
-version: 1.0.1
+version: 1.0.2
 source: mattpocock/skills@1.1.0 (grilling)
 ---
 
@@ -25,7 +25,7 @@ When a decision needs empirical evidence rather than debate, propose `/prototype
 ## Closing
 
 The interview is done when every branch of the decision tree is resolved.
-Close with a single sentence stating that shared understanding is reached — no summary — then recommend the next step as a flow pointer ([presentation](../writing-great-skills/flow-pointers.md)) and wait for my go-ahead:
+Close with a single sentence stating that shared understanding is reached — no summary — then recommend the next step as a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format) and wait for my go-ahead:
 
 - `/spec` (user-invoked) when the outcome is a feature worth a written contract — in this session, since it synthesizes the interview; implementation then starts fresh.
 - `/implement` (user-invoked) directly when it's a small fix that needs no spec — in this session, which already carries the context.
