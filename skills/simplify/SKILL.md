@@ -1,14 +1,27 @@
 ---
 name: simplify
-description: Optional pre-review quality pass — behavior-preserving fixes for reuse, dead weight, altitude, and clarity. Bug hunting is /review-gate's job.
+description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, and efficiency lenses. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify the current branch's changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.2.1
+version: 1.3.0
 source: EveryInc/compound-engineering-plugin@3.20.0 (ce-simplify-code)
 ---
 
-Simplify recently changed code while preserving exact behavior: same output for every input, same error behavior, same side effects and ordering.
-Prioritize readable, explicit code over compact code — fewer lines is not the goal.
+Simplify recently changed material while preserving what it does.
+Prioritize readable, explicit results over compact ones — fewer lines is not the goal.
+
+The contract below governs every step of this pass, and travels verbatim to each fixer dispatched in Step 2.
+
+<preservation-contract>
+Preserve what the material does.
+Which test that is depends on the material, and a file is judged by its own kind — a diff holding both kinds is held to both:
+
+- **Code** — same output for every input, same error behavior, same side effects and ordering.
+- **Agent-facing prose** (a skill, an `AGENTS.md` or `CLAUDE.md`, a rules file — anything an agent loads and acts on) — the instruction set is what is preserved.
+  Cut text that repeats, rambles, or restates what another file already says.
+  Never cut or weaken a sentence that directs an agent to act, forbids an action, gates a step behind a condition, or states how completion is judged — rewording one into a suggestion is weakening it.
+  Where a sentence's kind is uncertain, it stays.
+</preservation-contract>
 
 ## Step 1: Resolve the scope
 
@@ -19,46 +32,65 @@ Prioritize readable, explicit code over compact code — fewer lines is not the 
 
 If the scope comes up empty, stop and ask the user what to simplify.
 
-**Preflight:** the reviewers hunt in _code_.
-If the scope is documentation-only, or only generated, vendored, lockfile, or mechanical churn (formatting, lint autofix, mass rename), stop with a one-line note that there is nothing to simplify.
-On a mixed diff, narrow the scope to the code files and continue.
-Gate on the _kind_ of change only — a user-named scope always runs.
+**Preflight.** Reviewable material is code and agent-facing prose.
+Left alone: human-facing documentation (README, NOTICE, changelogs, prose written for people to read), generated, vendored and lockfile content, and mechanical churn (formatting, lint autofix, mass rename).
+On a mixed diff, narrow the scope to the reviewable material and continue; when nothing reviewable is left, stop with a one-line note saying so.
+Gate on the _kind_ of change only — a user-named scope always runs, a named README included.
 
-## Step 2: Launch three reviewers in parallel
+## Step 2: Launch three fixers in parallel
 
-Dispatch one subagent per persona, in parallel where the harness supports it, sequentially otherwise.
-For each, read its file and pass the **full file content verbatim** as the subagent's prompt, together with the resolved scope (the full diff or file set) — paraphrasing from memory loses the gating rules that keep the pass behavior-preserving:
+Dispatch one subagent per lens — **Reuse**, **Simplification**, **Efficiency** — in parallel where the harness supports it, sequentially otherwise.
+Give each one:
 
-- [`references/personas/code-reuse-reviewer.md`](references/personas/code-reuse-reviewer.md) — existing utilities, duplicated functionality, reimplemented stdlib primitives.
-- [`references/personas/code-quality-reviewer.md`](references/personas/code-quality-reviewer.md) — dead weight, altitude (abstraction level), clarity.
-- [`references/personas/efficiency-reviewer.md`](references/personas/efficiency-reviewer.md) — wasted work, missed concurrency, memory.
+- the preservation contract above and the fixer brief below, both **verbatim**;
+- its single lens section from [`../review-gate/QUALITY-LENSES.md`](../review-gate/QUALITY-LENSES.md) — the lens text, the restraints printed under it, and the governing rules from that file's preamble;
+- the resolved scope (the full diff or file set).
+
+Paraphrasing any of it from memory loses the restraints that keep the pass preserving.
+
+<fixer-brief>
+Propose fixes; the skill that dispatched you applies them. Edit nothing yourself.
+Hunt only through the lens you were given, and for each thing you find, name the concrete fix — one that satisfies the preservation contract you were given, since a fix that cannot is one this pass will drop.
+Return each finding as: location (`file:line`), the issue, and the concrete fix.
+If there is nothing to flag, say so explicitly.
+</fixer-brief>
 
 **Model selection.** Use the platform's balanced mid-tier model for these reviewers when the current harness exposes a known override. In Claude Code this is the Sonnet class. In Codex, apply this tier only when the active dispatch primitive exposes an explicit model or custom-agent selector; task wording alone does not select a different model. Otherwise omit the override and inherit the parent model -- a working pass on the parent model beats a broken dispatch.
 
 ## Step 3: Apply fixes
 
-Wait for all three reviewers, aggregate their findings, and fix each issue directly.
+Wait for all three fixers, aggregate their findings, and fix each issue directly.
 A false positive or a fix not worth its churn: note it, skip it, move on — settle it yourself rather than raising it to the user.
 
-Before applying each fix, confirm it preserves behavior (the test above).
+Before applying each fix, confirm it satisfies the preservation contract for that material.
 If it can't clear that test, skip it.
 
 **Never simplify away a safety check.**
 Input validation at trust boundaries, error handling that prevents data loss, security checks (authorization, escaping, sanitization), and accessibility affordances stay — even when a finding frames them as redundant.
-Code that drops one is not simpler, it is unfinished.
+In agent-facing prose the equivalent is a gate or a prohibition: a sentence that stops an agent doing something, or makes it stop and check first.
+Material that drops one is not simpler, it is unfinished.
 
-## Step 4: Verify behavior is preserved
+## Step 4: Verify what was preserved
+
+Each verification below observes one kind of material.
+Run the one whose material this pass touched, and both where it touched both — code checks cannot observe prose, and the prose re-read cannot observe code.
+
+**Where the pass touched code:**
 
 - **Typecheck and lint the full project** — they catch the common simplification regressions: broken imports, dropped narrowings, dead code other modules still reference.
 - **Run tests scoped to the blast radius** of the changes; broaden when shared or heavily-imported code was touched.
   No scoping mechanism → full suite.
 
-On a failure, fix the underlying break or revert the specific simplification that caused it — weakening assertions, types, or skipping tests defeats the behavior-preservation guarantee.
+On a failure, fix the underlying break or revert the specific simplification that caused it — weakening assertions, types, or skipping tests defeats the preservation guarantee.
 If no checks are configured, state that in the summary.
+
+**Where the pass touched agent-facing prose**, diff each changed file against its state before this pass and read every line the pass removed or reworded.
+That pre-pass text is the only place a cut instruction still exists, so re-reading the file as it now stands cannot find one.
+For each removed or reworded line, confirm it carried no directive, prohibition, gate, or completion criterion — and restore it where it did.
 
 ## Step 5: Summarize
 
-Report fixes applied per dimension (reuse, quality, efficiency), findings skipped as false positives or not worthwhile, and which checks ran with their results.
-The measure is what improved and that behavior held — many clarity and safety fixes preserve or add lines.
+Report fixes applied per lens (reuse, simplification, efficiency), findings skipped as false positives or not worthwhile, which verifications ran — the code checks with their results, the prose diff-read, or both — and what the preflight narrowed away on a mixed diff.
+The measure is what improved and that the contract held — many clarity and safety fixes preserve or add lines.
 
 Close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/review-gate` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise.

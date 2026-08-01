@@ -1,5 +1,5 @@
 interface:
   display_name: 'Simplify'
-  short_description: 'Behavior-preserving pre-review quality pass'
+  short_description: 'Preserving pre-review quality pass — reuse, simplification, efficiency'
 policy:
   allow_implicit_invocation: false

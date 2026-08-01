@@ -107,17 +107,3 @@ skill's phase structure (Scope → Find → Verify → Sweep → Synthesize) map
 almost mechanically if the surface ever opens.
 
 **Adopt when:** Claude Code (or another harness) exposes plugin-defined workflows.
-
-## One quality taxonomy for `/simplify` and `/review-gate`
-
-The same three quality dimensions live in two separately-authored texts: `/simplify`'s persona
-files (fixer briefs with behavior-preservation gating, forked from CE) and `/review-gate`'s
-mechanical lenses in ANGLES.md (finder briefs, reimplemented from the built-in reviewer). They
-already drift — the personas carry 7–9 hunt items per dimension, the lenses 4–5 — so refining what
-"reuse" or "efficiency" means requires editing both or the two review paths disagree about the
-same defect class (a CONFIRMED reuse finding from the 2026-07 dogfooding run). Candidate shapes: a
-shared taxonomy file both reference, or the personas deferring to the lenses and keeping only
-their fixer-gating rules.
-
-**Adopt when:** the next substantive edit to either taxonomy lands — reconcile then instead of
-patching one side.

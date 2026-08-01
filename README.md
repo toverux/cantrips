@@ -175,7 +175,7 @@ can still type them).
 | [`/tickets`](#tickets)                 | 🧑         | Slice a big spec into tracer-bullet tickets, one per fresh context.          |
 | [`/implement`](#implement)             | 🧑         | Execute the spec or one ticket, driving `tdd` at the agreed seams.           |
 | [`/tdd`](#tdd)                         | 🧑🤖       | Red-green-refactor discipline, with its anti-patterns catalogue.             |
-| [`/simplify`](#simplify)               | 🧑         | Optional behavior-preserving quality pass before review.                     |
+| [`/simplify`](#simplify)               | 🧑         | Optional preserving quality pass before review.                              |
 | [`/review-gate`](#review-gate)         | 🧑         | The gate: effort-scaled finder angles, every finding independently verified. |
 | [`/commit`](#commit)                   | 🧑         | Scan the session for learnings, then craft the commit(s).                    |
 | [`/compound`](#compound)               | 🧑🤖       | Route each learning to the right store — every write user-gated.             |
@@ -294,16 +294,19 @@ flowchart LR
 
 ### `/simplify`
 
-**An optional behavior-preserving quality pass between implementation and review.**
+**An optional quality pass between implementation and review that changes nothing about what the
+material does.**
 
 - **When to use** — the diff works but feels heavier than the problem deserved.
-- **The intent** — cleanup and bug-hunting are different jobs; this one only cleans. Three
-  parallel reviewer personas (reuse, quality, efficiency) propose fixes; every fix must preserve
-  exact behavior, and **safety checks are never simplified away** — code that drops one is not
-  simpler, it is unfinished.
-- **How it works** — resolves the scope (your words, or the branch diff), dispatches the personas,
-  applies the worthwhile findings directly, then verifies with typecheck, lint, and tests scoped
-  to the blast radius.
+- **The intent** — cleanup and bug-hunting are different jobs; this one only cleans. Three parallel
+  fixers, one per shared quality lens (reuse, simplification, efficiency), propose fixes; every fix
+  must preserve what the material does — exact behavior in code, the whole instruction set in
+  agent-facing prose — and **safety checks are never simplified away**, a gate or a prohibition in
+  prose counting as one.
+- **How it works** — resolves the scope (your words, or the branch diff), narrows it to code and
+  agent-facing prose, dispatches the fixers against `/review-gate`'s quality lenses, applies the
+  worthwhile findings directly, then verifies: typecheck, lint and scoped tests on a code diff, or
+  a re-read confirming every instruction survived on a prose-only one.
 - **Next** — `/review-gate`, in this session, with a suggested effort level scaled to the diff.
 
 ### `/review-gate`

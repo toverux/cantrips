@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix]'
 disable-model-invocation: true
-version: 1.1.1
+version: 1.2.0
 source: mattpocock/skills@1.1.0 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 ---
 
@@ -49,13 +49,17 @@ Report at most 4 findings, most-severe first.
 
 ## Find (medium/high)
 
-Dispatch the finders as parallel sub-agents — in the background where the harness supports it, so the session stays responsive while they run — each fed the scope block and its brief(s) from [ANGLES.md](ANGLES.md):
+Dispatch the finders as parallel sub-agents — in the background where the harness supports it, so the session stays responsive while they run — each fed the scope block and its brief(s):
 
-- **Correctness finders** — one per angle: A–D at `medium`, A–F at `high` (minus Angle D when Scope found no spec).
-- **Quality finders** — at `medium`, two: one carrying the mechanical lenses (Reuse, Simplification, Efficiency), one the judgement lenses (Design, Conventions); at `high`, one finder per lens.
+- **Correctness finders** — one angle brief each from [ANGLES.md](ANGLES.md): A–D at `medium`, A–F at `high` (minus Angle D when Scope found no spec).
+- **Quality finders** — one lens brief per lens carried, from [QUALITY-LENSES.md](QUALITY-LENSES.md), each lens pasted into the prompt with the restraints printed under it and the governing rules from that file's preamble.
+  At `medium`, two finders: one carrying the mechanical lenses (Reuse, Simplification, Efficiency), one the judgement lenses (Design, Conventions); at `high`, one finder per lens.
   Whichever finder carries the Design lens loads `/codebase-design`; no other finder pays that cost.
 
+Where the scope block carries matched `docs/solutions/` learnings, add to every finder's brief the instruction to re-check those learnings where they touch its angle or lens and to cite the learning file when the diff re-triggers one — a finder acts on the brief it is handed, so the rule binds only by travelling inside one.
+
 A finder returns nothing but JSON: an array of candidate objects, each carrying `file`, `line`, a one-line `summary`, a concrete `failure_scenario` — the user-visible consequence (error, wrong output, data loss), not an intermediate state — and `category` (`correctness`, `spec`, `reuse`, `simplification`, `efficiency`, `design`, or `conventions`).
+On a quality candidate the `failure_scenario` states the concrete cost instead — what is duplicated, wasted, or made harder to maintain, or which documented rule is broken.
 Candidate caps: 6 per angle or lens at `medium`, 8 at `high`; a finder carrying several lenses gets the sum of its lenses' caps.
 These are ceilings, never quotas — an empty array is a valid return.
 Spec candidates with no code location anchor to the spec and its requirement line instead.
