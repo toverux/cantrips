@@ -45,4 +45,7 @@ Two passages previously held byte-identical to upstream are compressed and no lo
 The unification aligns coverage, not verdicts: `/simplify` still skips findings whose fix would not preserve behavior or would not be worth its churn, and `/review-gate` still verifies independently and reports what survives.
 
 Design and Conventions moved across unchanged and sit outside the size budget that holds the three merged lenses to roughly six items each, since nothing merges into them.
-Neither carries a gloss for agent-facing prose, so altitude — which lives only in the Design lens — is unchecked on prose material.
+Neither carried a gloss for agent-facing prose, which left altitude — a paragraph inside the Design lens — unchecked on prose material.
+That gap is closed by giving Design a prose gloss that rules the ten smells out on prose and carries altitude across alone, keeping the lens count at five: splitting altitude into a sixth lens was weighed and dropped, since it buys a structurally isolated finder at `high` and costs an extra sub-agent on every run for a hunt of three judgement items.
+
+2026-08-02: the two sentences above replaced this record's original closing sentence in place. [`adr-format.md`](../../skills/compound/adr-format.md) permits only a status flip as an in-place edit; the amendment stands as a deliberate exception.

@@ -73,6 +73,8 @@ The `simple` release type would also write a `version.txt`, but it only updates 
 
 ## Boundaries
 
+These govern your own conduct here, not what a skill may instruct its own users to do.
+
 Never:
 
 - Create a git branch, stage files, or commit work yourself unless the user expressly told you so.

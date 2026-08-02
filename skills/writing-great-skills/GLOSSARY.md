@@ -277,6 +277,15 @@ The default fate of any skill without a pruning discipline; the slow erosion of 
 
 _Avoid_: accretion, bloat, cruft, rot
 
+### Gate
+
+Any line that conditions behaviour — "when X, do Y", an effort-level branch, a preflight that admits or refuses material.
+A gate earns its load only where its condition encodes something the model cannot infer: a project convention, an opt-in store, a safety guardrail.
+Otherwise it is a **no-op** with a condition attached — and worse than one where the agent cannot observe that condition, since it then guesses while the reader believes a rule is enforced.
+Move such a condition to an argument the user observes, or drop the gate and let the agent judge.
+
+_Avoid_: conditional, filter
+
 ### No-Op
 
 _Failure mode._

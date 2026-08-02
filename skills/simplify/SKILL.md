@@ -3,7 +3,7 @@ name: simplify
 description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, and efficiency lenses. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify the current branch's changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.3.0
+version: 1.4.0
 source: EveryInc/compound-engineering-plugin@3.20.0 (ce-simplify-code)
 ---
 
@@ -26,16 +26,13 @@ Which test that is depends on the material, and a file is judged by its own kind
 ## Step 1: Resolve the scope
 
 1. **If the user named a scope** (a file, a directory, "the function I just wrote"), use it as authoritative — do not widen it.
-2. **Otherwise**, use the diff between the current branch and its merge-base with the default branch (`git diff <default-branch>...`).
-   With no base ref, fall back to staged + unstaged changes (`git diff HEAD`).
+2. **Otherwise**, use the diff between the current branch and its merge-base with the default branch (`git diff <default-branch>...`) plus the uncommitted changes (`git diff HEAD`), which a merge-base diff leaves out.
+   With no base ref, the uncommitted changes alone.
+   Either way, add the files git does not track (`git ls-files --others --exclude-standard`): a file git does not track appears in no diff, so it joins the scope whole.
+   Snapshot each of those untracked files before Step 3 edits anything — git holds no pre-pass state for them, and Step 4 verifies against pre-pass text.
 3. **Outside a git repository**, use the files edited earlier in this conversation.
 
 If the scope comes up empty, stop and ask the user what to simplify.
-
-**Preflight.** Reviewable material is code and agent-facing prose.
-Left alone: human-facing documentation (README, NOTICE, changelogs, prose written for people to read), generated, vendored and lockfile content, and mechanical churn (formatting, lint autofix, mass rename).
-On a mixed diff, narrow the scope to the reviewable material and continue; when nothing reviewable is left, stop with a one-line note saying so.
-Gate on the _kind_ of change only — a user-named scope always runs, a named README included.
 
 ## Step 2: Launch three fixers in parallel
 
@@ -85,12 +82,13 @@ On a failure, fix the underlying break or revert the specific simplification tha
 If no checks are configured, state that in the summary.
 
 **Where the pass touched agent-facing prose**, diff each changed file against its state before this pass and read every line the pass removed or reworded.
+For a file git tracks that state is `HEAD`; for an untracked one it is the Step 1 snapshot, since git holds none.
 That pre-pass text is the only place a cut instruction still exists, so re-reading the file as it now stands cannot find one.
 For each removed or reworded line, confirm it carried no directive, prohibition, gate, or completion criterion — and restore it where it did.
 
 ## Step 5: Summarize
 
-Report fixes applied per lens (reuse, simplification, efficiency), findings skipped as false positives or not worthwhile, which verifications ran — the code checks with their results, the prose diff-read, or both — and what the preflight narrowed away on a mixed diff.
+Report fixes applied per lens (reuse, simplification, efficiency), findings skipped as false positives or not worthwhile, and which verifications ran — the code checks with their results, the prose diff-read, or both.
 The measure is what improved and that the contract held — many clarity and safety fixes preserve or add lines.
 
 Close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/review-gate` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise.

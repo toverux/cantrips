@@ -303,8 +303,8 @@ material does.**
   must preserve what the material does — exact behavior in code, the whole instruction set in
   agent-facing prose — and **safety checks are never simplified away**, a gate or a prohibition in
   prose counting as one.
-- **How it works** — resolves the scope (your words, or the branch diff), narrows it to code and
-  agent-facing prose, dispatches the fixers against `/review-gate`'s quality lenses, applies the
+- **How it works** — resolves the scope (your words, or the branch diff plus anything uncommitted
+  and untracked), dispatches the fixers against `/review-gate`'s quality lenses, applies the
   worthwhile findings directly, then verifies: typecheck, lint and scoped tests on a code diff, or
   a re-read confirming every instruction survived on a prose-only one.
 - **Next** — `/review-gate`, in this session, with a suggested effort level scaled to the diff.

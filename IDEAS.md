@@ -107,3 +107,21 @@ skill's phase structure (Scope → Find → Verify → Sweep → Synthesize) map
 almost mechanically if the surface ever opens.
 
 **Adopt when:** Claude Code (or another harness) exposes plugin-defined workflows.
+
+## A grouping mechanism for `/review-gate`'s verifiers
+
+Verify says to group candidates by `(file, line)` and run one verifier per distinct location. That
+arithmetic runs away on a real pass: twenty-seven candidates over six files resolved to fourteen
+locations, and the orchestrator grouped them by file instead of spawning fourteen sub-agents.
+Observed behaviour is that agents consistently adapt this rule rather than follow it — which makes
+it a rule that does not hold, and the adaptation goes unreported unless the orchestrator volunteers
+it.
+
+Per-location isolation buys one thing: a verifier cannot trade a weak candidate against a strong one
+somewhere else. It costs one sub-agent per location plus a re-read of the same file by each of them.
+A stated grouping mechanism would keep the isolation where it pays and bound the fan-out — group by
+file by default, split a file only past a candidate threshold, and name the grouping in the report
+so the reader knows how much independence was actually bought.
+
+**Adopt when:** the next `/review-gate` edit lands. The stated contract and the observed behaviour
+have already diverged, so the skill is describing a pipeline nobody runs.

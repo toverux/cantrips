@@ -11,8 +11,6 @@ Rules governing every lens:
   Repetition and sediment may go; a sentence that directs an agent to act, forbids an action, gates a step behind a condition, or states how completion is judged may not be cut or weakened.
   Where a sentence's kind is uncertain, it stays.
 
-Reuse, Simplification and Efficiency each close with what the lens means when the changed material is agent-facing prose — a skill, an `AGENTS.md`, a rules file — rather than code.
-
 ## Reuse
 
 Flag new code that re-implements something that already exists, and name the thing to call instead.
@@ -49,7 +47,6 @@ Restraints:
   Eliminating it by leaning on a platform, framework or downstream guarantee is the Reuse lens's call, under the conditions printed there — do not propose it from this lens.
 - Flatten nesting with early returns, guard clauses, a lookup table, or an if/else-if cascade, and name which.
 - Keep the non-obvious WHY: hidden constraints, subtle invariants, workarounds.
-- Skip the wrapper rule entirely on a codebase with no component-tree framework.
 - Verify "unused" with the project's dead-code linter where one is configured, else a structural search (`ast-grep`) over plain grep, which false-positives on strings, comments and substring matches.
   Account for re-exports, dynamic imports and framework-magic exports; a false positive costs more here than a miss, so skip when uncertain.
 - **Balance** — the goal is faster comprehension, not fewer lines, and every flag above has a failure mode in the opposite direction.
@@ -80,7 +77,8 @@ Restraints:
 Load `/codebase-design` first and judge this whole lens in its vocabulary — depth, seam, leverage, locality, the deletion test.
 
 **Altitude:** check that each change is implemented at the right depth, not as a fragile bandaid.
-Special cases layered on shared infrastructure signal a fix that isn't deep enough — prefer generalizing the underlying mechanism.
+A special case layered on shared infrastructure, the same defect guarded at each call site rather than at its origin, a workaround for a behavior the diff itself introduces — each signals a fix that isn't deep enough; prefer generalizing the underlying mechanism.
+Flag it only where the special case will recur, or already has — a one-off that stays a one-off is cheaper than the generalization it would justify.
 
 **Design smells:** each smell is a labelled judgement call ("possible Feature Envy"), never a hard violation; each reads _what it is_ → _how to fix_ (Fowler, _Refactoring_ ch. 3):
 
@@ -95,7 +93,9 @@ Special cases layered on shared infrastructure signal a fix that isn't deep enou
 - **Middle Man** — a class or function that mostly delegates onward. → cut it, call the real target direct.
 - **Refused Bequest** — an implementer ignoring or overriding most of what it inherits. → drop the inheritance, use composition.
 
+**On agent-facing prose:** the smells above are code shapes, and altitude alone carries over — a rule patched into one skill that every caller needs, a special case bolted onto a shared reference instead of generalized into it, an instruction added at the call site where the mechanism was the honest home.
+
 ## Conventions
 
-Check the diff against the standards sources from Scope.
+Check the changed material against the standards sources your brief supplies.
 Flag a violation only when you can quote the exact rule and the exact line that breaks it — no style preferences, no "spirit of the doc" inferences; name the source file so the report can cite it.

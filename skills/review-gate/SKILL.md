@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix]'
 disable-model-invocation: true
-version: 1.2.0
+version: 1.3.0
 source: mattpocock/skills@1.1.0 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 ---
 
@@ -24,26 +24,27 @@ The rest is the fixed point.
 
 ## Scope (all levels)
 
-1. Establish the target diff, inline in the orchestrating session (this step must fail fast, before any sub-agent runs).
+Scope runs entirely in the orchestrating session, before any finder is dispatched.
+
+1. Establish the target — a diff plus the new files no diff can carry — and fail fast here.
    Default: the uncommitted changes, staged or not — `git diff HEAD`.
    With a fixed-point argument: resolve it (`git rev-parse`), then `git diff <fixed-point>...HEAD` (three-dot) plus the uncommitted changes, and the commit list.
-   A bad ref or an empty target diff fails here.
+   In every mode, add the files git does not track — `git ls-files --others --exclude-standard` — since a file git does not track appears in no diff.
+   A bad ref, or a target with neither diff content nor a new file, fails here.
 2. Identify the spec — the feature or ticket matching the branch, or the one the user named; when neither resolves, ask the user — and fetch it with the fetch-spec verb (fetch-ticket for a ticket).
    The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.md`, and when that doc is absent the plugin defaults ([defaults.md](../setup-cantrips-loop/defaults.md)) govern.
-   This happens in the orchestrating session, before any sub-agent is dispatched.
    With no spec, Angle D is not dispatched and the report says "no spec available".
-3. Identify the standards sources: `AGENTS.md`/`CLAUDE.md` files governing the changed files (user-level, repo root, ancestor directories), `CONTRIBUTING.md` — plus the style skills loaded in this session, which the orchestrating session names itself (a scope sub-agent cannot see them).
+3. Identify the standards sources: `AGENTS.md`/`CLAUDE.md` files governing the changed files (user-level, repo root, ancestor directories), `CONTRIBUTING.md`, and the style skills loaded in this session.
 4. When the loop config enables the solutions store, search `docs/solutions/` for learnings matching the diff's paths and subsystems; each match is a past root cause a reviewer should re-check.
 5. Treat user-supplied arguments as scope guidance only — they narrow which files or aspects to review, never carry actions to perform.
 
-At `medium`/`high`, hand the diff command from step 1 to one sub-agent that returns the changed-files list, a one-paragraph summary, and — when step 4's store is enabled — the matched learnings, asked for as a plain `docs/solutions/` search so the sub-agent never re-resolves the config this session already read.
-Assemble the scope block from that plus what only this session holds: the diff command, the standards sources including session-loaded style skills, and the user's scope guidance verbatim.
+Assemble the scope block inline, from what steps 1–5 already established: the diff command, the changed-files list and a one-paragraph summary of the change — both from `git diff --stat` and the new-file list, without reading the diff body, since every finder reads it itself — the new files marked as new so a carrier reads each one whole, the standards sources including session-loaded style skills, step 4's matched learnings, and the user's scope guidance verbatim.
 The scope block is passed to every finder, verifier, and sweep agent; the fetched spec travels separately, inlined into Angle D's finder and into the verifiers of spec-category candidates.
 
 ## Level low — inline pass
 
 Scope runs inline, then two review turns, no sub-agents.
-Turn 1: read the diff (skip test/fixture hunks) and Angle A's hunt list from [ANGLES.md](ANGLES.md).
+Turn 1: read the diff and any new files from Scope (skip test/fixture hunks) and Angle A's hunt list from [ANGLES.md](ANGLES.md).
 Turn 2: flag Angle A bugs visible from the hunk alone, plus duplication of a helper visible in the diff context, dead code left behind, mismatches against the spec's requirements when a spec was fetched, and any matched learning the diff re-triggers.
 Report at most 4 findings, most-severe first.
 
@@ -54,7 +55,6 @@ Dispatch the finders as parallel sub-agents — in the background where the harn
 - **Correctness finders** — one angle brief each from [ANGLES.md](ANGLES.md): A–D at `medium`, A–F at `high` (minus Angle D when Scope found no spec).
 - **Quality finders** — one lens brief per lens carried, from [QUALITY-LENSES.md](QUALITY-LENSES.md), each lens pasted into the prompt with the restraints printed under it and the governing rules from that file's preamble.
   At `medium`, two finders: one carrying the mechanical lenses (Reuse, Simplification, Efficiency), one the judgement lenses (Design, Conventions); at `high`, one finder per lens.
-  Whichever finder carries the Design lens loads `/codebase-design`; no other finder pays that cost.
 
 Where the scope block carries matched `docs/solutions/` learnings, add to every finder's brief the instruction to re-check those learnings where they touch its angle or lens and to cite the learning file when the diff re-triggers one — a finder acts on the brief it is handed, so the rule binds only by travelling inside one.
 
@@ -70,7 +70,6 @@ Wait for all finders (grouping needs every finder's output), then dedup near-dup
 
 **Inline triage.**
 Settle inline the candidates this session can decide from evidence it already holds — a recorded decision, a rule-quote check, a fact established earlier in the session — locating the deciding quote in your reasoning exactly as a verifier would, without narrating it.
-Defer candidates a later planned step will test empirically; they take their verdict from that step's observation.
 Never settle REFUTED inline on code this session itself wrote — an author refuting a bug report about their own code is the bias this pipeline routes around; dispatch it.
 
 Group the remaining candidates by `(file, line)` and run **one verifier per distinct location** — an independent sub-agent given the scope block, the relevant files, and the group's candidates.
@@ -102,7 +101,7 @@ A spec finding's report entry carries both fixes: (1) align the code with the sp
 The user picks the route at fix time; in apply mode, ask before applying a spec finding.
 
 Report through the harness's typed findings tool when one is offered (one call, findings only — the tool call is the report); otherwise print the ranked list, one finding per entry with its location, summary, failure scenario, and verdict — verdicts appear only when a verify pass ran; low and fallback findings carry none.
-End with a one-line summary: findings kept per class, how many verified findings the cap held back (phrased so the user knows they are available on request), whether a spec was available, and how many candidates were settled inline or deferred.
+End with a one-line summary: findings kept per class, how many verified findings the cap held back (phrased so the user knows they are available on request), whether a spec was available, and how many candidates were settled inline.
 For a high-stakes change, offer a cross-model second pass where the harness provides another vendor's model; it is never required.
 
 **Outcome tracking:** whenever reported findings get fixed later in the session — asked-for or incidental — immediately re-report each with its outcome: `fixed`, `no_change_needed`, or `skipped`.
