@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.1.0](https://github.com/toverux/cantrips/compare/v2.0.0...v2.1.0) (2026-08-02)
+
+
+### Features
+
+* **skills:** review what git does not track, and stop gating what an agent can judge ([395cf46](https://github.com/toverux/cantrips/commit/395cf46e64c4bc6bc474ed0fc5776fa8cd465566))
+* **skills:** unify the two quality taxonomies and open /simplify to agent-facing prose ([0c434e7](https://github.com/toverux/cantrips/commit/0c434e77ac9ea57b7d13d360f2596c54d926fb08))
+
+
+### Bug Fixes
+
+* **skills:** word the flow-pointer reference so agents load the format instead of inventing one ([635b9d9](https://github.com/toverux/cantrips/commit/635b9d9bf90fde00aca4e31b07848a1a3f16bf09))
+
 ## [2.0.0](https://github.com/toverux/cantrips/compare/v1.0.0...v2.0.0) (2026-07-30)
 
 
