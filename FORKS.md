@@ -14,7 +14,9 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 - Frontmatter reworked: `version` and `source` added, `description` rewritten, `disable-model-invocation` and `argument-hint` set per invocation mode.
 - An `agents/openai.yaml` sidecar beside every SKILL.md.
 - A closing flow pointer naming the next pipeline step(s).
-- Agent-facing prose reflowed one sentence per line (AGENTS.md rule 7); carried passages otherwise stay byte-identical to upstream.
+  Where a review-tail pointer leads into `/review-gate`, it offers `[--fix | --loop]` with a clause on when to take each — the fork's gate has an apply mode and a converge-until-green mode with no upstream counterpart ([docs/research/review-fix-looping-upstream.md](docs/research/review-fix-looping-upstream.md)), and the review tail is where a user chooses between them.
+  A pointer with a settled answer names its flag outright instead, as `/review-gate --loop` does when the loop itself stops short of green.
+- Agent-facing prose reflowed one sentence per line (AGENTS.md rule 8); carried passages otherwise stay byte-identical to upstream.
 - Storage-touching steps speak the six storage verbs, translated per repo by the loop config (`docs/agents/cantrips-loop.md`, plugin defaults otherwise) — never a path or a CLI in the skill body.
 - Reads and writes against the opt-in knowledge stores (`docs/adr/`, `docs/solutions/`) condition on the loop config enabling the store, so a repo that left one off gets no phantom read.
 - Every sub-agent dispatch asks for a background dispatch where the harness supports one and names the Claude Code parameter that gets it wrong (`run_in_background: false`) — no upstream says this, and a blocking dispatch freezes the session for as long as the agent runs.
@@ -104,6 +106,8 @@ No divergences beyond the systematic conventions.
 - Upstream's issue-tracker dependency (`docs/agents/issue-tracker.md`, the setup-skill precondition, commit-message issue refs) is not carried — an upstream-only setup convention; this fork fetches the spec or ticket through the fetch verbs and additionally matches `docs/solutions/` learnings against the diff.
 - Angle D compares the diff against the spec as amended by its annotations and reports a mismatch neutrally, its fix offering both routes — align the code, or annotate the spec with the mid-implementation revision (the annotate-spec verb) and flag it for `/compound` at loop end — with the user picking at fix time, and verifiers citing deliberateness evidence (session transcript, commit messages) without suppressing the finding; a spec here is a point-in-time decision record, so a Spec axis that presumed the code wrong, or that ignored the annotation channel, would re-report a deliberate revision forever.
 - Added rule that user-supplied arguments are scope guidance only and never carry actions to perform — the diff and the arguments both reach sub-agents, so the injection boundary has to be stated where the scope is assembled.
+- A `--loop` flag added, implying `--fix` and driving the gate to a defined green state, with its rules disclosed to [LOOP.md](skills/review-gate/LOOP.md) and loaded only when the flag is passed: fix batches verified by the project's own checks, self-scaling delta rounds between them, a certifying pass at the invoked level over the final tree where the loop's fixes reached past the ground already reviewed, park-and-continue escalation of everything needing the user, trajectory, budget and repeat-question guards, and a closing report carrying the round and disposition ledgers.
+  No upstream source loops review→fix→re-review before the PR, and compound-engineering re-reviews only once a diff has changed materially, so this diverges knowingly, adapting the patterns of `ce-babysit-pr`, upstream's one true loop ([docs/research/review-fix-looping-upstream.md](docs/research/review-fix-looping-upstream.md)).
 
 ### /spec (to-spec)
 

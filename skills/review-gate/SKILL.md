@@ -1,9 +1,9 @@
 ---
 name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
-argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix]'
+argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
 disable-model-invocation: true
-version: 1.3.1
+version: 1.4.0
 source: mattpocock/skills@1.1.0 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 ---
 
@@ -12,9 +12,10 @@ Finders find and verifiers judge — a finder never drops a candidate it half-be
 
 ## Arguments
 
-The first word is the effort level when it is `low`, `medium`, or `high`; default `medium`.
+The effort level is whichever of `low`, `medium`, or `high` appears among the arguments; default `medium`.
 `--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report).
-The rest is the fixed point.
+`--loop`, anywhere in the arguments, implies `--fix` and drives that apply mode to a defined green state instead of reporting once — read [LOOP.md](LOOP.md) before Scope and run the whole gate under its rules.
+What remains once the level and the flags are taken out is the fixed point.
 
 | Level    | Pipeline                                                    | Bias                                                          | Findings cap |
 | -------- | ----------------------------------------------------------- | ------------------------------------------------------------- | ------------ |

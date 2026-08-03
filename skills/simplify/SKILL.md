@@ -3,7 +3,7 @@ name: simplify
 description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, and efficiency lenses. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify the current branch's changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.4.1
+version: 1.5.0
 source: EveryInc/compound-engineering-plugin@3.20.0 (ce-simplify-code)
 ---
 
@@ -91,4 +91,4 @@ For each removed or reworded line, confirm it carried no directive, prohibition,
 Report fixes applied per lens (reuse, simplification, efficiency), findings skipped as false positives or not worthwhile, and which verifications ran — the code checks with their results, the prose diff-read, or both.
 The measure is what improved and that the contract held — many clarity and safety fixes preserve or add lines.
 
-Close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/review-gate` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise.
+Close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/review-gate [--fix | --loop]` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise, and either `--fix` to apply the findings once or `--loop` to converge the gate to green.

@@ -353,6 +353,14 @@ flowchart TD
   candidates never reach the report. Findings flow through the harness's typed findings tool where
   one exists; `--fix` applies the surviving findings on the spot. On a harness without sub-agents
   (Codex), the same angles run inline as a single-pass review that says so.
+- **Converge until green** — `--loop` implies `--fix` and drives the gate instead of reporting
+  once: fix batch, project checks, delta re-review, repeat, then a full-scope certifying pass over
+  the final tree — or, where every fix stayed inside its own file and touched nothing another file
+  reaches for, on the opening pass plus its delta rounds, which is the cheap path for a small diff.
+  Green means every finding is explicitly dispositioned — fixed, hardened, or acknowledged by you —
+  and the project's checks are back where they started. Anything needing you is parked and batched
+  at a round boundary while the loop keeps fixing the rest, and guards hand you the wheel when a
+  fix stops taking, when a question comes back twice, or on budget.
 - **Next** — fix what's worth fixing, re-run after substantial fixes, then `/commit`. Findings
   that exposed a durable gotcha are flagged as `/compound` material for commit's opening scan.
 
