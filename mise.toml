@@ -1,0 +1,93 @@
+# https://mise.jdx.dev -- Your dev environment, prepped and ready
+# Tip: Use "mise t"(asks) to list tasks or "mise r"(un) to interactively select one to run!
+#
+# This repository has no build (see AGENTS.md): the tasks here are dogfooding conveniences, never
+# a step an edit has to go through.
+
+[tools]
+# Only used to read the Claude Code plugin registry in dev:sync-install.
+jq = "1.8"
+
+# DEVELOPMENT TASKS
+# =================
+
+[tasks."dev:sync-install"]
+description = "Mirror this working tree over the installed copies of cantrips (Claude Code and Codex CLI), so uncommitted edits are dogfooded from other projects without a release."
+# bash + jq plumbing, so pin bash: mise defaults to cmd on Windows.
+shell = "bash -c"
+# A plugin update only refreshes an install when the marketplace advertises a higher version, so
+# edits that are not released yet never reach a global install. This copies them in the way an
+# install would: everything but .git, over the version directory each harness currently holds.
+# Harnesses cantrips is not installed in are skipped.
+run = '''
+set -euo pipefail
+shopt -s dotglob
+
+repo="{{config_root}}"
+repo_version=$(jq -r '.["."]' "$repo/.release-please-manifest.json")
+synced=0
+
+mirror() {
+  local target="$1" harness="$2" installed_version
+
+  # The target is about to be deleted, so make sure it is a plugin cache directory and nothing else.
+  case "$target" in
+    */plugins/cache/*/cantrips/*) ;;
+    *) echo "Refusing to overwrite $target: not a plugin cache directory." >&2; exit 1 ;;
+  esac
+
+  # Both harnesses install by copying. A link here would mean rm -rf reaches through it.
+  if [ -L "$target" ]; then
+    echo "Refusing to overwrite $target: it is a link, not a copied install." >&2
+    exit 1
+  fi
+
+  installed_version=$(basename "$target")
+  if [ "$installed_version" != "$repo_version" ]; then
+    echo "$harness: install is $installed_version, working tree is $repo_version — syncing into the $installed_version directory."
+  fi
+
+  rm -rf "$target"
+  mkdir -p "$target"
+
+  # An install copies the whole checkout minus .git; mirror that, dotfiles included.
+  for entry in "$repo"/*; do
+    if [ "${entry##*/}" != ".git" ]; then
+      cp -a "$entry" "$target/"
+    fi
+  done
+
+  echo "$harness: synced working tree over $target."
+  synced=$((synced + 1))
+}
+
+# Claude Code records the exact install path, so read it rather than guessing the version.
+claude_registry="$HOME/.claude/plugins/installed_plugins.json"
+if [ -f "$claude_registry" ]; then
+  claude_target=$(jq -r '.plugins["cantrips@cantrips"][0].installPath // empty' "$claude_registry")
+  if [ -n "$claude_target" ]; then
+    # The registry stores a native path; bash needs a POSIX one on Windows.
+    if command -v cygpath >/dev/null; then
+      claude_target=$(cygpath -u "$claude_target")
+    fi
+    mirror "$claude_target" "Claude Code"
+  fi
+fi
+
+# Codex records installs in ~/.codex/config.toml without the version, and `codex plugin list` fails
+# outright when any configured marketplace is stale, so read the cache instead: highest version wins.
+codex_cache="$HOME/.codex/plugins/cache/cantrips/cantrips"
+if [ -d "$codex_cache" ]; then
+  codex_version=$(ls -1 "$codex_cache" | sort -V | tail -n 1)
+  if [ -n "$codex_version" ]; then
+    mirror "$codex_cache/$codex_version" "Codex CLI"
+  fi
+fi
+
+if [ "$synced" -eq 0 ]; then
+  echo "cantrips is not installed in either harness — install it, then re-run this task." >&2
+  exit 1
+fi
+
+echo "Run /reload-plugins in a live Claude Code session, or start a new session, to load it."
+'''

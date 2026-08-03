@@ -572,6 +572,18 @@ codex plugin add cantrips@cantrips
 Installs are copies, not links: after editing files, run `/reload-plugins` in a live Claude Code
 session, or `/plugin marketplace update cantrips` and reinstall to refresh an install.
 
+An update only refreshes an install when the source advertises a higher version, so unreleased
+edits never reach a global install on their own. To dogfood them from your other projects, mirror
+the working tree over the installed copies — [mise](https://mise.jdx.dev) has the task:
+
+```sh
+mise run dev:sync-install
+```
+
+It overwrites the version directory each harness currently holds, the way an install would, and
+skips a harness cantrips is not installed in. Then `/reload-plugins` or a new session picks it up,
+and a later plugin update restores the released copy.
+
 ## License
 
 MIT — see [LICENSE](LICENSE). Forked material is credited in [NOTICE.md](NOTICE.md)

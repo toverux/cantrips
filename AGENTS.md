@@ -13,6 +13,7 @@ Everything else here (`docs/`, this file) therefore rides along into an install;
 This repository is content, not code: no dependencies, no package manager, no build, no test suite, no lint step.
 Nothing needs installing to work on it, and there is no command to run before or after an edit.
 The one mechanical convention is [.editorconfig](.editorconfig) (LF, UTF-8, two-space indent, trailing newline, 100-column guide).
+[mise.toml](mise.toml) holds dogfooding conveniences only — `mise run dev:sync-install` mirrors the working tree over the local installs (Claude Code and Codex CLI) so unreleased edits are usable from other projects — and no edit has to pass through it.
 
 Consequently the invariants below are honored by hand.
 Nothing fails when one drifts, so check them yourself whenever you touch the files they cover.
