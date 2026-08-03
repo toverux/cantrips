@@ -34,21 +34,23 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 
 1. Write against the `/writing-great-skills` standard (`skills/writing-great-skills/SKILL.md`): predictability, leading words, checkable completion criteria, progressive disclosure, positive phrasing, no no-ops, prune sediment.
    Forks get leaner than upstream, never heavier.
-2. Frontmatter: `name`, `description` (trigger-rich for model-invoked skills; one human-facing line + `disable-model-invocation: true` for user-invoked ones), `argument-hint` where an argument is meaningful, `version` (per-skill semver; bump on every content change), and for forks `source` recording upstream provenance, e.g. `source: mattpocock/skills@1.1.0 (to-spec)`.
+2. Frontmatter: `name`, `description` (trigger-rich for model-invoked skills; one human-facing line + `disable-model-invocation: true` for user-invoked ones), `argument-hint` where an argument is meaningful, `version` (per-skill semver; bumped per the versioning section below), and for forks `source` recording upstream provenance, e.g. `source: mattpocock/skills@1.1.0 (to-spec)`.
    `version` and `source` are unofficial keys the loaders ignore.
    Changing a fork's body beyond its upstream text is a divergence: record it in [FORKS.md](FORKS.md) in the same edit, so `/sync-upstream` preserves it instead of merging upstream's wording back.
    Every skill carries an `agents/openai.yaml` sidecar (`interface.display_name`, `interface.short_description`, `policy.allow_implicit_invocation`): `false` for user-invoked skills — Codex CLI ignores `disable-model-invocation`, so the sidecar is what stops auto-firing there — and `true` for model-invoked ones, stating the intent explicitly rather than leaning on Codex defaults.
    The sidecar's `allow_implicit_invocation` is always the logical inverse of the SKILL.md `disable-model-invocation`; a skill shipped without a sidecar auto-fires in Codex whatever its frontmatter says.
 3. Pipeline skills end with a flow pointer naming the next step(s) of the loop and marking a user-invoked target `(user-invoked)`; keep those pointers consistent when renaming or inserting skills.
    The shared presentation format (a final-paragraph italic blockquote, `Next:` for one step versus `Next steps:` bullets for several, each pointer closing on a one-clause rationale) lives in [flow-pointers.md](skills/writing-great-skills/flow-pointers.md); skills point at that file instead of restating it, wording the pointer verb-first as an instruction to read it.
-4. Every step that dispatches a sub-agent asks for a background dispatch where the harness supports one, and carries the parenthetical "(Claude Code: do not use `run_in_background: false`)".
+4. A sibling reference file that declares what it extends or replaces must cover every path the parent skill can take — the `low` inline pass and the no-sub-agent fallback included, since neither reaches the sections a main-path declaration names.
+   A declaration that names only the main path leaves the other paths running the parent's own rules, which is how a mode degrades silently on one harness while reading correct on the other.
+5. Every step that dispatches a sub-agent asks for a background dispatch where the harness supports one, and carries the parenthetical "(Claude Code: do not use `run_in_background: false`)".
    A blocking dispatch freezes the session for as long as the agent runs, which degrades the user experience and is invisible from inside the skill.
    This is the sole harness parameter a skill body may name; keep the wording identical across skills so a reader meets one clause, not five.
-5. Distributability rule: the plugin must be installable by anybody — no user-specific paths, names, or personal conventions inside skill bodies.
+6. Distributability rule: the plugin must be installable by anybody — no user-specific paths, names, or personal conventions inside skill bodies.
    Personalization belongs in the user's own global CLAUDE.md.
-6. Cross-skill references use this repo's names (`/spec`, `/commit`, `/compound`…), never upstream names.
+7. Cross-skill references use this repo's names (`/spec`, `/commit`, `/compound`…), never upstream names.
    In docs and prose, skill names always carry the `/` prefix, whatever the invocation mode.
-7. Markdown intended for agents (SKILL.md files and their references, AGENTS.md, specs) is written one sentence per line and is exempt from the 100-column guide.
+8. Markdown intended for agents (SKILL.md files and their references, AGENTS.md, specs) is written one sentence per line and is exempt from the 100-column guide.
    Human-facing docs (README.md, NOTICE.md, IDEAS.md) wrap at ~100 columns instead.
 
 ## Dual-manifest and catalog sync
@@ -73,6 +75,7 @@ The `simple` release type would also write a `version.txt`, but it only updates 
   Anything user-facing (skills, manifests) must be `feat` or `fix`.
 - Plain semver: a breaking change bumps major, `feat` bumps minor, `fix` bumps patch.
 - Per-skill `version` frontmatter is bumped by hand when a skill changes; the plugin version is release-please's job.
+  One bump per skill per release, sized to the largest change in it — successive edits to one unreleased change are one change, not three.
   Never hand-edit the plugin.json versions or the release manifest.
 
 ## Boundaries
