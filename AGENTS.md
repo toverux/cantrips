@@ -41,11 +41,14 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
    The sidecar's `allow_implicit_invocation` is always the logical inverse of the SKILL.md `disable-model-invocation`; a skill shipped without a sidecar auto-fires in Codex whatever its frontmatter says.
 3. Pipeline skills end with a flow pointer naming the next step(s) of the loop and marking a user-invoked target `(user-invoked)`; keep those pointers consistent when renaming or inserting skills.
    The shared presentation format (a final-paragraph italic blockquote, `Next:` for one step versus `Next steps:` bullets for several, each pointer closing on a one-clause rationale) lives in [flow-pointers.md](skills/writing-great-skills/flow-pointers.md); skills point at that file instead of restating it, wording the pointer verb-first as an instruction to read it.
-4. Distributability rule: the plugin must be installable by anybody — no user-specific paths, names, or personal conventions inside skill bodies.
+4. Every step that dispatches a sub-agent asks for a background dispatch where the harness supports one, and carries the parenthetical "(Claude Code: do not use `run_in_background: false`)".
+   A blocking dispatch freezes the session for as long as the agent runs, which degrades the user experience and is invisible from inside the skill.
+   This is the sole harness parameter a skill body may name; keep the wording identical across skills so a reader meets one clause, not five.
+5. Distributability rule: the plugin must be installable by anybody — no user-specific paths, names, or personal conventions inside skill bodies.
    Personalization belongs in the user's own global CLAUDE.md.
-5. Cross-skill references use this repo's names (`/spec`, `/commit`, `/compound`…), never upstream names.
+6. Cross-skill references use this repo's names (`/spec`, `/commit`, `/compound`…), never upstream names.
    In docs and prose, skill names always carry the `/` prefix, whatever the invocation mode.
-6. Markdown intended for agents (SKILL.md files and their references, AGENTS.md, specs) is written one sentence per line and is exempt from the 100-column guide.
+7. Markdown intended for agents (SKILL.md files and their references, AGENTS.md, specs) is written one sentence per line and is exempt from the 100-column guide.
    Human-facing docs (README.md, NOTICE.md, IDEAS.md) wrap at ~100 columns instead.
 
 ## Dual-manifest and catalog sync

@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix]'
 disable-model-invocation: true
-version: 1.3.0
+version: 1.3.1
 source: mattpocock/skills@1.1.0 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 ---
 
@@ -50,7 +50,7 @@ Report at most 4 findings, most-severe first.
 
 ## Find (medium/high)
 
-Dispatch the finders as parallel sub-agents — in the background where the harness supports it, so the session stays responsive while they run — each fed the scope block and its brief(s):
+Dispatch the finders as parallel sub-agents — in the background where the harness supports it (Claude Code: do not use `run_in_background: false`), so the session stays responsive while they run — each fed the scope block and its brief(s):
 
 - **Correctness finders** — one angle brief each from [ANGLES.md](ANGLES.md): A–D at `medium`, A–F at `high` (minus Angle D when Scope found no spec).
 - **Quality finders** — one lens brief per lens carried, from [QUALITY-LENSES.md](QUALITY-LENSES.md), each lens pasted into the prompt with the restraints printed under it and the governing rules from that file's preamble.
@@ -72,7 +72,7 @@ Wait for all finders (grouping needs every finder's output), then dedup near-dup
 Settle inline the candidates this session can decide from evidence it already holds — a recorded decision, a rule-quote check, a fact established earlier in the session — locating the deciding quote in your reasoning exactly as a verifier would, without narrating it.
 Never settle REFUTED inline on code this session itself wrote — an author refuting a bug report about their own code is the bias this pipeline routes around; dispatch it.
 
-Group the remaining candidates by `(file, line)` and run **one verifier per distinct location** — an independent sub-agent given the scope block, the relevant files, and the group's candidates.
+Group the remaining candidates by `(file, line)` and run **one verifier per distinct location** — an independent sub-agent given the scope block, the relevant files, and the group's candidates, dispatched in the background like the finders (Claude Code: do not use `run_in_background: false`).
 A verifier returns nothing but JSON: an array of verdict objects, each carrying `index` (the candidate it judges), `verdict`, and `evidence` (the quoted line that proves or refutes):
 
 - **CONFIRMED** — can name the inputs or state that trigger it and the wrong output or crash; the evidence quotes the failing line.

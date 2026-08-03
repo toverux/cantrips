@@ -3,7 +3,7 @@ name: simplify
 description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, and efficiency lenses. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify the current branch's changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.4.0
+version: 1.4.1
 source: EveryInc/compound-engineering-plugin@3.20.0 (ce-simplify-code)
 ---
 
@@ -36,7 +36,7 @@ If the scope comes up empty, stop and ask the user what to simplify.
 
 ## Step 2: Launch three fixers in parallel
 
-Dispatch one subagent per lens — **Reuse**, **Simplification**, **Efficiency** — in parallel where the harness supports it, sequentially otherwise.
+Dispatch one subagent per lens — **Reuse**, **Simplification**, **Efficiency** — in parallel where the harness supports it, sequentially otherwise, and in the background where it supports that (Claude Code: do not use `run_in_background: false`) — a blocking dispatch freezes the session until the fixer returns.
 Give each one:
 
 - the preservation contract above and the fixer brief below, both **verbatim**;

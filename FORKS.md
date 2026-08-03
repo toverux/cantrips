@@ -14,9 +14,11 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 - Frontmatter reworked: `version` and `source` added, `description` rewritten, `disable-model-invocation` and `argument-hint` set per invocation mode.
 - An `agents/openai.yaml` sidecar beside every SKILL.md.
 - A closing flow pointer naming the next pipeline step(s).
-- Agent-facing prose reflowed one sentence per line (AGENTS.md rule 6); carried passages otherwise stay byte-identical to upstream.
+- Agent-facing prose reflowed one sentence per line (AGENTS.md rule 7); carried passages otherwise stay byte-identical to upstream.
 - Storage-touching steps speak the six storage verbs, translated per repo by the loop config (`docs/agents/cantrips-loop.md`, plugin defaults otherwise) — never a path or a CLI in the skill body.
 - Reads and writes against the opt-in knowledge stores (`docs/adr/`, `docs/solutions/`) condition on the loop config enabling the store, so a repo that left one off gets no phantom read.
+- Every sub-agent dispatch asks for a background dispatch where the harness supports one and names the Claude Code parameter that gets it wrong (`run_in_background: false`) — no upstream says this, and a blocking dispatch freezes the session for as long as the agent runs.
+  This is the one place a skill body names a harness parameter, because the degradation is invisible from inside the skill and no harness-neutral wording reaches it.
 
 ## mattpocock/skills
 
@@ -287,7 +289,7 @@ Not ported. Upstream marks it in-progress.
 - Task-tracking paragraph and the ce-work/lfg size-gate parenthetical not carried — harness housekeeping and upstream-only callers.
 - "Bounded dispatch" paragraph not carried — queueing and active-agent-limit backpressure are the harness's business, and three fixed reviewers never reach the limit.
 - "Permission mode" paragraph not carried — no dispatch primitive here takes a `mode` parameter, so telling the agent to omit it is a no-op.
-- Upstream's per-harness tool enumerations not carried — the blocking-question tools in Step 1 and the subagent primitives in Step 2 — no skill in this repo names harness tools, and such names go stale.
+- Upstream's per-harness tool enumerations not carried — the blocking-question tools in Step 1 and the subagent primitives in Step 2 — no skill in this repo names a harness tool, and such names go stale; the background-dispatch parameter in Step 2 is the standing exception the systematic conventions record.
 - Step 5's worked example ("Applied 6 — reuse 2, quality 3, efficiency 1…") not carried — the per-dimension instruction already fixes the report shape, and sample figures invite mimicry.
 
 ### ce-babysit-pr

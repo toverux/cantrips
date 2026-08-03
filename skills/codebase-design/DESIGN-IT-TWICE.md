@@ -20,7 +20,7 @@ The user reads and thinks while the sub-agents work in parallel.
 
 ### 2. Spawn sub-agents
 
-Spawn 3+ sub-agents, in parallel where the harness supports it (sequentially otherwise).
+Spawn 3+ sub-agents, in parallel where the harness supports it (sequentially otherwise), and in the background where it supports that (Claude Code: do not use `run_in_background: false`) — the user is reading Step 1 while they work, which a blocking dispatch denies them.
 Each must produce a **radically different** interface for the deepened module.
 
 Prompt each sub-agent with a separate technical brief (file paths, coupling details, dependency category from [DEEPENING.md](DEEPENING.md), what sits behind the seam).
