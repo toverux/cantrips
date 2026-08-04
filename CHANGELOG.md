@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.2.0](https://github.com/toverux/cantrips/compare/v2.1.0...v2.2.0) (2026-08-04)
+
+
+### Features
+
+* **skills:** drive the review gate to green with /review-gate --loop ([ce25390](https://github.com/toverux/cantrips/commit/ce2539074c994b0e8d64d3f5af8407b74f71cc3c))
+* **skills:** name the two ways agent-facing prose fails without going stale ([099e8d1](https://github.com/toverux/cantrips/commit/099e8d19966eae48323c6419d79fea012bc8e2de))
+
+
+### Bug Fixes
+
+* **skills:** keep every sub-agent dispatch backgrounded ([f4a419d](https://github.com/toverux/cantrips/commit/f4a419d910b9a91e679562dbe5bb41a102c19a86))
+
 ## [2.1.0](https://github.com/toverux/cantrips/compare/v2.0.0...v2.1.0) (2026-08-02)
 
 
