@@ -1,7 +1,7 @@
 ---
 name: writing-great-skills
 description: Load before writing or editing any file an agent will load and act on — a skill (SKILL.md), an AGENTS.md or CLAUDE.md, or a rules file. The vocabulary and principles that make those files predictable. A session that only reads them leaves this unloaded.
-version: 1.2.0
+version: 1.3.0
 source: mattpocock/skills@1.1.0 (writing-great-skills)
 ---
 
@@ -129,5 +129,13 @@ Use these to diagnose issues the user may be having with the skill.
   The test: does it change behaviour versus the default?
   A weak leading word (_be thorough_ when the agent is already thorough-ish) is a no-op; the fix is a stronger word (_relentless_), not a different technique.
   A **gate** fails it too: its condition names competence the agent already shows, or — worse — one the agent cannot observe, so it guesses while the reader believes a rule is enforced.
+  So does rationale: a justification the reader would have followed the rule without is a no-op in a persuasive voice.
 - **Negation** — steering by prohibition backfires: _don't think of an elephant_ names the elephant and makes it more available, not less.
   Prompt the **positive** — state the target behaviour so the banned one is never spoken; keep a prohibition only as a hard guardrail you can't phrase positively, and even then pair it with what to do instead.
+- **Director's commentary** — how the conclusion was reached, shipped beside the conclusion.
+  The reader acts on the finding rather than on the search that found it, so the derivation is load bought for nothing.
+  The cure is placement before deletion: move it where someone would go to redo the work, or drop it.
+- **Snapshot** — a count, a date, or a measured value standing where a rule or invariant belongs.
+  It reads as precision, which is how it survives review, and nothing in the text marks which side of the change it now sits on.
+  The test: will this still hold once the thing it describes changes?
+  If not, state what stays true instead.

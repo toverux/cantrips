@@ -300,3 +300,24 @@ So the No-Op test — does it change behaviour versus the default? — is also h
 This is model-relative, not reader-relative: two people disagreeing over whether a line is a no-op disagree about the default, and settle it by running the skill, not by debate.
 
 _Avoid_: redundant instruction, restating the obvious, belaboring
+
+### Director's Commentary
+
+_Failure mode._
+Prose narrating how a conclusion was reached — the search, the dead ends, what was tried first — shipped beside the conclusion itself.
+The reader acts on the finding rather than on the path to it, so the derivation is load bought for nothing.
+It survives pruning because it reads as rigour, and deleting it feels like discarding work.
+Distinct from **sediment**: sediment went stale, where this was never live.
+The cure is placement before deletion — move it where someone would go to redo the work, then link it only if a reader would.
+
+_Avoid_: provenance, methodology, showing your work
+
+### Snapshot
+
+_Failure mode._
+A count, a date, or a measured value standing where a rule or invariant belongs — true when written and quietly wrong afterwards.
+It reads as precision, which is how it survives review, and nothing in the text marks which side of the change it now sits on.
+The test: will this still hold once the thing it describes changes?
+A snapshot is not always a fault — a version baseline is deliberately one — but it has to read as of-a-date rather than as standing truth.
+
+_Avoid_: stale figure, hardcoded count

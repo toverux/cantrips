@@ -153,6 +153,8 @@ No divergences beyond the systematic conventions.
 - "Pipeline closings" section added, pointing at the sibling [flow-pointers.md](skills/writing-great-skills/flow-pointers.md) — the pipeline skills here all end on a flow pointer, and the shared presentation format needs one authoritative home rather than a restatement in each skill.
   Its last line prescribes the pointer's verb-first wording, from an observed failure the section itself no longer names: an agent read the earlier `([presentation](…))` phrasing as a citation, never loaded the file, and invented a closing format.
 - The No-op failure mode extends to **gate**, defined in GLOSSARY.md — upstream's entry reaches only a weak leading word, and an audit of this repo's own skills found conditionals to be where no-ops actually accumulate, the unobservable condition worst of all because it reads to a maintainer as an enforced rule.
+- The No-op failure mode extends again to rationale — a justification the reader would have followed the rule without — because a persuasive voice is where no-ops survive a pruning pass that catches bare restatement.
+- Two failure modes added, **Director's commentary** and **Snapshot**, both defined in GLOSSARY.md — upstream's list catches prose that went stale (**sediment**) or grew too long (**sprawl**), and neither reaches prose that was never load-bearing: a derivation shipped beside its conclusion, or a count standing where an invariant belongs.
 - Upstream's `disable-model-invocation: true` dropped in favour of a trigger-rich description, making the fork model-invoked — the standard has to load before any agent-facing file is written, and a session that merely reads such files would otherwise never pull it in.
 
 ### ask-matt
