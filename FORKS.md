@@ -16,7 +16,7 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 - A closing flow pointer naming the next pipeline step(s).
   Where a review-tail pointer leads into `/review-gate`, it offers `[--fix | --loop]` with a clause on when to take each — the fork's gate has an apply mode and a converge-until-green mode with no upstream counterpart ([docs/research/review-fix-looping-upstream.md](docs/research/review-fix-looping-upstream.md)), and the review tail is where a user chooses between them.
   A pointer with a settled answer names its flag outright instead, as `/review-gate --loop` does when the loop itself stops short of green.
-- Agent-facing prose reflowed one sentence per line (AGENTS.md rule 8); carried passages otherwise stay byte-identical to upstream.
+- Prose written here goes one sentence per line (AGENTS.md rule 8); a carried passage keeps upstream's line breaks.
 - Storage-touching steps speak the six storage verbs, translated per repo by the loop config (`docs/agents/cantrips-loop.md`, plugin defaults otherwise) — never a path or a CLI in the skill body.
 - Reads and writes against the opt-in knowledge stores (`docs/adr/`, `docs/solutions/`) condition on the loop config enabling the store, so a repo that left one off gets no phantom read.
 - Every sub-agent dispatch asks for a background dispatch where the harness supports one and names the Claude Code parameter that gets it wrong (`run_in_background: false`) — no upstream says this, and a blocking dispatch freezes the session for as long as the agent runs.
@@ -274,7 +274,7 @@ Not ported. Upstream marks it in-progress.
 
 ### /simplify (ce-simplify-code)
 
-- Body rewritten in this repo's lean voice — one sentence per line, Steps 1, 4 and 5 condensed — while the model-selection paragraph merged from upstream stays byte-identical.
+- Body rewritten in this repo's lean voice — Steps 1, 4 and 5 condensed — while the paragraphs merged from upstream, the model-selection one included, stay byte-identical.
 - The three reviewer personas and `references/personas/` are gone, the hunt taxonomy having moved into the shared [QUALITY-LENSES.md](skills/review-gate/QUALITY-LENSES.md) that `/review-gate` reads too, with the fixer preamble each persona separately repeated now stated once in the body and paired with a single lens at dispatch — upstream and this fork maintained the same three dimensions in two separately-authored texts that had already drifted apart in both directions, so refining either meant editing both or letting the gap widen.
 - Upstream persona deltas are consequently evaluated as content candidates for the shared lens file and rewritten in this repo's voice, never merged back as text.
 - Upstream's code-reuse rule 5 and code-quality rule 3, previously held byte-identical, are compressed into that file's Reuse lens and its restraints and no longer diff clean, every constraint they imposed surviving and only the GraphQL-projection specifics dropped as one vendor's worked example — the lens file holds the authoritative wording, so a future sync reconciles against it rather than against this entry.

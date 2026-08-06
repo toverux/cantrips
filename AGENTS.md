@@ -52,7 +52,8 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
    Personalization belongs in the user's own global CLAUDE.md.
 7. Cross-skill references use this repo's names (`/spec`, `/commit`, `/compound`…), never upstream names.
    In docs and prose, skill names always carry the `/` prefix, whatever the invocation mode.
-8. Markdown intended for agents (SKILL.md files and their references, AGENTS.md, specs) is written one sentence per line and is exempt from the 100-column guide.
+8. Markdown intended for agents (SKILL.md files and their references, AGENTS.md, specs) goes one sentence per line, and is exempt from the 100-column guide.
+   Text carried from an upstream is the exception rule 2 already covers: its line breaks stay upstream's, however long its lines run, since reflowing re-creates the whole paragraph as a diff at every sync.
    Human-facing docs (README.md, NOTICE.md, IDEAS.md) wrap at ~100 columns instead.
 
 ## Dual-manifest and catalog sync
