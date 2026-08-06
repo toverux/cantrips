@@ -1,7 +1,7 @@
 ---
 name: grilling
 description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to be grilled about a plan, wants a decision stress-tested, or when requirements are fuzzy before a spec is written.
-version: 2.0.0
+version: 2.1.0
 source: mattpocock/skills@1.2.0 (grilling)
 ---
 
@@ -42,3 +42,4 @@ Otherwise close with a single sentence stating that shared understanding is reac
 - `/implement` (user-invoked) directly when it's a small fix that needs no spec — in this session, which already carries the context.
 - `/prototype` when an unresolved question survived the interview and needs empirical evidence — in this session, feeding the verdict back here.
 - `/research` when an unresolved question needs facts from primary sources — it runs in the background while this session continues.
+- `/questionnaire` (user-invoked) when an unresolved question needs facts only another person holds — in this session, drafting the document; the answers come back on the recipient's clock.
