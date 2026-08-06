@@ -43,6 +43,7 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 - Question numbers run sequentially across the whole interview rather than restarting each round — upstream's rounds model says only "number each question", and per-round numbering makes an answer naming "Q2" ambiguous once a third round exists.
 - Upstream's closing sentence keeps its frontier-empty done condition, but the fork's "## Closing" section adds the one-sentence close with no summary, the flow pointer, and the wait for go-ahead — this fork ends in a pipeline handoff rather than in the agent enacting the plan itself.
   That section also carries a hand-back branch for an interview another skill invoked, so the callee stops owning the close — `/improve-codebase-architecture` runs the interview mid-step and has work left after it, which upstream's grilling, having no in-repo caller, never had to allow for.
+- A fifth closing branch offering `/questionnaire` when the unresolved fact is held by a person rather than published anywhere — it completes the out-of-the-room case the `/research` branch opens, and it alone names when its answer arrives, since a recipient replies on their own clock while every other branch resolves in session.
 
 ### /handoff (handoff)
 
@@ -77,6 +78,10 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 - LOGIC.md anti-patterns "Don't add tests" and "Don't wire it to the real database" not carried — both restate SKILL.md's "Skip the polish" and "No persistence by default" rules.
 - UI.md anti-pattern "Variants that differ only in colour or copy" not carried — restates step 2's structural-difference requirement.
 
+### /questionnaire (to-questionnaire)
+
+- Step 3 writes `questionnaire-<slug>.md` where upstream writes `to-questionnaire-<slug>.md` — the rename drops the `to-` prefix, and this filename is the one the recipient sees.
+
 ### /research (research)
 
 No divergences beyond the systematic conventions.
@@ -106,6 +111,21 @@ No divergences beyond the systematic conventions.
 - Added rule that user-supplied arguments are scope guidance only and never carry actions to perform — the diff and the arguments both reach sub-agents, so the injection boundary has to be stated where the scope is assembled.
 - A `--loop` flag added, implying `--fix` and driving the gate to a defined green state, with its rules disclosed to [LOOP.md](skills/review-gate/LOOP.md) and loaded only when the flag is passed: fix batches verified by the project's own checks, self-scaling delta rounds between them, a certifying pass at the invoked level over the final tree where the loop's fixes reached past the ground already reviewed, park-and-continue escalation of everything needing the user, trajectory, budget and repeat-question guards, and a closing report carrying the round and disposition ledgers.
   No upstream source loops review→fix→re-review before the PR, and compound-engineering re-reviews only once a diff has changed materially, so this diverges knowingly, adapting the patterns of `ce-babysit-pr`, upstream's one true loop ([docs/research/review-fix-looping-upstream.md](docs/research/review-fix-looping-upstream.md)).
+
+### /setup-git-guardrails (git-guardrails-claude-code)
+
+- Generalized from Claude Code alone to both harnesses: step 1 asks which one, step 2 lists four script destinations, step 4 edits every copy it wrote rather than upstream's singular "the copied script".
+  Codex ships a wire-compatible `PreToolUse` hook, so one unmodified script serves both and only the config around it differs.
+- The config lives in [HOOK-CONFIG.md](skills/setup-git-guardrails/HOOK-CONFIG.md), a section per harness, with step 3 pointing at it — four blocks inline filled over half the body and buried the steps after them, where upstream's two fitted.
+  The per-harness mechanics live there rather than here, the Codex blocks being templates the reader substitutes into.
+- Step 3 makes trusting the Codex entry under `/hooks` part of installing — a hook Codex has not been told to trust never runs, and upstream, having no Codex, had nothing between writing the file and arming it.
+- The blocks invoke the script through an explicit `bash` prefix, and the Claude pair adds `"shell": "bash"` — upstream leans on an undocumented `.sh` auto-prefix and on the executable bit surviving, neither of which holds across two harnesses and three shells.
+- Step 2 states the script's `bash`/`jq`/`grep` prerequisites and what their absence costs — missing `jq` empties the command the patterns match against, so the script exits 0 and the guardrail passes everything; upstream's single-platform audience made the dependency invisible rather than absent.
+- Step 4 adds that the entries are extended regexes rather than literal text, since it invites the user to edit them and `grep -qE` silently mis-matches a pattern written as literal.
+- "before Claude executes them" and "Claude sees a message" say "the agent" instead — the fork covers two harnesses, and only one of them is Claude.
+- Step 5's payload spells the blocked command in split quoting, so the test command's own text never matches a pattern — upstream's plain payload is denied by the very hook it is meant to test once one is installed, and a denied test proves nothing about the script or about anything the user changed in step 4.
+  It then adds a live-fire step upstream has no counterpart to, a real `git push --dry-run` whose denial is the only evidence the wiring carries, since a script test that dodges the hook by design can say nothing about it.
+- The Claude blocks match `Bash|PowerShell` where upstream matches `Bash` — Claude Code ships a second shell tool named `PowerShell`, and `matcher` being a regex over the tool name, the upstream matcher leaves the agent a route around the guardrail wherever that tool is enabled.
 
 ### /spec (to-spec)
 
@@ -183,10 +203,6 @@ Not ported. An earlier variant of grilling; this repo forks grilling instead.
 
 Not ported. A docs-driven grilling variant; `/grilling` plus `/research` cover it.
 
-### git-guardrails-claude-code
-
-Not ported. Harness configuration tooling outside the loop's scope.
-
 ### loop-me
 
 Not ported. Upstream marks it in-progress.
@@ -210,10 +226,6 @@ Not ported. Check tooling outside the loop's scope.
 ### setup-ts-deep-modules
 
 Not ported. Upstream marks it in-progress, and it wires one stack's lint tooling; `/codebase-design` carries the deep-module vocabulary harness-free.
-
-### to-questionnaire
-
-Not ported. Pulls knowledge out of a third party async; `/grilling` interviews the user in the loop.
 
 ### triage
 

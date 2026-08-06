@@ -1,0 +1,5 @@
+interface:
+  display_name: "Setup Git Guardrails"
+  short_description: "Block dangerous git commands"
+policy:
+  allow_implicit_invocation: false

@@ -186,11 +186,13 @@ can still type them).
 | Skill                                                              | Invoked by | Role                                                                       |
 | ------------------------------------------------------------------ | ---------- | -------------------------------------------------------------------------- |
 | [`/setup-cantrips-loop`](#setup-cantrips-loop)                     | 🧑         | Configure a repo's storage backend and opt-in knowledge stores.            |
+| [`/setup-git-guardrails`](#setup-git-guardrails)                   | 🧑         | Install a hook that blocks dangerous git commands before they run.        |
 | [`/compound-refresh`](#compound-refresh)                           | 🧑         | Garbage-collect `AGENTS.md`, and `docs/solutions/` where enabled.          |
 | [`/handoff`](#handoff)                                             | 🧑         | Compact the session into a handoff for a fresh context.                    |
 | [`/wait-what`](#wait-what)                                         | 🧑         | Interrupt: re-pitch a message that did not land.                           |
 | [`/prototype`](#prototype)                                         | 🧑🤖       | Throwaway prototype to answer a design question empirically.               |
 | [`/research`](#research)                                           | 🧑🤖       | Background primary-source research, captured in the repo.                  |
+| [`/questionnaire`](#questionnaire)                                 | 🧑         | Draft a questionnaire pulling knowledge out of another person.             |
 | [`/resolving-merge-conflicts`](#resolving-merge-conflicts)         | 🧑🤖       | Principled merge/rebase conflict resolution.                               |
 | [`/codebase-design`](#codebase-design)                             | 🧑🤖       | Deep-module vocabulary other skills lean on.                               |
 | [`/improve-codebase-architecture`](#improve-codebase-architecture) | 🧑         | Scan for module-deepening opportunities.                                   |
@@ -214,8 +216,9 @@ can still type them).
   frontier fact that lives in external docs routes to `/research`. The interview closes when the
   frontier is empty.
 - **Next** — `/spec` for feature-sized outcomes (same session — it synthesizes the interview),
-  `/implement` directly for small fixes; `/prototype` or `/research` where a question survived the
-  interview and needs evidence or primary sources.
+  `/implement` directly for small fixes; `/prototype`, `/research` or `/questionnaire` where a
+  question survived the interview and needs evidence, primary sources, or knowledge only another
+  person holds.
 
 ### `/spec`
 
@@ -455,6 +458,15 @@ storage-touching skills read in place of the plugin defaults. Re-runnable: a sec
 existing doc. Not required to run the loop — but the knowledge stores stay off until it does, so
 a repo that never runs it never compounds.
 
+### `/setup-git-guardrails`
+
+**A hook that blocks destructive git commands before they run.** Installs a `PreToolUse` hook —
+Claude Code, Codex CLI, or both; this project or every project — that matches each command against
+a short list of destructive-git patterns and denies what hits, so the agent is told it has no
+authority there instead of you finding out afterwards. The patterns are extended regexes, shipped
+narrow and yours to widen at install time to the spellings you actually use. On Codex the hook
+stays inert until you trust it under `/hooks`.
+
 ### `/compound-refresh`
 
 **Garbage collection for the knowledge stores.** Audits `AGENTS.md` for bloat, contradictions,
@@ -492,6 +504,14 @@ as a dated annotation.
 while it reads. Official docs, source code, specs — never a secondary write-up — with every claim
 cited, captured as a Markdown file where the repo keeps such notes. Fires on its own when a
 question hinges on facts living outside the codebase.
+
+### `/questionnaire`
+
+**A document that pulls knowledge out of someone else.** For a decision you can't settle alone
+because another person holds the facts: it interviews you about the _send_ — who receives it, what
+you need back — never about the subject you don't know, then writes a Markdown questionnaire aimed
+at that gap. Most-important-first, one idea per question, answer stubs inline, for filling in async
+or together over a meeting.
 
 ### `/resolving-merge-conflicts`
 
