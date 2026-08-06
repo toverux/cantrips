@@ -59,14 +59,12 @@ If there is nothing to flag, say so explicitly.
 Wait for all three fixers, aggregate their findings, and fix each issue directly.
 A false positive or a fix not worth its churn: note it, skip it, move on — settle it yourself rather than raising it to the user.
 
-Inspect beyond the resolved scope when needed to evaluate a finding, but edit only that scope and its necessary import/export seams.
-For a user-named file or directory scope, those seams must also be inside it; skip any fix that would edit outside the mutation boundary.
+Inspect beyond the resolved scope when needed to evaluate a finding, but edit only that scope and its necessary import/export seams. For a user-named file or directory scope, those seams must also be inside it; skip any fix that would edit outside the mutation boundary.
 
 Before applying each fix, confirm it satisfies the preservation contract for that material.
 If it can't clear that test, skip it.
 
-An interface or data shape that existed only in an earlier iteration of the current unshipped scope is not protected behavior once you verify it has no deployed, persisted, public, external, dependent-branch, or in-repo caller outside the resolved scope.
-Remove that compatibility path only when every required caller update fits the existing mutation boundary; otherwise preserve it.
+An interface or data shape that existed only in an earlier iteration of the current unshipped scope is not protected behavior once you verify it has no deployed, persisted, public, external, dependent-branch, or in-repo caller outside the resolved scope. Remove that compatibility path only when every required caller update fits the existing mutation boundary; otherwise preserve it.
 
 **Never simplify away a safety check.**
 Input validation at trust boundaries, error handling that prevents data loss, security checks (authorization, escaping, sanitization), and accessibility affordances stay — even when a finding frames them as redundant.

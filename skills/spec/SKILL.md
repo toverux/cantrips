@@ -41,8 +41,7 @@ The solution to the problem, from the user's perspective.
 
 ## User Stories
 
-A LONG, numbered list of user stories.
-Each user story should be in the format of:
+A LONG, numbered list of user stories. Each user story should be in the format of:
 
 1. As an <actor>, I want a <feature>, so that <benefit>
 
@@ -54,8 +53,7 @@ This list of user stories should be extremely extensive and cover all aspects of
 
 ## Implementation Decisions
 
-A list of implementation decisions that were made.
-This can include:
+A list of implementation decisions that were made. This can include:
 
 - The modules that will be built/modified
 - The interfaces of those modules that will be modified
@@ -65,11 +63,9 @@ This can include:
 - API contracts
 - Specific interactions
 
-Do NOT include specific file paths or code snippets.
-They may end up being outdated very quickly.
+Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
 
-Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype.
-Trim to the decision-rich parts — not a working demo, just the important bits.
+Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts — not a working demo, just the important bits.
 
 ## Test Seams
 

@@ -8,8 +8,7 @@ source: mattpocock/skills@1.2.0 (improve-codebase-architecture)
 
 # Improve Codebase Architecture
 
-Surface architectural friction and propose **deepening opportunities** — refactors that turn shallow modules into deep ones.
-The aim is testability and AI-navigability.
+Surface architectural friction and propose **deepening opportunities** — refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
 
 Built on a shared design vocabulary: run `/codebase-design` first and use its terms and principles exactly in every suggestion.
 Where the project keeps a domain glossary (an `AGENTS.md` glossary section or `CONCEPTS.md`), its terms give names to good seams.
@@ -18,13 +17,10 @@ Where the project keeps a domain glossary (an `AGENTS.md` glossary section or `C
 
 ### 1. Explore
 
-**Scope before you scan — YAGNI.**
-Deepening a module pays off by making future changes to it easier, so put extra weight on the parts of the codebase that have recently changed.
-Decide *where* to look before you look:
+**Scope before you scan — YAGNI.** Deepening a module pays off by making future changes to it easier, so put extra weight on the parts of the codebase that have recently changed. Decide *where* to look before you look:
 
 - If the user named a direction — a module, a subsystem, a pain point — take it, and skip the inference below.
-- Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots — the files and areas that keep coming up — and let those paths pull your attention first.
-  If the changes are scattered with no clear hot spot, widen the net.
+- Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots — the files and areas that keep coming up — and let those paths pull your attention first. If the changes are scattered with no clear hot spot, widen the net.
 
 Read the project's domain glossary first, then — for whichever of the two stores the loop config enables — search `docs/adr/` for standing decisions and `docs/solutions/` for learnings and recorded rejections in the area: decisions already settled there should not be re-litigated.
 The loop config is `docs/agents/cantrips-loop.md`; when that doc is absent, both stores are off and neither search runs.
@@ -38,19 +34,13 @@ Don't follow rigid heuristics — explore organically and note where you experie
 - Where do tightly-coupled modules leak across their seams?
 - Which parts of the codebase are untested, or hard to test through their current interface?
 
-Apply the **deletion test** to anything you suspect is shallow: would deleting it concentrate complexity, or just move it?
-A "yes, concentrates" is the signal you want.
+Apply the **deletion test** to anything you suspect is shallow: would deleting it concentrate complexity, or just move it? A "yes, concentrates" is the signal you want.
 
 ### 2. Present candidates as an HTML report
 
-Write a self-contained HTML file to the OS temp directory so nothing lands in the repo.
-Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file.
-Open it for the user — `xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>` on Windows — and tell them the absolute path.
+Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. Open it for the user — `xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>` on Windows — and tell them the absolute path.
 
-The report uses **Tailwind via CDN** for layout and styling, and **Mermaid via CDN** for diagrams where a graph/flow/sequence reliably communicates the structure.
-Mix Mermaid with hand-crafted CSS/SVG visuals — use Mermaid when relationships are graph-shaped (call graphs, dependencies, sequences), and hand-built divs/SVG when you want something more editorial (mass diagrams, cross-sections, collapse animations).
-Each candidate gets a **before/after visualisation**.
-Be visual.
+The report uses **Tailwind via CDN** for layout and styling, and **Mermaid via CDN** for diagrams where a graph/flow/sequence reliably communicates the structure. Mix Mermaid with hand-crafted CSS/SVG visuals — use Mermaid when relationships are graph-shaped (call graphs, dependencies, sequences), and hand-built divs/SVG when you want something more editorial (mass diagrams, cross-sections, collapse animations). Each candidate gets a **before/after visualisation**. Be visual.
 
 For each candidate, render a card with:
 
@@ -71,8 +61,7 @@ Mark it clearly in the card (e.g. a warning callout: _"contradicts a recorded re
 
 See [HTML-REPORT.md](HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance.
 
-Do NOT propose interfaces yet.
-After the file is written, ask the user: "Which of these would you like to explore?"
+Do NOT propose interfaces yet. After the file is written, ask the user: "Which of these would you like to explore?"
 
 ### 3. Grilling loop
 
