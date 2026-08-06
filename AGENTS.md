@@ -32,15 +32,17 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 
 ## How to add or revise a skill
 
-1. Write against the `/writing-great-skills` standard (`skills/writing-great-skills/SKILL.md`): predictability, leading words, checkable completion criteria, progressive disclosure, positive phrasing, no no-ops, prune sediment.
+1. Write against the `/writing-for-agents` standard (`skills/writing-for-agents/SKILL.md`): predictability, leading words, checkable completion criteria, progressive disclosure, positive phrasing, no no-ops, prune sediment.
    Forks get leaner than upstream, never heavier.
-2. Frontmatter: `name`, `description` (trigger-rich for model-invoked skills; one human-facing line + `disable-model-invocation: true` for user-invoked ones), `argument-hint` where an argument is meaningful, `version` (per-skill semver; bumped per the versioning section below), and for forks `source` recording upstream provenance, e.g. `source: mattpocock/skills@1.1.0 (to-spec)`.
+2. Frontmatter: `name`, `description` (trigger-rich for model-invoked skills; one human-facing line + `disable-model-invocation: true` for user-invoked ones), `argument-hint` where an argument is meaningful, `version` (per-skill semver; bumped per the versioning section below), and for forks `source` recording upstream provenance, e.g. `source: mattpocock/skills@1.2.0 (to-spec)`.
    `version` and `source` are unofficial keys the loaders ignore.
    Changing a fork's body beyond its upstream text is a divergence: record it in [FORKS.md](FORKS.md) in the same edit, so `/sync-upstream` preserves it instead of merging upstream's wording back.
+   A passage carried byte-identical stays that way even where a quality pass finds a real improvement in it: skip the finding and name the reason, since the edit trades a permanent sync divergence for a redundancy upstream chose.
+   Where a fork needs a name for something upstream already names, take upstream's name.
    Every skill carries an `agents/openai.yaml` sidecar (`interface.display_name`, `interface.short_description`, `policy.allow_implicit_invocation`): `false` for user-invoked skills — Codex CLI ignores `disable-model-invocation`, so the sidecar is what stops auto-firing there — and `true` for model-invoked ones, stating the intent explicitly rather than leaning on Codex defaults.
    The sidecar's `allow_implicit_invocation` is always the logical inverse of the SKILL.md `disable-model-invocation`; a skill shipped without a sidecar auto-fires in Codex whatever its frontmatter says.
 3. Pipeline skills end with a flow pointer naming the next step(s) of the loop and marking a user-invoked target `(user-invoked)`; keep those pointers consistent when renaming or inserting skills.
-   The shared presentation format (a final-paragraph italic blockquote, `Next:` for one step versus `Next steps:` bullets for several, each pointer closing on a one-clause rationale) lives in [flow-pointers.md](skills/writing-great-skills/flow-pointers.md); skills point at that file instead of restating it, wording the pointer verb-first as an instruction to read it.
+   The shared presentation format lives in [flow-pointers.md](skills/writing-for-agents/flow-pointers.md); skills point at that file instead of restating it, wording the pointer verb-first as an instruction to read it.
 4. A sibling reference file that declares what it extends or replaces must cover every path the parent skill can take — the `low` inline pass and the no-sub-agent fallback included, since neither reaches the sections a main-path declaration names.
    A declaration that names only the main path leaves the other paths running the parent's own rules, which is how a mode degrades silently on one harness while reading correct on the other.
 5. Every step that dispatches a sub-agent asks for a background dispatch where the harness supports one, and carries the parenthetical "(Claude Code: do not use `run_in_background: false`)".

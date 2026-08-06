@@ -3,8 +3,8 @@ name: compound-refresh
 description: Garbage-collect the knowledge stores — audit AGENTS.md, and docs/solutions/ where that store is enabled, against the current code.
 argument-hint: '[optional: scope — directory, module, or keyword; blank audits everything]'
 disable-model-invocation: true
-version: 1.1.1
-source: EveryInc/compound-engineering-plugin@3.20.0 (ce-compound-refresh)
+version: 1.2.0
+source: EveryInc/compound-engineering-plugin@3.21.2 (ce-compound-refresh)
 ---
 
 Audit the knowledge stores against the current codebase and prune what no longer earns its place.
@@ -40,6 +40,11 @@ Judgment rules:
   When code and doc disagree, the doc changes; whether the code should have changed is outside this skill.
 - **Age alone is clean.**
   A two-year-old doc that still matches the code is a Keep; age only prompts a closer look.
+- **Unverifiable is not false.**
+  A claim the repo cannot corroborate — a schema fact, an operational practice, an environment behavior — is not thereby wrong; repos rarely witness their own operations.
+  Act only on contradiction, where the code demonstrably does otherwise; an unverifiable-but-plausible claim is a Keep with the verification gap noted in the report.
+- **Shared code is not shared problem.**
+  Two accurate docs on different sub-problems stay separate even when they cite the same file.
 - **Contradictions between docs outrank staleness** — they actively mislead.
   Resolve them first, via Consolidate or Update.
 - **Before a Delete, check the problem domain and the inbound links.**
@@ -58,7 +63,7 @@ Read the project's `AGENTS.md` (or the substantive file when one of `AGENTS.md`/
 - **Staleness** — references to renamed, moved, or deleted files, tools, or workflows.
 
 Propose the smallest edit that fixes each finding.
-Before applying any `AGENTS.md` edit, read [`../writing-great-skills/SKILL.md`](../writing-great-skills/SKILL.md) and hold the edit to it.
+Before applying any `AGENTS.md` edit, read [`../writing-for-agents/SKILL.md`](../writing-for-agents/SKILL.md) and hold the edit to it.
 
 ## Gate, report, close
 
@@ -66,4 +71,4 @@ Present the verdicts: Keeps as one summarized list; every Update, Consolidate, D
 Apply only approved changes.
 
 Close with counts (kept / updated / consolidated / deleted / AGENTS.md findings) and a one-liner per touched file.
-Changes applied → close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/commit` (user-invoked) — to land the refreshed docs.
+Changes applied → close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/commit` (user-invoked) — to land the refreshed docs.

@@ -2,11 +2,11 @@
 name: spec
 description: Synthesize the current conversation into a published spec, test seams included.
 disable-model-invocation: true
-version: 1.1.1
-source: mattpocock/skills@1.1.0 (to-spec)
+version: 1.1.2
+source: mattpocock/skills@1.2.0 (to-spec)
 ---
 
-Produce a spec (you may know this document as a PRD) from the current conversation and codebase understanding.
+Produce a spec from the current conversation and codebase understanding.
 Synthesize what you already know — the interview, if any, already happened (`/grilling`).
 
 ## Process
@@ -86,4 +86,4 @@ Any further notes about the feature.
 
 </spec-template>
 
-Spec published → close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/tickets` (user-invoked) if the work spans multiple sessions or context windows, else `/implement` (user-invoked) — in a fresh context either way.
+Spec published → close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/tickets` (user-invoked) if the work spans multiple sessions or context windows, else `/implement` (user-invoked) — in a fresh context either way.

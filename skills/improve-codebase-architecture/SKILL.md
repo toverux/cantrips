@@ -2,8 +2,8 @@
 name: improve-codebase-architecture
 description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 disable-model-invocation: true
-version: 1.1.2
-source: mattpocock/skills@1.1.0 (improve-codebase-architecture)
+version: 1.2.0
+source: mattpocock/skills@1.2.0 (improve-codebase-architecture)
 ---
 
 # Improve Codebase Architecture
@@ -20,7 +20,7 @@ Where the project keeps a domain glossary (an `AGENTS.md` glossary section or `C
 
 **Scope before you scan — YAGNI.**
 Deepening a module pays off by making future changes to it easier, so put extra weight on the parts of the codebase that have recently changed.
-Decide _where_ to look before you look:
+Decide *where* to look before you look:
 
 - If the user named a direction — a module, a subsystem, a pain point — take it, and skip the inference below.
 - Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots — the files and areas that keep coming up — and let those paths pull your attention first.
@@ -76,8 +76,7 @@ After the file is written, ask the user: "Which of these would you like to explo
 
 ### 3. Grilling loop
 
-Once the user picks a candidate, grill them through the decision tree — one question at a time, your recommended answer marked, each branch resolved before the next: constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
-(The `/grilling` skill is this discipline in full; the user can invoke it by name.)
+Once the user picks a candidate, run the `/grilling` skill to walk the decision tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
 
 Side effects happen inline as decisions crystallize — capture the durable ones through `/compound`:
 
@@ -85,4 +84,6 @@ Side effects happen inline as decisions crystallize — capture the durable ones
 - **The user rejects a candidate with a load-bearing reason** — capture it so future architecture reviews don't re-suggest the same thing.
   Skip ephemeral reasons ("not worth it right now") and self-evident ones.
 
-When alternative interfaces for the deepened module are worth exploring, close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/codebase-design` — its design-it-twice parallel sub-agent pattern surfaces the options.
+The interview hands back here rather than closing itself, so this step owns the close.
+Close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format), picking by what the interview settled: `/codebase-design` when alternative interfaces for the deepened module are still worth exploring — its design-it-twice parallel sub-agent pattern surfaces the options; `/spec` (user-invoked) when the deepening is a change worth a written contract; `/implement` (user-invoked) when it is small enough to go straight in.
+Where the interview ended in a rejection, the capture above is the outcome — say so and offer this skill again on the next candidate.

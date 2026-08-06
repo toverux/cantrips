@@ -2,7 +2,7 @@
 name: compound
 description: Capture this session's durable learnings and route each to the right knowledge store, every write user-gated. Use at loop end when /commit's opening scan finds candidates, when /diagnosing-bugs closes out a fix, or when the user wants to capture, remember, or write down a learning, convention, gotcha, decision, or preference.
 argument-hint: '[optional: what to capture; blank scans the whole session]'
-version: 1.1.1
+version: 1.1.2
 ---
 
 Harvest what this session learned so future sessions inherit it.
@@ -46,9 +46,9 @@ A write happens only on an approval.
 
 ## 5. Write the approved ones
 
-- Before editing `AGENTS.md`, a rules file, or a skill: load the `/writing-great-skills` skill ([`../writing-great-skills/SKILL.md`](../writing-great-skills/SKILL.md)) and hold the edit to it.
+- Before editing `AGENTS.md`, a rules file, or a skill: load the `/writing-for-agents` skill ([`../writing-for-agents/SKILL.md`](../writing-for-agents/SKILL.md)) and hold the edit to it.
 - Before writing to `docs/adr/`: read [`adr-format.md`](adr-format.md) and hold to it, and search the store for the record a reversal supersedes — the pair only lands when its other half is found.
 - Before writing to `docs/solutions/`: read [`solutions-format.md`](solutions-format.md), then search existing docs (frontmatter `area`, `tags`, `symptoms`) for one covering the same problem — fold fresh context into an existing doc rather than writing a near-duplicate.
 
 Done when every approved candidate is written to its store.
-The writes join the working tree: `/commit`'s flow picks them up when it invoked this scan; on an ad-hoc run, close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/commit` (user-invoked) — it lands these writes with the rest of the diff.
+The writes join the working tree: `/commit`'s flow picks them up when it invoked this scan; on an ad-hoc run, close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/commit` (user-invoked) — it lands these writes with the rest of the diff.

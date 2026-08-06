@@ -34,7 +34,7 @@ Cantrips is not a bag of independent commands — it is one dynamic, discoverabl
   break to a fresh one, so you never memorize the pipeline — the loop tells you where you are.
 - **Two invocation modes.** Deliberate gates (🧑) only fire when you type them; reflexes (🤖) fire
   on their own when their triggers match — `/tdd` when you build test-first, `/compound` when a
-  learning surfaces, `/prototype` when a design question needs empirical evidence.
+  learning surfaces, `/prototype` when a state model needs pushing through real cases.
 - **Skills brief each other.** The spec records the seams `/tdd` will bite at; `/implement`
   suggests a `/review-gate` effort level scaled to the diff it just produced; `/review-gate` flags
   compound-worthy findings for `/commit`'s learnings scan.
@@ -170,7 +170,7 @@ can still type them).
 
 | Skill                                  | Invoked by | Role                                                                         |
 | -------------------------------------- | ---------- | ---------------------------------------------------------------------------- |
-| [`/grilling`](#grilling)               | 🧑🤖       | Relentless one-question-at-a-time interview to stress-test the plan.         |
+| [`/grilling`](#grilling)               | 🧑🤖       | Relentless round-by-round interview to stress-test the plan.                 |
 | [`/spec`](#spec)                       | 🧑         | Publish the conversation as a spec, test seams included.                     |
 | [`/tickets`](#tickets)                 | 🧑         | Slice a big spec into tracer-bullet tickets, one per fresh context.          |
 | [`/implement`](#implement)             | 🧑         | Execute the spec or one ticket, driving `tdd` at the agreed seams.           |
@@ -194,25 +194,27 @@ can still type them).
 | [`/codebase-design`](#codebase-design)                             | 🧑🤖       | Deep-module vocabulary other skills lean on.                               |
 | [`/improve-codebase-architecture`](#improve-codebase-architecture) | 🧑         | Scan for module-deepening opportunities.                                   |
 | [`/teach`](#teach)                                                 | 🧑         | Learn a concept from this workspace, tutor-style.                          |
-| [`/writing-great-skills`](#writing-great-skills)                   | 🧑🤖       | The authoring standard, loaded before editing skills, AGENTS.md, or rules. |
+| [`/writing-for-agents`](#writing-for-agents)                       | 🧑🤖       | The authoring standard, loaded before editing skills, AGENTS.md, or rules. |
 
 ## The loop, skill by skill
 
 ### `/grilling`
 
-**A relentless, one-question-at-a-time interview that stress-tests a plan before any code exists.**
+**A relentless interview that stress-tests a plan before any code exists.**
 
 - **When to use** — before `/spec` on anything non-trivial, or whenever a decision deserves
   pressure. Fires on its own when you ask to be grilled or requirements are fuzzy.
 - **The intent** — agents default to agreeable: they fill gaps with silent assumptions and build
   the wrong thing confidently. Grilling inverts the posture. Facts are looked up in the
-  environment; _decisions_ are yours, put to you one at a time.
-- **How it works** — questions are numbered across the interview (Q1, Q2, …); when candidates can
-  be enumerated they come as lettered options with the recommendation first. A decision that needs
-  empirical evidence routes to `/prototype`; one that hinges on external facts routes to
-  `/research`. The interview closes only when every branch of the decision tree is resolved.
+  environment, by background sub-agent where one is needed; _decisions_ are yours.
+- **How it works** — the interview runs in **rounds** over a decision tree. Each round asks the
+  whole **frontier** — every question whose prerequisites are already settled — numbered, each with
+  a recommended answer. Your answers push the frontier outward and the next round follows. A
+  frontier fact that lives in external docs routes to `/research`. The interview closes when the
+  frontier is empty.
 - **Next** — `/spec` for feature-sized outcomes (same session — it synthesizes the interview),
-  `/implement` directly for small fixes.
+  `/implement` directly for small fixes; `/prototype` or `/research` where a question survived the
+  interview and needs evidence or primary sources.
 
 ### `/spec`
 
@@ -305,8 +307,9 @@ material does.**
   prose counting as one.
 - **How it works** — resolves the scope (your words, or the branch diff plus anything uncommitted
   and untracked), dispatches the fixers against `/review-gate`'s quality lenses, applies the
-  worthwhile findings directly, then verifies: typecheck, lint and scoped tests on a code diff, or
-  a re-read confirming every instruction survived on a prose-only one.
+  worthwhile findings that fit inside that scope and names the ones it skipped, then verifies:
+  typecheck, lint and scoped tests on a code diff, or a re-read confirming every instruction
+  survived on a prose-only one.
 - **Next** — `/review-gate`, in this session, with a suggested effort level scaled to the diff.
 
 ### `/review-gate`
@@ -351,12 +354,14 @@ flowchart TD
   Finders run as parallel sub-agents, each briefed on a single angle or lens; every candidate must
   name a concrete failure scenario. Verifiers judge per location and refuted or unverified
   candidates never reach the report. Findings flow through the harness's typed findings tool where
-  one exists; `--fix` applies the surviving findings on the spot. On a harness without sub-agents
-  (Codex), the same angles run inline as a single-pass review that says so.
-- **Converge until green** — `--loop` implies `--fix` and drives the gate instead of reporting
-  once: fix batch, project checks, delta re-review, repeat, then a full-scope certifying pass over
-  the final tree — or, where every fix stayed inside its own file and touched nothing another file
-  reaches for, on the opening pass plus its delta rounds, which is the cheap path for a small diff.
+  one exists; from `medium` up, `--fix` applies the surviving findings that fit inside the scope it
+  reviewed, naming any it had to hand back. On a harness without sub-agents (Codex), the same
+  angles run inline as a single-pass review that says so.
+- **Converge until green** — `--loop` implies `--fix` at any level, `low` and the sub-agent-less
+  fallback included, and drives the gate instead of reporting once: fix batch, project checks,
+  delta re-review, repeat, then a full-scope certifying pass over the final tree — or, where every
+  fix stayed inside its own file and touched nothing another file reaches for, on the opening pass
+  plus its delta rounds, which is the cheap path for a small diff.
   Green means every finding is explicitly dispositioned — fixed, hardened, or acknowledged by you —
   and the project's checks are back where they started. Anything needing you is parked and batched
   at a round boundary while the loop keeps fixing the rest, and guards hand you the wheel when a
@@ -466,13 +471,13 @@ substitute: decisions that should outlive the session are annotated onto the fea
 
 ### `/prototype`
 
-**Throwaway code that answers a design question.** Two branches: a logic question gets a tiny
-interactive terminal app that pushes the state model through hard cases; a UI question gets
-radically different variations switchable on one route. No tests, no polish, no persistence — and
-when the question is answered, the validated decision folds into the real code, the prototype
-itself is committed to a throwaway branch as a primary source, and the branch pointer and verdict
-land on the feature's spec as a dated annotation. Fires on its own when a `/grilling` decision
-needs empirical evidence.
+**Throwaway code that answers a design question.** Two branches: a logic question gets a single
+shareable HTML file — free-play buttons plus tabbed walkthroughs — that pushes the state model
+through hard cases and that a non-developer can drive; a UI question gets radically different
+variations switchable on one route. No tests, no polish, no persistence — and when the question is
+answered, the validated decision folds into the real code, the prototype itself is committed to a
+throwaway branch as a primary source, and the branch pointer and verdict land on the feature's spec
+as a dated annotation.
 
 ### `/research`
 
@@ -510,7 +515,7 @@ resources and learning records, and produces short, beautiful, self-contained HT
 for retention — retrieval practice, spacing, tight feedback loops — with printable reference
 sheets as the durable output.
 
-### `/writing-great-skills`
+### `/writing-for-agents`
 
 **The authoring standard behind every skill in this repo.** Predictability as the root virtue:
 leading words, checkable completion criteria, progressive disclosure, positive phrasing, no

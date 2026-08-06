@@ -1,8 +1,8 @@
 ---
 name: research
 description: Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.
-version: 1.0.1
-source: mattpocock/skills@1.1.0 (research)
+version: 1.0.2
+source: mattpocock/skills@1.2.0 (research)
 ---
 
 Spin up a **background agent** to do the research, so you keep working while it reads (Claude Code: do not use `run_in_background: false`).

@@ -1,8 +1,10 @@
 # Loop mode
 
 Drive the gate to **green** instead of reporting once.
-These rules govern the whole run at every level and on every harness: they extend Scope, Find, Verify and Sweep where those run, and they stand in for whatever reporting and closing the level would otherwise have done — Synthesize and report's at `medium` and `high`, the inline pass's at `low`, the Fallback's where the harness has no sub-agents.
+These rules govern the whole run at every level and on every harness: they extend Scope, Find, Verify and Sweep where those run, and they stand in for whatever reporting and closing the level would otherwise have done — Synthesize and report's at `medium` and `high`, the inline pass's at `low`, the Fallback's unverified-review note where the harness has no sub-agents, and the Close section's on every path.
+What they stand in for is when a report lands and what it closes on; how a finding is judged, shaped and channelled still comes from the section the level would have run.
 Apply mode is on throughout, `--loop` implying `--fix`, including on those two paths where the gate grants it nowhere else.
+Every fix a round applies stays inside the run's mutation boundary, which SKILL.md gives its own section: a delta round narrowed to one batch's diff narrows what gets read, never what may be changed.
 
 **Green** is every finding the loop surfaced carrying an explicit disposition — fixed, hardened, no longer present, or user-acknowledged — with the project's checks back where they started.
 Dispositions live in this session, so a finding a later pass re-finds already carries one and is not new — except where a batch tried to fix it and it came back anyway, which is the loop's signal that the fix is not taking.
@@ -33,7 +35,7 @@ Behaviour counts as much as shape: returning `null` where callers expect an empt
 ## What needs you
 
 Park it and finish the round — one open question does not abandon the batch already in flight.
-Park a spec finding's route (this is where the gate's ask-before-applying rule lands), a finding whose evidence no fix can resolve, one you judge real but not worth the churn, an action only you can perform, and a fix the checks reverted.
+Park a spec finding's route (this is where the gate's ask-before-applying rule lands), a finding whose evidence no fix can resolve, one whose only fix would reach outside the mutation boundary, one you judge real but not worth the churn, an action only you can perform, and a fix the checks reverted.
 A finding no fix can resolve is escalated once and then rides on its disposition, so the loop never waters down code to silence it.
 
 Present the parked set at the end of the round that filled it, as one numbered list: each item with its finding, its verdict where it has one, its evidence, what the loop already tried, a concrete actionable message, and explicit options.
@@ -68,4 +70,4 @@ Close on green with, in order: **green and what carries it** — a certifying pa
 
 A stop reports the same three, opening on the standing findings and the condition that fired, and closes on concrete options.
 
-Flag `/compound` material either way, and close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): on green `/commit` (user-invoked), since what carries the claim above already served as the re-review; on a stop the standing findings first, then `/review-gate --loop` (user-invoked) over the result.
+Flag `/compound` material either way, and close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): on green `/commit` (user-invoked), since what carries the claim above already served as the re-review; on a stop the standing findings first, then `/review-gate --loop` (user-invoked) over the result.

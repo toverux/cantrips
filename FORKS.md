@@ -1,6 +1,6 @@
 # Fork divergence ledger
 
-How this plugin relates to every skill of its two upstreams — [mattpocock/skills](https://github.com/mattpocock/skills) at v1.1.0 and [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) at compound-engineering-v3.20.0.
+How this plugin relates to every skill of its two upstreams — [mattpocock/skills](https://github.com/mattpocock/skills) at v1.2.0 and [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) at compound-engineering-v3.21.2.
 Every upstream skill has a section: a forked skill lists how it deliberately differs and why; the rest are marked "Not ported." with the reason where one is known.
 Updated in the same edit that creates or ends a difference, whether a sync skips an upstream delta or a session rewrites a fork's own text; `/sync-upstream` keeps every listed difference standing without re-litigation.
 An entry stays until the difference is gone.
@@ -37,15 +37,16 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 
 ### /grilling (grilling)
 
-- Upstream's "this plan" / "design tree" / "exploring the codebase" generalized to "this" / "decision tree" / "exploring the environment (filesystem, tools, etc.)" — the fork grills any plan, decision, or idea, code-related or not, so code- and design-specific framing would misdescribe its own trigger.
-- Upstream's "Ask the questions one at a time… Asking multiple questions at once is bewildering." paragraph not carried as such — the one-at-a-time rule survives inside "How to ask" as a clause on each asking mode, and the rationale sentence went with the paragraph it justified.
-- Upstream's "For each question, provide your recommended answer." replaced by the local "How to ask" section — sequential Q-numbering, lettered candidate answers with reasoning and tradeoffs first and the recommendation marked "(Recommended)", open questions asked openly, and the user's own remarks answered before the next question, because a bare "recommend an answer" left the interview's presentation unspecified.
-- `/prototype` and `/research` proposed mid-interview when a decision needs empirical evidence or external facts — upstream has no sibling skills to hand an unresolvable question to.
-- Upstream's "Do not enact the plan until I confirm we have reached a shared understanding." replaced by the local "## Closing" section — a checkable done-condition (every branch resolved), a one-sentence close with no summary, and a wait for go-ahead, since this fork ends in a pipeline handoff rather than in the agent enacting the plan itself.
+- Upstream's "design tree" is a "decision tree" throughout — the fork grills any plan, decision, or idea, code-related or not, so design-specific framing would misdescribe its own trigger.
+- A rule carried over from the fork's retired "How to ask" section: a question or remark inside the user's answers is answered before the next round opens — upstream's rounds model says nothing about the reply direction, and a fresh round is exactly what buries a reply.
+- `/research` proposed mid-interview when a frontier fact lives in external docs rather than the environment — upstream ships the skill but its grilling routes to it nowhere, leaving the user to remember it exists; here `/grilling` is a pipeline step, so it names the next one.
+- Question numbers run sequentially across the whole interview rather than restarting each round — upstream's rounds model says only "number each question", and per-round numbering makes an answer naming "Q2" ambiguous once a third round exists.
+- Upstream's closing sentence keeps its frontier-empty done condition, but the fork's "## Closing" section adds the one-sentence close with no summary, the flow pointer, and the wait for go-ahead — this fork ends in a pipeline handoff rather than in the agent enacting the plan itself.
+  That section also carries a hand-back branch for an interview another skill invoked, so the callee stops owning the close — `/improve-codebase-architecture` runs the interview mid-step and has work left after it, which upstream's grilling, having no in-repo caller, never had to allow for.
 
 ### /handoff (handoff)
 
-- Upstream's four flat instruction paragraphs restructured into a lead paragraph plus four constraint bullets, each compressed — the `/writing-great-skills` standard asks for leading words, scannable constraints, and positive phrasing.
+- Upstream's four flat instruction paragraphs restructured into a lead paragraph plus four constraint bullets, each compressed — the `/writing-for-agents` standard asks for leading words, scannable constraints, and positive phrasing.
 - Added paragraph ruling a handoff out as a spec substitute, routing decisions that outlive the session into the feature's spec through the annotate-spec verb, or to `/compound` when the work has no spec — without it the skill invites durable decisions into a temp-directory file this pipeline never reads again.
 - Added closing line requiring the document's path be reported back — a checkable completion criterion, and the user cannot point a fresh session at a temp-directory file whose path was never surfaced.
 
@@ -56,7 +57,7 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 - The `/tdd` sentence splits in two: TDD is driven at the seams the spec already approved without re-asking, and work with no agreed seam gets explicit verification criteria stated up front — upstream's "where possible, at pre-agreed seams" leaves both the mandate and the no-seam case undefined.
 - Ticket acceptance criteria are ticked as each one is verified — `/tickets` writes checkbox criteria that nothing else closes out.
 - A ticket whose criteria are all verified is resolved through the resolve-ticket verb, with the note that a wrong resolve is one human reopen away, while the spec itself is closed by no skill — upstream's terse imperatives carry no ticket lifecycle, and spec closure stays the human's act through the backend here.
-- A checkable "done when" criterion replaces upstream's open-ended ending — the `/writing-great-skills` standard requires a verifiable finish.
+- A checkable "done when" criterion replaces upstream's open-ended ending — the `/writing-for-agents` standard requires a verifiable finish.
 - Upstream's "Commit your work to the current branch." not carried — committing is `/commit`'s user-gated step here, and AGENTS.md forbids a skill committing on its own.
 - The review tail adds a `/review-gate` severity suggestion (low for a trivial or mechanical diff, high for a large or risky one, medium otherwise) and a `/handoff` fallback when context runs low — both keep the chain runnable in one session with the working diff as context, which renaming upstream's `/code-review` pointer alone would not.
 
@@ -66,20 +67,14 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 - `CONTEXT.md` replaced throughout by the project's domain glossary (an `AGENTS.md` glossary section or `CONCEPTS.md`) — this pipeline's knowledge stores, set by `/compound` and echoed by `/tdd` and `/codebase-design`, have no `CONTEXT.md`.
 - HTML-REPORT.md's "ADR callout" renamed "Settled-decision callout", and the settled decisions this scan must not re-litigate are read from whichever of `docs/adr/` and `docs/solutions/` the loop config enables — upstream assumes an always-present ADR tree, where both stores are opt-in here and a recorded rejection may sit in either.
 - "Don't list every theoretical refactor an ADR forbids." not carried — the retained "only surface it when the friction is real enough to warrant revisiting the decision" already carries that constraint.
-- A "Scope before you scan — YAGNI" block added, taking a user-named direction when given and otherwise reading `git log --oneline` for hot spots — deepening pays off only on code that keeps changing, so an undirected whole-codebase scan buries the return.
 - "use the Agent tool with `subagent_type=Explore`" generalized to "dispatch an exploration subagent" — this plugin ships to two harnesses and `subagent_type=Explore` exists only in Claude Code.
-- The instruction to run `/grilling` replaced by the grilling discipline stated inline, with a parenthetical that the user can invoke `/grilling` by name — `/grilling` is user-invoked here, so a skill cannot run it.
 - The `/domain-modeling` side-effect block, including the offer to write an ADR, replaced by capture through `/compound` — this repo has no `/domain-modeling` skill, and `/compound` owns both glossary and `docs/solutions/` writes under a user gate.
+- Step 3 owns the close, offering `/codebase-design`, `/spec` or `/implement` by what the interview settled, because the `/grilling` it runs hands back instead of closing — upstream ends on its own side-effect block and never delegates an interview, so nothing there had to decide which skill closes.
 
 ### /prototype (prototype)
 
-- Rule 6 rewritten from upstream's "Delete or absorb when done" to "Capture it when done" — a prototype is a primary source here, so it lands on a throwaway branch, with the branch pointer, verdict, and question delivered as a dated annotation on the feature's spec through the annotate-spec verb, falling back to the folding commit when no spec exists.
-- Rule 4's closing "and then delete it" dropped — the same capture policy keeps the prototype rather than binning it.
-- Upstream's closing "## When done" section not carried — the rewritten rule 6 and the flow pointer already say where the verdict goes (the annotate-spec verb), and upstream's ADR and `NOTES.md` destinations have no counterpart in that channel.
-- LOGIC.md step 3's closing sentence rewritten to keep the pure-logic rationale without upstream's "the TUI shell gets deleted" — the shell survives on the throwaway branch under the capture policy.
-- LOGIC.md step 7 retitled "Capture the answer and the prototype" and rewritten to defer to the SKILL's capture policy, absorbing upstream's "Don't ship the TUI shell into production" anti-pattern — the capture rule is stated once and referenced, not restated.
+- Rule 6's capture destination is the feature's spec — a dated annotation through the annotate-spec verb carrying the branch pointer, the verdict, and the question it settled, falling back to the folding commit when no spec exists — where upstream leaves a context pointer on the implementation issue; this pipeline has no tracker, and the spec is where a prototype's verdict re-enters the loop.
 - LOGIC.md anti-patterns "Don't add tests" and "Don't wire it to the real database" not carried — both restate SKILL.md's "Skip the polish" and "No persistence by default" rules.
-- UI.md step 6 rewritten so the winner folds into main and the losing variants move to the throwaway branch, with "The full set of variants is the primary source" replacing upstream's "Don't leave variant components or the switcher lying around" — same capture policy, phrased positively.
 - UI.md anti-pattern "Variants that differ only in colour or copy" not carried — restates step 2's structural-difference requirement.
 
 ### /research (research)
@@ -95,7 +90,10 @@ No divergences beyond the systematic conventions.
 - Upstream's two fixed axes (Standards + Spec, two parallel sub-agents, reports aggregated verbatim) replaced wholesale by an effort-scaled finder/verifier pipeline — `low`/`medium`/`high`, correctness angles A–F, quality lenses, one independent verifier per location returning CONFIRMED/PLAUSIBLE/REFUTED, a `high`-only sweep, a ranked capped report with outcome tracking, `--fix` apply mode, and a no-sub-agent fallback — because independent verification of every candidate is what buys precision at `medium` and recall at `high`, which unverified side-by-side axis reports cannot.
 - Findings are deduped, merged by root cause, ranked, and capped, reversing upstream's explicit "do not merge or rerank findings" and dropping its _Why two axes_ rationale section — the separation upstream protected with that rule is served here by finder isolation, so ranking no longer lets one axis mask another.
 - The finder briefs live in siblings rather than inline in SKILL.md — the correctness angles in [ANGLES.md](skills/review-gate/ANGLES.md), the quality lenses in [QUALITY-LENSES.md](skills/review-gate/QUALITY-LENSES.md) — so each finder loads only its own angle or lens and the orchestrator never pays for briefs it does not use.
-- QUALITY-LENSES.md is shared with `/simplify`, which reads three of its five lenses, and is the single source for what the two review paths hunt.
+- QUALITY-LENSES.md is shared with `/simplify`, which reads three of its five lenses, and is the single source for what the two review paths hunt and for what a fix to prose must preserve; what it deliberately does not carry is any limit on where a fix may reach, since a carrier handed such a limit withholds the candidate rather than the fix.
+- That limit is a section of its own, "The mutation boundary": the run's target plus the seams it needs, narrowed to whatever files the arguments named, with a fix that cannot stay inside it handed back rather than granted a wider scope.
+  Upstream's review has no apply mode at all, so nothing there bounds where a fix may reach; the boundary earns its own section because every path arrives at it there — `low` loads no lens file, and LOOP.md stands in for the reporting section an apply-time rule would otherwise have sat in.
+  It carries `/simplify`'s name for the same constraint, which is upstream's own, so the two review paths in this plugin name one edit-reach limit one way.
 - Each restraint is stated under the lens it qualifies and is self-contained there, and no lens names a phase of the skill that dispatched it, since a carrier is handed one lens section and both a pointer across to another lens and a reference to a caller's step resolve to nothing in its context.
 - The three mechanical lenses are the union of what this fork and `/simplify`'s retired personas each knew, carrying defect classes upstream's briefs never had — reimplemented primitives, parameter sprawl, stringly-typed values, narrating comments, N+1, TOCTOU pre-checks, memory leaks — held to roughly six items each so a merged brief stays pasteable, with Design and Conventions carried across untouched and outside that budget.
 - Reuse, Simplification, Efficiency and Design each gloss what the lens means on agent-facing prose, and the file's preamble carries the prose preservation rule as a governing rule, since this plugin is itself prose and both skills now review it.
@@ -125,9 +123,9 @@ No divergences beyond the systematic conventions.
 ### /tdd (tdd)
 
 - Domain-vocabulary sentence rewritten to point at the `AGENTS.md` glossary section or `CONCEPTS.md` — upstream's `CONTEXT.md` and ADR conventions are files this repo does not carry.
-- Seam definition gains "(full vocabulary: `/codebase-design`)" — this repo ships the deep-module vocabulary as its own skill, so the reference here stays one clause.
+- Seam definition gains "(full vocabulary: `/codebase-design`)" — this repo ships the deep-module vocabulary as its own skill, so the reference here stays one clause; upstream's v1.2.0 paragraph spelling out the same pointer is not carried on top of it.
 - "Test only at agreed seams" relaxed so seams the user already approved in `/spec` need no re-asking — the pipeline hands `/tdd` an approved spec, and upstream's unconditional confirmation would re-litigate it every cycle.
-- Upstream's "Ask: 'What's the public interface, and which seams should we test?'" not carried — a scripted question the preceding paragraph already mandates, and no-op prompts are what `/writing-great-skills` prunes.
+- Upstream's "Ask: 'What's the public interface, and which seams should we test?'" not carried — a scripted question the preceding paragraph already mandates, and no-op prompts are what `/writing-for-agents` prunes.
 - "Bug fixes start red on the bug" paragraph added — `/diagnosing-bugs` routes fixes into `/tdd`, so the failing-repro-first rule has to be stated where the loop is defined.
 - Refactoring pointer names `/simplify` and `/review-gate` as the review tail instead of upstream's single `code-review` skill — this repo splits that tail into two steps, so a rename alone would drop the second target.
 
@@ -145,17 +143,20 @@ No divergences beyond the systematic conventions.
 
 - Ticket publication runs through the publish-tickets verb instead of upstream's issue-tracker conventions, and the spec is fetched through the fetch-spec verb the same way.
 - Blocking edges ride the backend's native dependency links where it has them, each ticket's "Blocked by" prose otherwise — one breakdown serves a files-backed and a tracker-backed repo alike.
+- The ticket template's `**Status:** ready-for-agent` line not carried — it is upstream's triage label vocabulary, which has no counterpart here.
 - The publish step ends "Publishing leaves the parent spec untouched." — upstream's "Do NOT close or modify any parent issue" prohibition, carried as the positive constraint this repo's authoring standard asks for, with the lifecycle rule itself stated once in `/implement`.
 
-### /writing-great-skills (writing-great-skills)
+### /writing-for-agents (writing-for-agents)
 
-- Second paragraph added, extending the principles to any file an agent loads and acts on (`AGENTS.md`, `CLAUDE.md`, rules files) and flagging Invocation as the one skill-specific section — this repo applies the standard to its own AGENTS.md and rules files, which upstream's skill-only framing leaves outside scope.
-- "Pipeline closings" section added, pointing at the sibling [flow-pointers.md](skills/writing-great-skills/flow-pointers.md) — the pipeline skills here all end on a flow pointer, and the shared presentation format needs one authoritative home rather than a restatement in each skill.
+- "Pipeline closings" section added, pointing at the sibling [flow-pointers.md](skills/writing-for-agents/flow-pointers.md) — the pipeline skills here all end on a flow pointer, and the shared presentation format needs one authoritative home rather than a restatement in each skill.
   Its last line prescribes the pointer's verb-first wording, from an observed failure the section itself no longer names: an agent read the earlier `([presentation](…))` phrasing as a citation, never loaded the file, and invented a closing format.
-- The No-op failure mode extends to **gate**, defined in GLOSSARY.md — upstream's entry reaches only a weak leading word, and an audit of this repo's own skills found conditionals to be where no-ops actually accumulate, the unobservable condition worst of all because it reads to a maintainer as an enforced rule.
-- The No-op failure mode extends again to rationale — a justification the reader would have followed the rule without — because a persuasive voice is where no-ops survive a pruning pass that catches bare restatement.
-- Two failure modes added, **Director's commentary** and **Snapshot**, both defined in GLOSSARY.md — upstream's list catches prose that went stale (**sediment**) or grew too long (**sprawl**), and neither reaches prose that was never load-bearing: a derivation shipped beside its conclusion, or a count standing where an invariant belongs.
-- Upstream's `disable-model-invocation: true` dropped in favour of a trigger-rich description, making the fork model-invoked — the standard has to load before any agent-facing file is written, and a session that merely reads such files would otherwise never pull it in.
+- A **gate** bullet added to Pruning — any line conditioning behaviour fails the no-op test when its condition names competence the agent already shows, and fails it worse when the agent cannot observe the condition — because upstream's no-op entry reaches only a weak leading word, and an audit of this repo's own skills found conditionals to be where no-ops actually accumulate, the unobservable condition worst of all since it reads to a maintainer as an enforced rule.
+  The same bullet extends the test to rationale — a justification the reader would have followed the rule without — because a persuasive voice is where no-ops survive a pruning pass that catches bare restatement.
+- Two more Pruning bullets, **Director's commentary** and **Snapshot** — upstream's failure modes catch prose that went stale (**sediment**) or grew too long (**sprawl**), and neither reaches prose that was never load-bearing: a derivation shipped beside its conclusion, or a count standing where an invariant belongs.
+- The **gate** and **Snapshot** bullets each keep the limb that says when the thing is legitimate — a gate whose condition encodes what the model cannot infer, a version baseline reading as of-a-date — carried over from the retired GLOSSARY.md, which was the only place those criteria lived.
+  Without them the two bullets read as blanket prohibitions, and this repo's own loop-config gates and `source:` baselines are the first things a pruning pass would take.
+- SKILL-MECHANICS.md's opening line drops upstream's "frontmatter" from what the file promises and writes the skill name with the `/` prefix (AGENTS.md rule 7) — the file's three sections are Invocation, Splitting by invocation and Router skills, so an agent routed there for frontmatter finds no rule for `name`, `argument-hint`, `version` or `source`; the same trim applies to SKILL.md's pointer at it, and README describes the skill without naming the split at all, its roster staying at the altitude a reader installing the plugin can act on.
+  Frontmatter for this repo is AGENTS.md rule 2's job.
 
 ### ask-matt
 
@@ -165,17 +166,9 @@ Not ported. Personal to upstream's author.
 
 Not ported. Upstream marks it in-progress; `/handoff` forks the finished variant.
 
-### design-an-interface
-
-Not ported. Deprecated upstream.
-
 ### domain-modeling
 
 Not ported. Deferred in IDEAS.md; the AGENTS.md glossary section and its CONCEPTS.md graduation path (via `/compound`) cover the need.
-
-### edit-article
-
-Not ported. Personal to upstream's author.
 
 ### grill-me
 
@@ -197,18 +190,6 @@ Not ported. Upstream marks it in-progress.
 
 Not ported. Migration tooling for upstream's own stack.
 
-### obsidian-vault
-
-Not ported. Personal to upstream's author.
-
-### qa
-
-Not ported. Deprecated upstream.
-
-### request-refactor-plan
-
-Not ported. Deprecated upstream.
-
 ### scaffold-exercises
 
 Not ported. Course-content tooling personal to upstream's author.
@@ -221,13 +202,21 @@ Not ported. Provisions upstream's tracker and label conventions; per-repo setup 
 
 Not ported. Check tooling outside the loop's scope.
 
+### setup-ts-deep-modules
+
+Not ported. Upstream marks it in-progress, and it wires one stack's lint tooling; `/codebase-design` carries the deep-module vocabulary harness-free.
+
+### to-questionnaire
+
+Not ported. Pulls knowledge out of a third party async; `/grilling` interviews the user in the loop.
+
 ### triage
 
 Not ported. Needs an issue tracker and an inbound issue flow; deferred in IDEAS.md.
 
-### ubiquitous-language
+### wait-what
 
-Not ported. Deprecated upstream.
+Not ported. A one-line conversational nudge, not a loop step.
 
 ### wayfinder
 
@@ -235,7 +224,7 @@ Not ported. A local-files adaptation is sketched in IDEAS.md; adopt when a decis
 
 ### wizard
 
-Not ported. Upstream marks it in-progress.
+Not ported. Generates a bash wizard for manual human-only procedures — provisioning, credentials, dashboards; outside the loop's scope.
 
 ### writing-beats
 
@@ -261,11 +250,14 @@ Not ported. Upstream marks it in-progress.
 - The body is a condensed rewrite in this repo's voice: the H1 and the standalone Context table are gone, upstream's Context section and its redundant "Step 1: Gather context" are merged into one Step 2 bullet list — the fork gets leaner than upstream, never heavier.
 - Upstream's "Other types remain primary when they fit better. The user may override for a specific change." and "Do not re-read these files; they are loaded at session start." not carried — the first restates the priority list already given, the second is a no-op instruction.
 - A "Formatting details" bullet added, deferring wrapping, trailers, and sign-offs to the repo's documented rules and the user's global instructions — the plugin must stay distributable, so per-user commit-message habits belong outside the skill body.
+- Upstream's v3.21.2 "**Done when:** / **Stop when:**" header not carried — Step 2's clean-tree stop and the closing "learnings captured, committed" paragraph already state both limbs, and the fork's done condition has to include Step 1's learning writes, which upstream's has no equivalent for.
+- Upstream's v3.21.2 "Do not use `git diff HEAD` alone as cleanliness (it misses untracked files)" and "never compare against `origin/<name>`" guards not carried — the fork's Step 2 already reads cleanliness from `git status` and strips the `origin/` prefix, so both are prohibitions against a path it does not take.
 
 ### /compound-refresh (ce-compound-refresh)
 
-- The whole body is an original-words reimplementation, not carried text — upstream's 680-line phased workflow (Phases 0–5 with mode detection) condenses to a 68-line audit loop, so no passage is under byte-identical carriage.
-- A second store is audited: the project's `AGENTS.md`, through a bloat / contradictions / staleness lens held to `/writing-great-skills` — upstream audits `docs/solutions/` only.
+- The body is an original-words reimplementation rather than carried text — upstream's 680-line phased workflow (Phases 0–5 with mode detection) condenses to a 68-line audit loop.
+  The two judgment rules merged at v3.21.2 are the exception: "Unverifiable is not false" keeps upstream's wording nearly intact and "Shared code is not shared problem" condenses upstream's clause, so a future sync reconciles those two against upstream and the rest against this entry.
+- A second store is audited: the project's `AGENTS.md`, through a bloat / contradictions / staleness lens held to `/writing-for-agents` — upstream audits `docs/solutions/` only.
 - Four verdicts instead of upstream's five, with Replace folded into Update — the fork's Update already covers rewriting a contradicted fix to the current truth and presenting it as the rewrite it is.
 - Headless mode (`mode:headless`, stale-marking via `status`/`stale_reason`/`stale_date`) not carried — every change in this pipeline is user-gated, and the fork's format contract defines no such frontmatter fields.
 - Upstream's interaction principles and per-harness blocking-question machinery not carried — the fork presents verdicts for approval in plain prose.
@@ -276,6 +268,8 @@ Not ported. Upstream marks it in-progress.
 - Phase 5's commit flow (branch/PR decision tables, commit-message rules) not carried — `/commit` owns landing changes, and the fork closes by pointing at it.
 - Upstream's `assets/` and `references/` not bundled — they encode a richer doc schema (`problem_type`, `component`, `severity` enums, resolution templates) that [solutions-format.md](skills/compound/solutions-format.md) supersedes.
 - Upstream's `scripts/` not bundled — the two Python validators would reintroduce a dependency and a check step this repo deliberately lacks, and there is no enum schema left to validate.
+- Upstream's `## Setup` section not carried — a Node fence running `scripts/context.mjs` ahead of any dispatch, plus its truncation-recovery and rerun rules; it injects one harness's session context, and this repo's Boundaries rule out shipping a runtime dependency.
+  The same section opens `ce-simplify-code` and is skipped there for this reason.
 - `AGENTS.md` is audited unconditionally while the opt-in `docs/adr/` store gets no garbage collection — supersession is the ADR store's own hygiene mechanism.
 
 ### /simplify (ce-simplify-code)
@@ -292,10 +286,13 @@ Not ported. Upstream marks it in-progress.
 - Step 4 verifies per material rather than per diff, running the code checks over code and, over prose, a diff-read of every line the pass removed or reworded — a consequence of the widened gate, since upstream's typecheck/lint/test step has nothing to check on prose and re-reading the post-pass file cannot reveal an instruction the pass cut.
 - The safety-check prohibition gains its prose analogue: a gate or a prohibition is a safety check.
 - "Structure pins" paragraph not carried — tied to ce-plan's `session-settled:` plan convention; nothing in this pipeline passes a plan to `/simplify`.
-- Task-tracking paragraph and the ce-work/lfg size-gate parenthetical not carried — harness housekeeping and upstream-only callers.
+- Upstream's `## Setup` section not carried, for the reason recorded under `/compound-refresh` — both CE skills open on the same fence.
+- Task-tracking paragraph not carried — harness housekeeping.
 - "Bounded dispatch" paragraph not carried — queueing and active-agent-limit backpressure are the harness's business, and three fixed reviewers never reach the limit.
 - "Permission mode" paragraph not carried — no dispatch primitive here takes a `mode` parameter, so telling the agent to omit it is a no-op.
 - Upstream's per-harness tool enumerations not carried — the blocking-question tools in Step 1 and the subagent primitives in Step 2 — no skill in this repo names a harness tool, and such names go stale; the background-dispatch parameter in Step 2 is the standing exception the systematic conventions record.
+- Step 4's failure rule keeps upstream's free choice between repairing the break and reverting the simplification, and narrows it with the mutation boundary — a repair landing outside it leaves revert the only route — because carrying upstream's boundary paragraph into Step 3 turned "fix the underlying break" into an instruction that could reach outside a user-named scope.
+- Step 5's skipped-findings category splits upstream's undifferentiated "skipped" into false positives, churn not worth it, and fixes the mutation boundary put out of reach — the third only exists because Step 3 carries upstream's boundary rule, and a skip it caused is the one a user most needs named.
 - Step 5's worked example ("Applied 6 — reuse 2, quality 3, efficiency 1…") not carried — the per-dimension instruction already fixes the report shape, and sample figures invite mimicry.
 
 ### ce-babysit-pr
@@ -373,6 +370,10 @@ Not ported. Every-specific editorial workflow.
 ### ce-resolve-pr-feedback
 
 Not ported. GitHub PR lifecycle; deferred in IDEAS.md with ce-babysit-pr.
+
+### ce-retune
+
+Not ported. Retunes a skill corpus for a new model and refuses without a benchmark harness that can A/B two builds; this repo has no such harness and no build step to A/B.
 
 ### ce-riffrec-feedback-analysis
 

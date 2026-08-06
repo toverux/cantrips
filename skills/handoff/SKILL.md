@@ -3,8 +3,8 @@ name: handoff
 description: Compact the conversation into a handoff document a fresh session can resume from.
 argument-hint: 'What will the next session be used for?'
 disable-model-invocation: true
-version: 1.1.0
-source: mattpocock/skills@1.1.0 (handoff)
+version: 1.1.1
+source: mattpocock/skills@1.2.0 (handoff)
 ---
 
 Write a handoff document summarising the current conversation so a fresh agent can continue the work.

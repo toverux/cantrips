@@ -1,8 +1,8 @@
 ---
 name: resolving-merge-conflicts
 description: 'Use when you need to resolve an in-progress git merge/rebase conflict.'
-version: 1.1.0
-source: mattpocock/skills@1.1.0 (resolving-merge-conflicts)
+version: 1.1.1
+source: mattpocock/skills@1.2.0 (resolving-merge-conflicts)
 ---
 
 1. **See the current state** of the merge/rebase.

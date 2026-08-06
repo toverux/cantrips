@@ -3,8 +3,8 @@ name: simplify
 description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, and efficiency lenses. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify the current branch's changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.5.0
-source: EveryInc/compound-engineering-plugin@3.20.0 (ce-simplify-code)
+version: 1.6.0
+source: EveryInc/compound-engineering-plugin@3.21.2 (ce-simplify-code)
 ---
 
 Simplify recently changed material while preserving what it does.
@@ -59,8 +59,14 @@ If there is nothing to flag, say so explicitly.
 Wait for all three fixers, aggregate their findings, and fix each issue directly.
 A false positive or a fix not worth its churn: note it, skip it, move on — settle it yourself rather than raising it to the user.
 
+Inspect beyond the resolved scope when needed to evaluate a finding, but edit only that scope and its necessary import/export seams.
+For a user-named file or directory scope, those seams must also be inside it; skip any fix that would edit outside the mutation boundary.
+
 Before applying each fix, confirm it satisfies the preservation contract for that material.
 If it can't clear that test, skip it.
+
+An interface or data shape that existed only in an earlier iteration of the current unshipped scope is not protected behavior once you verify it has no deployed, persisted, public, external, dependent-branch, or in-repo caller outside the resolved scope.
+Remove that compatibility path only when every required caller update fits the existing mutation boundary; otherwise preserve it.
 
 **Never simplify away a safety check.**
 Input validation at trust boundaries, error handling that prevents data loss, security checks (authorization, escaping, sanitization), and accessibility affordances stay — even when a finding frames them as redundant.
@@ -78,7 +84,7 @@ Run the one whose material this pass touched, and both where it touched both —
 - **Run tests scoped to the blast radius** of the changes; broaden when shared or heavily-imported code was touched.
   No scoping mechanism → full suite.
 
-On a failure, fix the underlying break or revert the specific simplification that caused it — weakening assertions, types, or skipping tests defeats the preservation guarantee.
+On a failure, fix the underlying break or revert the specific simplification that caused it — a repair that would land outside the mutation boundary leaves revert the only route, and weakening assertions, types, or skipping tests defeats the preservation guarantee either way.
 If no checks are configured, state that in the summary.
 
 **Where the pass touched agent-facing prose**, diff each changed file against its state before this pass and read every line the pass removed or reworded.
@@ -88,7 +94,7 @@ For each removed or reworded line, confirm it carried no directive, prohibition,
 
 ## Step 5: Summarize
 
-Report fixes applied per lens (reuse, simplification, efficiency), findings skipped as false positives or not worthwhile, and which verifications ran — the code checks with their results, the prose diff-read, or both.
+Report fixes applied per lens (reuse, simplification, efficiency), findings skipped (as false positives, as not worth the churn, or as fixes the mutation boundary put out of reach), and which verifications ran — the code checks with their results, the prose diff-read, or both.
 The measure is what improved and that the contract held — many clarity and safety fixes preserve or add lines.
 
-Close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/review-gate [--fix | --loop]` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise, and either `--fix` to apply the findings once or `--loop` to converge the gate to green.
+Close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/review-gate [--fix | --loop]` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise; pair `--fix` with a `medium` or `high` suggestion to apply the findings once, or `--loop` with any level to converge the gate to green.

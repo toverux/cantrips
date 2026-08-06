@@ -3,8 +3,8 @@ name: teach
 description: Teach the user a new skill or concept, within this workspace.
 argument-hint: 'What would you like to learn about?'
 disable-model-invocation: true
-version: 1.0.1
-source: mattpocock/skills@1.1.0 (teach)
+version: 1.0.2
+source: mattpocock/skills@1.2.0 (teach)
 ---
 
 The user has asked you to teach them something.

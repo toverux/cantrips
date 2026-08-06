@@ -2,8 +2,8 @@
 name: tickets
 description: Break a spec, plan, or the current conversation into tracer-bullet tickets, each declaring its blocking edges.
 disable-model-invocation: true
-version: 1.1.1
-source: mattpocock/skills@1.1.0 (to-tickets)
+version: 1.1.2
+source: mattpocock/skills@1.2.0 (to-tickets)
 ---
 
 # Tickets
@@ -92,4 +92,4 @@ Avoid specific file paths or code snippets in tickets — they go stale fast.
 Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype.
 Trim to the decision-rich parts — not a working demo, just the important bits.
 
-Tickets published → close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): `/implement` (user-invoked), one ticket per fresh context window, working the **frontier** — any ticket whose blockers are all done (for a purely linear chain, top to bottom).
+Tickets published → close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/implement` (user-invoked), one ticket per fresh context window, working the **frontier** — any ticket whose blockers are all done (for a purely linear chain, top to bottom).

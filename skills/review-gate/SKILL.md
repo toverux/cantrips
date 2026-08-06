@@ -3,8 +3,8 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
 disable-model-invocation: true
-version: 1.4.0
-source: mattpocock/skills@1.1.0 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
+version: 1.5.0
+source: mattpocock/skills@1.2.0 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 ---
 
 Review the working diff (or the changes since a fixed point) through independent **finder** angles, judge every candidate with an independent **verifier**, and report a ranked, capped findings list.
@@ -13,7 +13,8 @@ Finders find and verifiers judge — a finder never drops a candidate it half-be
 ## Arguments
 
 The effort level is whichever of `low`, `medium`, or `high` appears among the arguments; default `medium`.
-`--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report).
+`--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report) on the `medium` and `high` pipelines; `low` and the no-sub-agent fallback report their findings and apply nothing, since neither ran a verifier over them.
+A run handed a `--fix` it cannot honour says so in its summary, so a report with no applied outcomes never reads as nothing having been worth applying.
 `--loop`, anywhere in the arguments, implies `--fix` and drives that apply mode to a defined green state instead of reporting once — read [LOOP.md](LOOP.md) before Scope and run the whole gate under its rules.
 What remains once the level and the flags are taken out is the fixed point.
 
@@ -41,6 +42,13 @@ Scope runs entirely in the orchestrating session, before any finder is dispatche
 
 Assemble the scope block inline, from what steps 1–5 already established: the diff command, the changed-files list and a one-paragraph summary of the change — both from `git diff --stat` and the new-file list, without reading the diff body, since every finder reads it itself — the new files marked as new so a carrier reads each one whole, the standards sources including session-loaded style skills, step 4's matched learnings, and the user's scope guidance verbatim.
 The scope block is passed to every finder, verifier, and sweep agent; the fetched spec travels separately, inlined into Angle D's finder and into the verifiers of spec-category candidates.
+
+## The mutation boundary
+
+Wherever this run applies a fix, that fix reaches only the target Scope established for the run, plus the import/export seams the target needs to keep working — and where step 5's guidance named files, those seams must sit inside them too.
+Creating or deleting a file inside that reach is a fix like any other.
+Judging a finding may read anywhere; a fix that cannot stay inside the reach, whatever angle or lens found it, is handed back rather than applied — never a reason to widen the scope — and reported among the run's skipped findings, so the user learns which fix is waiting on a scope only they can widen.
+The boundary governs the session that applies fixes and stays out of the scope block: a carrier told to withhold a fix withholds the candidate instead.
 
 ## Level low — inline pass
 
@@ -113,5 +121,7 @@ For a high-stakes change, offer a cross-model second pass where the harness prov
 
 Where the harness cannot run parallel sub-agents, work through every angle and lens inline in this context at the requested level's caps, dedup and self-check each candidate against the diff instead of dispatching verifiers, and state in the summary that this was a single-pass review without independent verification.
 
-Close with a flow pointer (read [flow-pointers.md](../writing-great-skills/flow-pointers.md) for the format): fix the findings worth fixing (re-run this review after substantial fixes), then `/commit` (user-invoked) — in this session.
+## Close
+
+Close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format), in this session: the findings worth fixing get applied — by this run in apply mode, by the user after a report-only one — then `/review-gate` (user-invoked) again where those fixes were substantial, since nothing has yet reviewed them, and `/commit` (user-invoked) once they stand.
 A finding that exposed a durable gotcha or root cause is `/compound` material: flag it so `/commit`'s opening scan captures it, or invoke `/compound` directly.
