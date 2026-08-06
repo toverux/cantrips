@@ -188,6 +188,7 @@ can still type them).
 | [`/setup-cantrips-loop`](#setup-cantrips-loop)                     | 🧑         | Configure a repo's storage backend and opt-in knowledge stores.            |
 | [`/compound-refresh`](#compound-refresh)                           | 🧑         | Garbage-collect `AGENTS.md`, and `docs/solutions/` where enabled.          |
 | [`/handoff`](#handoff)                                             | 🧑         | Compact the session into a handoff for a fresh context.                    |
+| [`/wait-what`](#wait-what)                                         | 🧑         | Interrupt: re-pitch a message that did not land.                           |
 | [`/prototype`](#prototype)                                         | 🧑🤖       | Throwaway prototype to answer a design question empirically.               |
 | [`/research`](#research)                                           | 🧑🤖       | Background primary-source research, captured in the repo.                  |
 | [`/resolving-merge-conflicts`](#resolving-merge-conflicts)         | 🧑🤖       | Principled merge/rebase conflict resolution.                               |
@@ -468,6 +469,12 @@ reverse_; every change is user-gated. Run it when the stores feel stale, not on 
 workspace — that a fresh session can pick up: state, references to specs and commits by path, and
 a suggested-skills section naming what the next session should invoke. Deliberately _not_ a spec
 substitute: decisions that should outlive the session are annotated onto the feature's spec first.
+
+### `/wait-what`
+
+**The interrupt for a message that did not land.** One canned re-pitch: more context, ASD-STE100
+Simplified Technical English — short active sentences, one term per concept — and the project's own
+ubiquitous language. Optionally, pass the part that lost you.
 
 ### `/prototype`
 

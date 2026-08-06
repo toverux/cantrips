@@ -11,9 +11,9 @@ Each fork's sync point lives in its own `source:` frontmatter; upstream credits 
 Differences every fork shares, recorded once; per-skill sections list only what goes beyond these.
 
 - Renamed to this repo's skill name, with cross-skill references rewritten to this repo's names.
-- Frontmatter reworked: `version` and `source` added, `description` rewritten, `disable-model-invocation` and `argument-hint` set per invocation mode.
+- Frontmatter reworked: `version` and `source` added, `description` rewritten where the invocation mode needs it, `disable-model-invocation` and `argument-hint` set per invocation mode.
 - An `agents/openai.yaml` sidecar beside every SKILL.md.
-- A closing flow pointer naming the next pipeline step(s).
+- A closing flow pointer naming the next pipeline step(s), where the fork hands on to one.
   Where a review-tail pointer leads into `/review-gate`, it offers `[--fix | --loop]` with a clause on when to take each — the fork's gate has an apply mode and a converge-until-green mode with no upstream counterpart ([docs/research/review-fix-looping-upstream.md](docs/research/review-fix-looping-upstream.md)), and the review tail is where a user chooses between them.
   A pointer with a settled answer names its flag outright instead, as `/review-gate --loop` does when the loop itself stops short of green.
 - Prose written here goes one sentence per line (AGENTS.md rule 8); a carried passage keeps upstream's line breaks.
@@ -146,6 +146,11 @@ No divergences beyond the systematic conventions.
 - The ticket template's `**Status:** ready-for-agent` line not carried — it is upstream's triage label vocabulary, which has no counterpart here.
 - The publish step ends "Publishing leaves the parent spec untouched." — upstream's "Do NOT close or modify any parent issue" prohibition, carried as the positive constraint this repo's authoring standard asks for, with the lifecycle rule itself stated once in `/implement`.
 
+### /wait-what (wait-what)
+
+- The body is carried byte-identical but for its closing clause: "use the ubiquitous language from `CONTEXT.md`" becomes "use the project's ubiquitous language", naming no file.
+  The other forks point at a domain glossary because they are composing something; this one re-says a message already on screen, where a file read would cost the interrupt the speed that is its whole value.
+
 ### /writing-for-agents (writing-for-agents)
 
 - "Pipeline closings" section added, pointing at the sibling [flow-pointers.md](skills/writing-for-agents/flow-pointers.md) — the pipeline skills here all end on a flow pointer, and the shared presentation format needs one authoritative home rather than a restatement in each skill.
@@ -213,10 +218,6 @@ Not ported. Pulls knowledge out of a third party async; `/grilling` interviews t
 ### triage
 
 Not ported. Needs an issue tracker and an inbound issue flow; deferred in IDEAS.md.
-
-### wait-what
-
-Not ported. A one-line conversational nudge, not a loop step.
 
 ### wayfinder
 
