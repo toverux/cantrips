@@ -1,0 +1,5 @@
+interface:
+  display_name: 'AFK'
+  short_description: 'Keep the session cache warm while you step away'
+policy:
+  allow_implicit_invocation: false

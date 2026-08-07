@@ -190,6 +190,7 @@ can still type them).
 | [`/compound-refresh`](#compound-refresh)                           | 🧑         | Garbage-collect `AGENTS.md`, and `docs/solutions/` where enabled.          |
 | [`/handoff`](#handoff)                                             | 🧑         | Compact the session into a handoff for a fresh context.                    |
 | [`/wait-what`](#wait-what)                                         | 🧑         | Interrupt: re-pitch a message that did not land.                           |
+| [`/afk`](#afk)                                                     | 🧑         | Keep the session's prompt cache warm across a break.                       |
 | [`/prototype`](#prototype)                                         | 🧑🤖       | Throwaway prototype to answer a design question empirically.               |
 | [`/research`](#research)                                           | 🧑🤖       | Background primary-source research, captured in the repo.                  |
 | [`/questionnaire`](#questionnaire)                                 | 🧑         | Draft a questionnaire pulling knowledge out of another person.             |
@@ -487,6 +488,19 @@ substitute: decisions that should outlive the session are annotated onto the fea
 **The interrupt for a message that did not land.** One canned re-pitch: more context, ASD-STE100
 Simplified Technical English — short active sentences, one term per concept — and the project's own
 ubiquitous language. Optionally, pass the part that lost you.
+
+### `/afk`
+
+**A keepalive for a session you are coming back to.** Chains self-scheduled wakeups — each one a
+tiny "ping" turn on the same prefix, which refreshes the prompt-cache TTL — so a long break ends in
+a cache read rather than a full re-encode. Fifty minutes apart, capped at ten. Session-scoped, so
+closing the window ends the loop too.
+
+> [!IMPORTANT]
+> **Claude Code on a subscription plan only.** The fifty-minute interval assumes the one-hour
+> prompt-cache TTL a subscription gets; an API-key session caches for five minutes, so every wake
+> would land on a dead cache and pay a full write instead of a read. Codex CLI has no in-session
+> scheduler.
 
 ### `/prototype`
 
