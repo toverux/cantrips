@@ -13,8 +13,9 @@ And a set of utilities for day to day needs.
 Inspired by and kept in sync with [Matt Pocock's skills](https://github.com/mattpocock/skills) and
 [Every's Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin).
 
-[The loop](#a-loop-that-navigates-itself) · [Storage](#pluggable-storage) ·
-[The skills](#the-loop-skill-by-skill) · [Install](#install) · [Development](#development)
+[Why cantrips](WHY.md) · [The loop](#a-loop-that-navigates-itself) ·
+[The skills](#the-loop-skill-by-skill) · [Storage](#pluggable-storage) · [Install](#install) ·
+[Development](#development)
 
 </div>
 
@@ -589,8 +590,19 @@ codex plugin add cantrips@cantrips
 > [!IMPORTANT]
 > **Migrating from the upstreams?** Cantrips _replaces_ the Matt Pocock skills and the
 > Compound Engineering plugin it forks (renamed: `to-spec` → `/spec`, `ce-commit` → `/commit`,
-> `code-review` → `/review-gate`, …). Uninstall those first, or the duplicate triggers will fight
-> each other.
+> `code-review` → `/review-gate`, …). Uninstall those two plugins first, or the duplicate triggers
+> will fight each other.
+>
+> Individual upstream skills can still sit alongside cantrips — install them one at a time, skipping
+> the ones cantrips already forks. [FORKS.md](FORKS.md) records which upstream skills are forked and
+> which are not ported, so it doubles as the pick list. `wizard`, for instance, is not ported:
+>
+> ```sh
+> npx skills add mattpocock/skills --skill wizard
+> ```
+>
+> Add `-g` to install into your user directory instead of the current project, or copy the skill
+> folder into `.claude/skills/` or `.agents/skills/` by hand.
 
 ## Development
 
