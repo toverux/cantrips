@@ -2,7 +2,7 @@
 name: compound
 description: Capture this session's durable learnings and route each to the right knowledge store, every write user-gated. Use at loop end when /commit's opening scan finds candidates, when /diagnosing-bugs closes out a fix, or when the user wants to capture, remember, or write down a learning, convention, gotcha, decision, or preference.
 argument-hint: '[optional: what to capture; blank scans the whole session]'
-version: 1.1.2
+version: 1.2.0
 ---
 
 Harvest what this session learned so future sessions inherit it.

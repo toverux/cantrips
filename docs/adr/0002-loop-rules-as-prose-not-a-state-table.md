@@ -1,8 +1,9 @@
+---
+date: 2026-08-03
+status: accepted
+---
+
 # Loop rules as prose with checkable guards, not a total state table
-
-## Status
-
-accepted
 
 ## Context
 

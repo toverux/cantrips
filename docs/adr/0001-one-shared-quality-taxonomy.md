@@ -1,8 +1,9 @@
+---
+date: 2026-08-01
+status: accepted
+---
+
 # One shared quality taxonomy for `/simplify` and `/review-gate`
-
-## Status
-
-accepted
 
 ## Context
 
