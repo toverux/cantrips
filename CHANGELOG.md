@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.3.0](https://github.com/toverux/cantrips/compare/v2.2.0...v2.3.0) (2026-08-07)
+
+
+### Features
+
+* **skills:** add /afk to keep an idle session's prompt cache warm ([2f79e57](https://github.com/toverux/cantrips/commit/2f79e57348f5399b3ec97160a83e823333d321f6))
+* **skills:** add /questionnaire for decisions only another person can settle ([881d016](https://github.com/toverux/cantrips/commit/881d016c2875b65a0162e2ef6f0dd10c8d1f46a1))
+* **skills:** add /setup-git-guardrails across Claude Code and Codex CLI ([a38dad0](https://github.com/toverux/cantrips/commit/a38dad0fe94a3ec8093ad243604947dffe237a88))
+* **skills:** fork /wait-what so a message that missed can be re-pitched ([46a33cf](https://github.com/toverux/cantrips/commit/46a33cf465ee867039cfc8f22889f5800b93c987))
+* **skills:** reconcile the forks with upstream and widen the authoring standard past skills ([4d36b87](https://github.com/toverux/cantrips/commit/4d36b8749fe836d3130f06e3933cb8215917f590))
+
 ## [2.2.0](https://github.com/toverux/cantrips/compare/v2.1.0...v2.2.0) (2026-08-04)
 
 
