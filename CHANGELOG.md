@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.0](https://github.com/toverux/cantrips/compare/v2.3.0...v2.4.0) (2026-08-09)
+
+
+### Features
+
+* **compound:** carry an ADR's status in frontmatter alongside its date and area ([bc659c8](https://github.com/toverux/cantrips/commit/bc659c84228615832fc8e161a8aa39a8c5d581a3))
+
+
+### Bug Fixes
+
+* **grilling:** lock presented questions so only user feedback can reshape them ([7cf09c4](https://github.com/toverux/cantrips/commit/7cf09c474868a370562899094b7703662aeb9239))
+
 ## [2.3.0](https://github.com/toverux/cantrips/compare/v2.2.0...v2.3.0) (2026-08-07)
 
 
