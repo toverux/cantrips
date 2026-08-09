@@ -1,7 +1,7 @@
 ---
 name: grilling
 description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to be grilled about a plan, wants a decision stress-tested, or when requirements are fuzzy before a spec is written.
-version: 2.1.0
+version: 2.2.0
 source: mattpocock/skills@1.2.0 (grilling)
 ---
 
@@ -22,13 +22,22 @@ Each question should be formatted like so:
 ➡️ <your recommended answer>
 ```
 
+A presented question is **locked**: title, body, options and recommendation stay word-for-word as first shown, and only the user's own feedback can reshape or retire it.
+Presenting is therefore a commitment — put a question to the user only once you are sure nothing still running can change what you'd ask.
+
+Every message of the interview ends with its questions: newly ready ones in full in the format above, under fresh numbers, then one line naming the numbers still open from earlier messages.
+The lock is what makes that line safe — a number keeps pointing at the exact text first shown, so scrolling to it beats reprinting it.
+Anything above the questions — findings, replies to the user's remarks — is commentary.
+
 Each round the user answers reshapes the tree — settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
 
 When the user's answers carry a question or remark of their own, answer it before opening the next round; never let a new round bury the reply.
 
 Finding _facts_ is your job, never the user's.
 When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it — in the background where the harness supports it (Claude Code: do not use `run_in_background: false`) — rather than asking the user for anything you could look up yourself.
-Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the sub-agent to report — ask the rest of the frontier now.
+Don't block on it: a running exploration is an unsettled prerequisite — ask the rest of the frontier now, and hold every question the report could reword.
+A question is downstream of an exploration when its body, options, or recommendation would read differently depending on what comes back — a body that mentions the pending result has declared itself downstream; when in doubt, hold it, since a held question costs one round and a locked question overtaken by facts costs the user's trust in every question still on the table.
+When an exploration reports, give its findings one short paragraph and fold them into the questions it unblocks; a finding that bears on a locked question goes in that paragraph as commentary for the user to weigh, and the question stands as asked.
 When the fact lives in external docs or specs rather than the environment, propose `/research` instead.
 The _decisions_ are the user's — put each to them and wait.
 
