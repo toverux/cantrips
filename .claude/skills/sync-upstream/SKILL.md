@@ -1,7 +1,7 @@
 ---
 name: sync-upstream
 description: Reconcile this repo's forked skills with a new upstream release. Use when the user says an upstream (compound-engineering, mattpocock/skills) was updated or asks to merge/sync upstream changes into the forks.
-version: 1.1.1
+version: 1.1.2
 ---
 
 Reconcile the forked skills with a new upstream release: merge what belongs, ledger what doesn't, and record the new sync point.
@@ -13,7 +13,10 @@ Scope the sync to the forks whose `source:` names the updated upstream.
 
 ## Step 2: Diff upstream between the two releases
 
-- compound-engineering tags are named `compound-engineering-vX.Y.Z`, never bare `vX.Y.Z` — a bare-tag compare 404s; get exact tag names from `gh release list -R EveryInc/compound-engineering-plugin`.
+- `source:` records a bare version (`@1.2.0`, `@3.21.2`) where the git tag carries a prefix: `v1.2.0` for mattpocock/skills, `compound-engineering-v3.21.2` for compound-engineering, never a bare `vX.Y.Z` there.
+  Re-prefix before every `gh` call, and get exact tag names from `gh release list -R <upstream>`.
+- An upstream skill's path is not the fork's own path: mattpocock/skills partitions into `skills/engineering/<name>/` and `skills/productivity/<name>/`, compound-engineering is flat at `skills/<name>/`.
+  Resolve each path from `gh api repos/<upstream>/git/trees/<tag>?recursive=1` — a guessed path 404s.
 - List touched files with `gh api repos/<upstream>/compare/<old-tag>...<new-tag>`, then fetch each touched forked-skill file at both tags and diff locally — the compare API's per-file patches and stats can come back empty.
 
 ## Step 3: Merge by content, never by the recorded version
