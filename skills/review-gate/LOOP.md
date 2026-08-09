@@ -58,6 +58,9 @@ Three conditions, each checkable, any one of them ending the run:
 - an item reaches you a second time, a reverted fix counting as the item it answered;
 - a fourth round still surfaces findings the loop had not already found, counted whether or not the rounds between came back clean — a streak that resets is one an alternating cycle evades forever, while draining a backlog the cap held back surfaces nothing new and is not churn.
 
+A finding whose disposition flips between rounds means the rule or contract judging it is ambiguous: repair that, since deciding the disposition again only moves it.
+Read convergence per finder rather than per round: divide by the finders that ran before calling the loop churning or settled.
+
 Anything else the loop cannot resolve becomes a question rather than an improvisation: ask, and let the answer decide.
 
 ## Reporting
