@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/toverux/cantrips/compare/v2.4.0...v2.5.0) (2026-08-14)
+
+
+### Features
+
+* **review-gate:** tell a churning loop from a converging one ([f2462e8](https://github.com/toverux/cantrips/commit/f2462e8e07cc13bdbef22c9c08837132a8979f1d))
+
 ## [2.4.0](https://github.com/toverux/cantrips/compare/v2.3.0...v2.4.0) (2026-08-09)
 
 
