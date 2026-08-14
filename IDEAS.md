@@ -125,3 +125,13 @@ so the reader knows how much independence was actually bought.
 
 **Adopt when:** the next `/review-gate` edit lands. The stated contract and the observed behaviour
 have already diverged, so the skill is describing a pipeline nobody runs.
+
+## Compression that falsifies
+
+Pruning weighs what a line costs, not what tightening it asserts. Compressing a loose claim can
+invent an attribution the original left vague: "large scripts are capped at 400 lines" became "a
+lineStart/lineEnd range is capped at 400 lines", pinning an unconditional cap on one parameter.
+Candidate rule for Pruning: re-verify a compressed claim against its source, not against the
+sentence being compressed.
+
+**Adopt when:** the next `writing-for-agents` edit lands.
