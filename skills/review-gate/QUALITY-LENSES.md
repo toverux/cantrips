@@ -43,7 +43,7 @@ Flag unnecessary complexity the change adds, and name the simpler form that does
 Restraints:
 
 - Before proposing a shared abstraction for a duplicate, check whether the duplicate can be eliminated instead, derived from an existing source of truth.
-  Consolidate only where elimination would not preserve behavior.
+  Otherwise consolidate only when behavior-preserving.
   Eliminating it by leaning on a platform, framework or downstream guarantee is the Reuse lens's call, under the conditions printed there — do not propose it from this lens.
 - Flatten nesting with early returns, guard clauses, a lookup table, or an if/else-if cascade, and name which.
 - Keep the non-obvious WHY: hidden constraints, subtle invariants, workarounds.
@@ -82,10 +82,10 @@ Flag it only where the special case will recur, or already has — a one-off tha
 
 **Design smells:** each smell is a labelled judgement call ("possible Feature Envy"), never a hard violation; each reads _what it is_ → _how to fix_ (Fowler, _Refactoring_ ch. 3):
 
-- **Mysterious Name** — a name that doesn't reveal what it does or holds. → rename; if no honest name comes, the design's murky.
+- **Mysterious Name** — a function, variable, or type whose name doesn't reveal what it does or holds. → rename; if no honest name comes, the design's murky.
 - **Feature Envy** — a method reaching into another object's data more than its own. → move the method onto the data it envies.
 - **Data Clumps** — the same few fields or params travelling together. → bundle them into one type, pass that.
-- **Primitive Obsession** — a primitive standing in for a domain concept. → give the concept its own small type.
+- **Primitive Obsession** — a primitive or string standing in for a domain concept. → give the concept its own small type.
 - **Repeated Switches** — the same `switch`/`if`-cascade on the same type recurring across the change. → polymorphism, or one shared map.
 - **Shotgun Surgery** — one logical change forcing scattered edits across many files. → gather what changes together into one module.
 - **Divergent Change** — one module edited for several unrelated reasons. → split so each module changes for one reason.
