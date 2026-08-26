@@ -135,3 +135,23 @@ Candidate rule for Pruning: re-verify a compressed claim against its source, not
 sentence being compressed.
 
 **Adopt when:** the next `writing-for-agents` edit lands.
+
+## Delta rounds narrow the readership, and the round count hides it
+
+`LOOP.md` scopes each delta round to the batch the previous round fixed, and reads convergence from
+findings per round. The two interact in a way it does not warn about: scoping a delta to the batch
+guarantees coverage narrows, so the count falls whether or not the work is settling.
+
+Observed on a seven-round prose gate. Findings ran 24, 11, 10, 9, 5 — then the certifying pass found
+14, more than the delta before it. Nine of those fourteen were in eight files no delta round had ever
+re-read, because the deltas kept landing on the same seven files the fixes kept touching. The falling
+count measured a shrinking readership, not converging prose, and a loop trusting it would have closed
+three rounds early on a number that was going down for the wrong reason.
+
+Candidate rule for the round section: track which files in the target no delta round has read, and
+scope one late pass at those before a low count is allowed to close the loop. Read the trend per file
+rather than per round — a file at zero findings because nobody opened it is not the same observation
+as a file at zero after three passes, and the per-round count cannot tell them apart.
+
+**Adopt when:** the next `/review-gate` edit lands — pairs with the verifier-grouping entry above,
+since both are places where the stated contract and a real pass diverge.
