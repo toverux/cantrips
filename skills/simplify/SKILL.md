@@ -1,9 +1,9 @@
 ---
 name: simplify
 description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, and efficiency lenses. Bug hunting is /review-gate's job.
-argument-hint: "[blank to simplify the current branch's changes, or describe what to simplify]"
+argument-hint: "[blank to simplify current branch changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.6.0
+version: 1.6.1
 source: EveryInc/compound-engineering-plugin@3.21.2 (ce-simplify-code)
 ---
 
@@ -44,6 +44,7 @@ Give each one:
 - the resolved scope (the full diff or file set).
 
 Paraphrasing any of it from memory loses the restraints that keep the pass preserving.
+Where a dispatch fails, or the harness offers no way to make one, run that fixer's pass inline in the parent context under the same contract, lens and scope, and disclose the substitution in one line.
 
 <fixer-brief>
 Propose fixes; the skill that dispatched you applies them. Edit nothing yourself.
@@ -56,7 +57,7 @@ If there is nothing to flag, say so explicitly.
 
 ## Step 3: Apply fixes
 
-Wait for all three fixers, aggregate their findings, and fix each issue directly.
+Proceed once all three lens passes are complete, whether a dispatched fixer returned one or this context ran it, aggregate their findings, and fix each issue directly.
 A false positive or a fix not worth its churn: note it, skip it, move on — settle it yourself rather than raising it to the user.
 
 Inspect beyond the resolved scope when needed to evaluate a finding, but edit only that scope and its necessary import/export seams. For a user-named file or directory scope, those seams must also be inside it; skip any fix that would edit outside the mutation boundary.
@@ -69,7 +70,6 @@ An interface or data shape that existed only in an earlier iteration of the curr
 **Never simplify away a safety check.**
 Input validation at trust boundaries, error handling that prevents data loss, security checks (authorization, escaping, sanitization), and accessibility affordances stay — even when a finding frames them as redundant.
 In agent-facing prose the equivalent is a gate or a prohibition: a sentence that stops an agent doing something, or makes it stop and check first.
-Material that drops one is not simpler, it is unfinished.
 
 ## Step 4: Verify what was preserved
 
