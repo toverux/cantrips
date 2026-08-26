@@ -11,9 +11,9 @@ Everything else here (`docs/`, this file) therefore rides along into an install;
 ## There is no build
 
 This repository is content, not code: no dependencies, no package manager, no build, no test suite, no lint step.
-Nothing needs installing to work on it, and there is no command to run before or after an edit.
+Nothing needs installing to work on it, and nothing gates an edit: there is no command to run before or after one.
 The one mechanical convention is [.editorconfig](.editorconfig) (LF, UTF-8, two-space indent, trailing newline, 100-column guide).
-[mise.toml](mise.toml) holds dogfooding conveniences only — `mise run dev:sync-install` mirrors the working tree over the local installs (Claude Code and Codex CLI) so unreleased edits are usable from other projects — and no edit has to pass through it.
+What tooling exists is convenience: [mise.toml](mise.toml) wraps the scripts in `scripts/`, `mise run dev:sync-install` mirroring the working tree over the local installs (Claude Code and Codex CLI) so unreleased edits are usable from other projects, and `mise run dev:fork-diff` reporting how far a fork has drifted from its upstream without ever asserting — it defines no expected state and exits zero whatever it finds.
 
 Consequently the invariants below are honored by hand.
 Nothing fails when one drifts, so check them yourself whenever you touch the files they cover.
@@ -27,17 +27,24 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 - `docs/agents/cantrips-loop.md`: the per-repo loop config — what the six storage verbs translate to here, and which knowledge stores are enabled (`docs/adr/` on, `docs/solutions/` off).
   Storage-touching skills read it instead of `skills/setup-cantrips-loop/defaults.md`; `/setup-cantrips-loop` rewrites it.
 - `.scratch/<feature>/`: the spec and tickets of a feature in flight, gitignored and disposable — deleted when the feature closes, which is the human's act.
+  `.scratch/sync/` is not feature material but `dev:fork-diff`'s cache of upstream files, outliving any one feature and safe to delete wholesale.
 - `docs/adr/`: durable decision records with supersession chains, written only through `/compound`'s user gate and read back by `/spec`.
 - `docs/research/`: primary-source research notes, written by `/research`.
+- `scripts/`: repository tooling — the bodies `mise.toml`'s tasks wrap, kept in files so a task definition reads as what it runs.
+  Root `scripts/` maintains this repository, unlike the `scripts/` directories inside skill folders, which are shipped assets an installed skill invokes; no skill in the plugin's tree may reference anything here.
+  `mise.toml` runs these directly, so stage anything added here with `git add --chmod=+x` — a plain add records mode 100644 and the task then fails on a fresh Unix checkout.
 
 ## How to add or revise a skill
 
 1. Write against the `/writing-for-agents` standard (`skills/writing-for-agents/SKILL.md`): predictability, leading words, checkable completion criteria, progressive disclosure, positive phrasing, no no-ops, prune sediment.
-   Forks get leaner than upstream, never heavier.
+   Forks prune rather than pad: a fork carries no restatement upstream lacks.
+   Running longer than upstream is not a violation of that: a fork may add rules upstream has no counterpart for.
 2. Frontmatter: `name`, `description` (trigger-rich for model-invoked skills; one human-facing line + `disable-model-invocation: true` for user-invoked ones), `argument-hint` where an argument is meaningful, `version` (per-skill semver; bumped per the versioning section below), and for forks `source` recording upstream provenance, e.g. `source: mattpocock/skills@1.2.0 (to-spec)`.
    `version` and `source` are unofficial keys the loaders ignore.
    Changing a fork's body beyond its upstream text is a divergence: record it in [FORKS.md](FORKS.md) in the same edit, so `/sync-upstream` preserves it instead of merging upstream's wording back.
    A passage carried byte-identical stays that way even where a quality pass finds a real improvement in it: skip the finding and name the reason, since the edit trades a permanent sync divergence for a redundancy upstream chose.
+   Where a divergence already sits in carried text and house formatting is all it buys — a reflow, a restructure, a reordering, a gloss — restore upstream's bytes on sight, and delete the bullet that recorded it in the same edit.
+   Where the edit pruned a genuine no-op instead, keep it, and record it in [FORKS.md](FORKS.md) like any other divergence.
    Where a fork needs a name for something upstream already names, take upstream's name.
    Every skill carries an `agents/openai.yaml` sidecar (`interface.display_name`, `interface.short_description`, `policy.allow_implicit_invocation`): `false` for user-invoked skills — Codex CLI ignores `disable-model-invocation`, so the sidecar is what stops auto-firing there — and `true` for model-invoked ones, stating the intent explicitly rather than leaning on Codex defaults.
    The sidecar's `allow_implicit_invocation` is always the logical inverse of the SKILL.md `disable-model-invocation`; a skill shipped without a sidecar auto-fires in Codex whatever its frontmatter says.

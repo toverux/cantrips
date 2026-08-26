@@ -1,7 +1,7 @@
 ---
 name: sync-upstream
 description: Reconcile this repo's forked skills with a new upstream release. Use when the user says an upstream (compound-engineering, mattpocock/skills) was updated or asks to merge/sync upstream changes into the forks.
-version: 1.1.2
+version: 1.1.3
 ---
 
 Reconcile the forked skills with a new upstream release: merge what belongs, ledger what doesn't, and record the new sync point.
@@ -27,6 +27,7 @@ Carry a merged delta **byte-identical** to upstream — verbatim text diffs empt
 Every deviation is a decision recorded in the divergence ledger, [FORKS.md](../../../FORKS.md) at the repo root: a dropped delta as a skip, a reworded one (this repo's skill names, a deliberate lean rewrite) only when worth the diff noise it re-creates at every future sync.
 
 Consult the ledger before merging: a listed difference stands — a skipped delta stays out, a local rewrite stays ours — zero re-litigation.
+One exception, the one [AGENTS.md](../../../AGENTS.md) rule 2 names: where a bullet records nothing but house formatting — a reflow, a restructure, a reordering, a gloss — restore upstream's bytes and delete the bullet in the same edit.
 A delta tied to an upstream-only convention — caller skills, plan formats, variables this repo lacks — is a new skip: leave it out and ledger it.
 A local difference absent from the ledger has no recorded decision: raise it to the user, then ledger the outcome.
 
