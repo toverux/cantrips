@@ -52,6 +52,8 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
    The shared presentation format lives in [flow-pointers.md](skills/writing-for-agents/flow-pointers.md); skills point at that file instead of restating it, wording the pointer verb-first as an instruction to read it.
 4. A sibling reference file that declares what it extends or replaces must cover every path the parent skill can take — the `low` inline pass and the no-sub-agent fallback included, since neither reaches the sections a main-path declaration names.
    A declaration that names only the main path leaves the other paths running the parent's own rules, which is how a mode degrades silently on one harness while reading correct on the other.
+   The inverse costs as much: a brief written for a dispatched carrier holds lines addressed to one, so a fallback that runs the pass inline names what travels rather than reusing the whole prompt.
+   `/simplify`'s fixer brief says "Edit nothing yourself" — right for a fixer, and in the parent context it forbids the fixes the next step tells that same context to apply.
 5. Every step that dispatches a sub-agent asks for a background dispatch where the harness supports one, and carries the parenthetical "(Claude Code: do not use `run_in_background: false`)".
    A blocking dispatch freezes the session for as long as the agent runs, which degrades the user experience and is invisible from inside the skill.
    This is the sole harness parameter a skill body may name; keep the wording identical across skills so a reader meets one clause, not five.

@@ -155,3 +155,42 @@ as a file at zero after three passes, and the per-round count cannot tell them a
 
 **Adopt when:** the next `/review-gate` edit lands — pairs with the verifier-grouping entry above,
 since both are places where the stated contract and a real pass diverge.
+
+## Closure claims that were never true
+
+`/writing-for-agents` prunes a **Snapshot** — a count standing where an invariant belongs — because
+it goes stale. The nearer failure is a claim that was wrong the day it was written: "the three
+bullets below" pointing at four, "`low` is the exception" omitting two paths, "both fixes cost
+something real" omitting a third and cheaper one. Five in one ticket, each reading as precision,
+which is how each survived being written.
+
+The damage tracks whatever trusts the claim. A `FORKS.md` bullet is read as a settled verdict, so a
+short list tells `/sync-upstream` that an unlisted divergence is drift to merge away. Candidate rule
+for Pruning: count an exhaustive claim as you write it, or phrase it so counting is unnecessary —
+"recorded below" cannot be off by one.
+
+**Adopt when:** the next `writing-for-agents` edit lands, with "Compression that falsifies" above —
+the same defect one step earlier.
+
+## A cross-lens pointer no carrier can follow
+
+`QUALITY-LENSES.md`'s Simplification lens hands the platform-guarantee route out of a duplicate to
+the Reuse lens "under the conditions printed there", which a carrier holding Simplification alone
+never sees. On a diff where a framework already validates both copies, that carrier proposes
+nothing where one holding Reuse proposes the deletion. `FORKS.md`'s `/review-gate` section records
+which carriers hit the dead end and which resolve it.
+
+Three fixes, and the cheapest was missed when this was first written down. Print the Reuse
+conditions under both lenses, and a dead end is traded for two copies that drift apart — the
+failure that retired the three upstream personas in the first place. Let Simplification carry the
+route itself, and the fork moves further from upstream's code-quality rule 3 rather than back
+toward it. Or hoist one condition into the file's "Rules governing every lens" preamble:
+`/review-gate` and `/simplify` both already paste that preamble alongside the single lens section,
+so it reaches every carrier in one copy, with no duplication and no new divergence. Try the third
+first.
+
+The same shape has a second instance, recorded in `FORKS.md`'s `/simplify` section: the two brakes
+closing upstream's code-quality rule 3 reach no Simplification-only carrier either. The preamble
+hoist covers it too, which is part of why it is the fix to try.
+
+**Adopt when:** the next `/review-gate` edit lands.
