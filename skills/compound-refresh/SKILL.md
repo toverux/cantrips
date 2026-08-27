@@ -3,7 +3,7 @@ name: compound-refresh
 description: Garbage-collect the knowledge stores — audit AGENTS.md, and docs/solutions/ where that store is enabled, against the current code.
 argument-hint: '[optional: scope — directory, module, or keyword; blank audits everything]'
 disable-model-invocation: true
-version: 1.2.0
+version: 1.2.1
 source: EveryInc/compound-engineering-plugin@3.21.2 (ce-compound-refresh)
 ---
 
@@ -42,6 +42,7 @@ Judgment rules:
   A two-year-old doc that still matches the code is a Keep; age only prompts a closer look.
 - **Unverifiable is not false.**
   A claim the repo cannot corroborate — a schema fact, an operational practice, an environment behavior — is not thereby wrong; repos rarely witness their own operations.
+  Never delete content, or strip it during a merge, solely because no in-repo artifact confirms it.
   Act only on contradiction, where the code demonstrably does otherwise; an unverifiable-but-plausible claim is a Keep with the verification gap noted in the report.
 - **Shared code is not shared problem.**
   Two accurate docs on different sub-problems stay separate even when they cite the same file.
