@@ -158,11 +158,12 @@ No divergences beyond the systematic conventions.
 
 ### /tdd (tdd)
 
-- Domain-vocabulary sentence rewritten to point at the `AGENTS.md` glossary section or `CONCEPTS.md` — upstream's `CONTEXT.md` and ADR conventions are files this repo does not carry.
+- Domain-vocabulary sentence rewritten to point at the `AGENTS.md` glossary section or `CONCEPTS.md` — `CONTEXT.md` is an upstream-only file convention this repo lacks.
+- Upstream's "respect ADRs in the area you're touching" is carried, but scoped to the case where nothing upstream of this skill has read those records — a spec that folded them in, as `/spec` step 2 does, stands in for the read.
 - Seam definition gains "(full vocabulary: `/codebase-design`)" — this repo ships the deep-module vocabulary as its own skill, so the reference here stays one clause; upstream's v1.2.0 paragraph spelling out the same pointer is not carried on top of it.
 - "Test only at agreed seams" relaxed so seams the user already approved in `/spec` need no re-asking — the pipeline hands `/tdd` an approved spec, and upstream's unconditional confirmation would re-litigate it every cycle.
 - Upstream's "Ask: 'What's the public interface, and which seams should we test?'" not carried — a scripted question the preceding paragraph already mandates, and no-op prompts are what `/writing-for-agents` prunes.
-- "Bug fixes start red on the bug" paragraph added — `/diagnosing-bugs` routes fixes into `/tdd`, so the failing-repro-first rule has to be stated where the loop is defined.
+- "Bug fixes start red on the bug" paragraph added — this skill is model-invoked on "fix bugs test-first" and upstream states the failing-repro-first rule nowhere; nothing routes a fix here from `/diagnosing-bugs`, which writes its own regression test.
 - Refactoring pointer names `/simplify` and `/review-gate` as the review tail instead of upstream's single `code-review` skill — this repo splits that tail into two steps, so a rename alone would drop the second target.
 
 ### /teach (teach)
@@ -179,8 +180,16 @@ No divergences beyond the systematic conventions.
 
 - Ticket publication runs through the publish-tickets verb instead of upstream's issue-tracker conventions, and the spec is fetched through the fetch-spec verb the same way.
 - Blocking edges ride the backend's native dependency links where it has them, each ticket's "Blocked by" prose otherwise — one breakdown serves a files-backed and a tracker-backed repo alike.
+- Upstream's `<issue-template>` not carried, and `<local-ticket-template>` renamed `<ticket-template>` now that it is the only one — a tracker-backed repo here shapes its issues from that single template.
+  The closing passage's "In either form," opener goes with it, reworded to "in tickets" inside the sentence.
 - The ticket template's `**Status:** ready-for-agent` line not carried — it is upstream's triage label vocabulary, which has no counterpart here.
+- The `/setup-matt-pocock-skills` prerequisite line not carried — per-repo setup is `/setup-cantrips-loop`'s job here, reached through the loop config the fork already points at.
+- Step 2's heading drops upstream's "(optional)" — the step's own first line already makes the exploration conditional.
+- Step 2's "domain glossary vocabulary" trimmed to "domain vocabulary" — upstream's provisioned glossary is a convention this pipeline never establishes.
+- Step 2's "respect ADRs in the area you're touching" not carried — the ADR read belongs to `/spec` step 2 in this pipeline, which flags conflicts into the spec body this skill breaks down.
+- The vertical-slice rule on context-window sizing gains "— one ticket, one `/implement` run" — the size that matters here is one run of the step this fork's closing pointer names.
 - The publish step ends "Publishing leaves the parent spec untouched." — upstream's "Do NOT close or modify any parent issue" prohibition, carried as the positive constraint this repo's authoring standard asks for, with the lifecycle rule itself stated once in `/implement`.
+- Upstream's "Work the **frontier**" sentence moves out of the publish step into the closing flow pointer — it decides which ticket `/implement` takes next, not how tickets are published.
 
 ### /wait-what (wait-what)
 
