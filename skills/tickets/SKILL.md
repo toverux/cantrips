@@ -2,7 +2,7 @@
 name: tickets
 description: Break a spec, plan, or the current conversation into tracer-bullet tickets, each declaring its blocking edges.
 disable-model-invocation: true
-version: 1.1.2
+version: 1.1.3
 source: mattpocock/skills@1.2.0 (to-tickets)
 ---
 
@@ -14,14 +14,12 @@ Break a plan, spec, or conversation into a set of **tickets** — tracer-bullet 
 
 ### 1. Gather context
 
-Work from whatever is already in the conversation context.
-If the user names a spec, fetch it in full — the fetch-spec verb.
+Work from whatever is already in the conversation context. If the user names a spec, fetch it in full — the fetch-spec verb.
 The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.md`, and when that doc is absent the plugin defaults ([defaults.md](../setup-cantrips-loop/defaults.md)) govern.
 
 ### 2. Explore the codebase
 
-If you have not already explored the codebase, do so to understand the current state of the code.
-Ticket titles and descriptions should use the project's domain vocabulary.
+If you have not already explored the codebase, do so to understand the current state of the code. Ticket titles and descriptions should use the project's domain vocabulary.
 
 Look for opportunities to prefactor the code to make the implementation easier. "Make the change easy, then make the easy change."
 
@@ -78,8 +76,6 @@ Publishing leaves the parent spec untouched.
 
 </ticket-template>
 
-Avoid specific file paths or code snippets in tickets — they go stale fast.
-Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype.
-Trim to the decision-rich parts — not a working demo, just the important bits.
+Avoid specific file paths or code snippets in tickets — they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts — not a working demo, just the important bits.
 
 Tickets published → close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/implement` (user-invoked), one ticket per fresh context window, working the **frontier** — any ticket whose blockers are all done (for a purely linear chain, top to bottom).
