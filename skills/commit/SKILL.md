@@ -2,7 +2,7 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.0.6
+version: 1.0.7
 source: EveryInc/compound-engineering-plugin@3.21.2 (ce-commit)
 ---
 
@@ -22,22 +22,26 @@ Session-specific trivia dies here.
 
 ## Step 2: Gather context
 
-Gather the working-tree context by running each command below as its **own** shell tool call — a single argv-style invocation (just the program and its arguments). Do **not** join them with `;`, `&&`, `||`, pipes, `$(...)`, or redirects like `2>/dev/null`: that syntax parses only under POSIX shells and aborts under Windows PowerShell. Read each command's exit status directly — a non-zero exit is a normal state to interpret, not a failure to suppress.
+Gather context with each command as its **own** shell tool call (program + args only). Do **not** join with `;`, `&&`, `||`, pipes, `$(...)`, or redirects — that syntax fails under Windows PowerShell. A non-zero exit is a normal state to interpret, not a failure to suppress.
 
 - `git status` — working-tree state.
   Clean tree → report there is nothing to commit and stop.
 - `git diff HEAD` — the uncommitted changes.
-- `git branch --show-current` — empty output means detached HEAD: ask whether to create a branch or commit detached.
+- `git branch --show-current` — empty output means detached HEAD.
 - `git log --oneline -10` — recent commit style.
 - `git rev-parse --abbrev-ref origin/HEAD` — the default branch (strip the `origin/` prefix).
   If unset, fall back to `main`.
 
-These values are a snapshot taken before any action. Re-read anything consequential (the current branch, the staged set) immediately before committing, since the working tree can change between gathering context and acting on it.
+Treat this as a snapshot. Re-read branch and staged set immediately before committing if anything may have changed.
 
 ## Step 3: Choose the branch
 
-Follow the repo's workflow: where the documented conventions or recent history show feature branches (or the user asked for one), branch off the default before committing — derive the name from the change content, `git checkout -b <branch-name>`, confirm with `git branch --show-current`.
-Where the history shows commits landing directly on the default branch (trunk-based), commit where you are.
+**Detached HEAD → cut a feature branch before committing, and do not ask** — even where the user asked only for a commit, since a commit reachable from nothing is lost as soon as HEAD moves.
+On the default branch, follow the repo's workflow instead: where the documented conventions or recent history show feature branches (or the user asked for one), branch off it before committing.
+Where the history shows commits landing directly on it (trunk-based), commit where you are.
+On any other branch, commit where you are unless the user asked for a new one.
+
+Whenever this step cuts a branch: derive the name from the change content, `git checkout -b <branch-name>`, then confirm with `git branch --show-current`.
 
 ## Step 4: Determine the message convention
 
@@ -62,7 +66,7 @@ Message discipline, whatever the convention:
 Scan the changed files for naturally distinct concerns; if they clearly group into separate logical changes, commit each group — Step 1's learning writes usually form their own `docs`-type commit.
 Keep it lightweight: group at the file level only (no hunk splitting), split only when the separation is obvious, and stay at two or three commits at most.
 
-For each group, stage specific files by name — a targeted `git add` keeps sensitive files (.env, credentials) and unrelated changes out.
+For each group, stage specific files by name, never `git add -A` or `git add .` — that keeps sensitive files (.env, credentials) and unrelated changes out.
 Commit with a heredoc to preserve formatting:
 
 ```bash
