@@ -64,6 +64,12 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 8. Markdown intended for agents (SKILL.md files and their references, AGENTS.md, specs) goes one sentence per line, and is exempt from the 100-column guide.
    Text carried from an upstream is the exception rule 2 already covers: its line breaks stay upstream's, however long its lines run, since reflowing re-creates the whole paragraph as a diff at every sync.
    Human-facing docs (README.md, WHY.md, NOTICE.md, IDEAS.md) wrap at ~100 columns instead.
+9. A gate branches on what the agent can observe in what it holds, never on how that material was produced.
+   "Working from a spec that folded in the standing decisions" is observable; "arriving from `/implement`" and "working from a spec" are provenance, and an agent that got there another way matches neither branch and invents the behavior.
+   Where a gate has a second branch, both branch on the one test, so the pair partitions every route into the skill.
+10. Two settled sentences point at the loop config, and a skill takes the one its own use calls for: the verb form where it speaks a storage verb, the store form where it only gates a knowledge-store read.
+    The store form states the fallback outright — the store is off — where the verb form sends the reader to [defaults.md](skills/setup-cantrips-loop/defaults.md) for it, so a skill that speaks no verb and takes the verb form buys a load it cannot act on.
+    Copy the wording from a skill that already carries the form, as rule 5 asks for its own clause.
 
 ## Dual-manifest and catalog sync
 
