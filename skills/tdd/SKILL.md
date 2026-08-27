@@ -1,7 +1,7 @@
 ---
 name: tdd
 description: Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests.
-version: 1.0.2
+version: 1.0.3
 source: mattpocock/skills@1.2.0 (tdd)
 ---
 
@@ -10,6 +10,9 @@ source: mattpocock/skills@1.2.0 (tdd)
 TDD is the red → green loop. This skill is the reference that makes that loop produce tests worth keeping: what a good test is, where tests go, the anti-patterns, and the rules of the loop. Every section applies on every cycle — consult them before and during the loop, not after.
 
 Match test names and interface vocabulary to the project's domain glossary (the `AGENTS.md` glossary section, or `CONCEPTS.md` if the project has one).
+Working from a spec that folded in the standing decisions — `/spec` step 2 does, flagging what conflicts — take those decisions as read.
+Otherwise, where the loop config enables the ADR store, read the ADRs bearing on the area you are touching before naming tests and interfaces, so a seam or an interface does not re-litigate a decision already made.
+The loop config is `docs/agents/cantrips-loop.md`; when that doc is absent, the ADR store is off.
 
 ## What a good test is
 
@@ -19,13 +22,9 @@ See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking g
 
 ## Seams — where tests go
 
-A **seam** is the public boundary you test at: the interface where you observe behavior without reaching inside (full vocabulary: `/codebase-design`).
-Tests live at seams, never against internals.
+A **seam** is the public boundary you test at: the interface where you observe behavior without reaching inside (full vocabulary: `/codebase-design`). Tests live at seams, never against internals.
 
-**Test only at agreed seams.**
-Seams the user approved in the spec (via `/spec`) are already agreed — test at them without re-asking.
-Anywhere else, write down the seams under test and confirm them with the user before writing any test.
-You can't test everything — agreeing the seams up front is how testing effort lands on the critical paths and complex logic instead of every edge case.
+**Test only at agreed seams.** Seams the user approved in the spec (via `/spec`) are already agreed — test at them without re-asking. Anywhere else, write down the seams under test and confirm them with the user before writing any test. You can't test everything — agreeing the seams up front is how testing effort lands on the critical paths and complex logic instead of every edge case.
 
 **Bug fixes start red on the bug.**
 The first test is a failing repro of the bug; the fix turns it green.
@@ -41,5 +40,4 @@ Whether a truly trivial fix warrants a test at all is judgment — defer to your
 
 - **Red before green.** Write the failing test first, then only enough code to pass it. Don't anticipate future tests or add speculative features.
 - **One slice at a time.** One seam, one test, one minimal implementation per cycle.
-- **Refactoring is not part of the loop.**
-  It belongs to the review tail — `/simplify` and `/review-gate`, after implementation finishes — not the red → green cycle.
+- **Refactoring is not part of the loop.** It belongs to the review tail — `/simplify` and `/review-gate`, after implementation finishes — not the red → green cycle.
