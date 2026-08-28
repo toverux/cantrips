@@ -134,7 +134,7 @@ lineStart/lineEnd range is capped at 400 lines", pinning an unconditional cap on
 Candidate rule for Pruning: re-verify a compressed claim against its source, not against the
 sentence being compressed.
 
-**Adopt when:** the next `writing-for-agents` edit lands.
+**Adopt when:** the next `/writing-for-agents` edit lands.
 
 ## Delta rounds narrow the readership, and the round count hides it
 
@@ -169,7 +169,7 @@ short list tells `/sync-upstream` that an unlisted divergence is drift to merge 
 for Pruning: count an exhaustive claim as you write it, or phrase it so counting is unnecessary —
 "recorded below" cannot be off by one.
 
-**Adopt when:** the next `writing-for-agents` edit lands, with "Compression that falsifies" above —
+**Adopt when:** the next `/writing-for-agents` edit lands, with "Compression that falsifies" above —
 the same defect one step earlier.
 
 ## A cross-lens pointer no carrier can follow
@@ -191,7 +191,9 @@ first.
 
 The same shape has a second instance, recorded in `FORKS.md`'s `/simplify` section: the two brakes
 closing upstream's code-quality rule 3 reach no Simplification-only carrier either. The preamble
-hoist covers it too, which is part of why it is the fix to try.
+hoist covers it too, which is part of why it is the fix to try. It also settles the open middle
+case `FORKS.md` records — an inline `/simplify` pass whose parent holds Reuse's text while the
+pass runs under one assigned lens — by making the census moot.
 
 **Adopt when:** the next `/review-gate` edit lands.
 
@@ -264,8 +266,9 @@ Real invocations are never bare: round-limit overrides ("ROUND LIMITS DON'T APPL
 continue until green"), anti-over-engineering hedges (often repeated mid-run after failing once),
 autonomy grants escalating to caps ("I'm hands off, CALL THE SHOTS"), and model routing retyped on
 every dispatching invocation even though the user's global CLAUDE.md already states it. Contract
-gaps feed the habit: `--fix` is silently not honoured at `low` (reported, nothing applied, one
-extra turn to say "fix them"); the findings cap parks verified findings mid-`--loop` instead of
+gaps feed the habit: at `low` the stated contract itself makes `--fix` report without applying —
+and observed runs also skipped the disclosure that contract requires — costing one extra turn to
+say "fix them"; the findings cap parks verified findings mid-`--loop` instead of
 fixing them (self-reported three times before the user said "Take the standing findings"); round
 limits have no knob, so the override only exists as freeform prose.
 
@@ -336,3 +339,26 @@ before it is worth it.
 
 **Adopt when:** the next edit touching the pipeline closings lands — same batch as the
 flow-pointer-format entry above.
+
+## /compound-refresh's judgment rules guard only the audit that never runs here
+
+The judgment rules — the restored "Unverifiable is not false" prohibition included — sit
+under `## Audit docs/solutions/`, while `## Audit AGENTS.md` is a sibling heading none of them
+reach. In a repo whose solutions store is off (this one), every run takes only the AGENTS.md
+audit, whose Bloat lens proposes deletions with no guard above them — so a
+true but uncorroborated claim can still be stripped, the outcome the restoration exists to
+prevent. The fix is hoisting the store-neutral rules above both audits; it restructures a body the
+fork-divergence spec kept out of bounds, which is why it waits here.
+
+**Adopt when:** the next `/compound-refresh` edit lands.
+
+## /review-gate loses an angle silently when one dispatch fails mid-run
+
+Its only fallback triggers on "the harness cannot run parallel sub-agents" — a capability check
+made once — so a finder or verifier dispatch that fails mid-run costs an angle or lens and the
+report still reads as a complete pass; the closing summary reports findings per class and whether
+a spec was available, no other per-angle coverage. `/simplify` closed the same hole with a
+per-fixer inline fallback; the gate
+has no counterpart.
+
+**Adopt when:** the next `/review-gate` edit lands.
