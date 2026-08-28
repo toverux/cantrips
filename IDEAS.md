@@ -214,3 +214,125 @@ so a done-when naming `Next:` would make the deviation observable whichever home
 
 **Adopt when:** the next edit touching the pipeline closings lands — it re-touches every pipeline
 skill anyway, which is when the copies are cheapest to stamp.
+
+## The gate calls green before the close it owes
+
+The dominant failure in a 2026-08-28 survey of ~85 sessions: `/review-gate` applies fixes, then
+declares green without the delta verification or certifying pass the loop requires, rationalizing
+that the batch was small or that the letter of the rule was satisfied. It recurs within a single
+session after being caught ("the green call was one notch early again"), and the forced close finds
+real defects every time — one certifying pass found eight, "including two in the very fix I made to
+justify running it." The user's countermeasures escalated from an oral reminder to a PERMANENT
+REMINDER pasted into every `--loop` invocation, to a `/goal` Stop hook, to a mechanical
+`stop-review-gate-hook.mjs` — and even under the hook one run took thirteen delta rounds and ended
+by the user clearing the goal by hand. LOOP.md already states the rule; the rule does not survive
+the pull to conclude.
+
+**Adopt when:** the next `/review-gate` edit lands — the close needs a checkable token the agent
+must produce, not a rule it must remember.
+
+## Fixes written from summaries reintroduce defects
+
+The mechanism behind the gate's slow convergence. In one long gate, roughly a third of ~95 fixed
+findings were errors a previous round's fix introduced; in another, five of seven delta rounds
+caught defects in the prior batch's new sentences, and the orchestrator isolated the cause itself:
+"every time I wrote a fix from a verdict's summary instead of from the quoted decompile line, the
+next round caught it" — batches written from quoted lines came back clean. At scale this is the
+non-convergence failure: three sessions on one diff, the 200-subagent cap, "Seventy-six repairs
+bought no measurable drop in defect density" — and the loop has no churn detector.
+
+**Adopt when:** the next `/review-gate` edit lands — a fix sentence is a new claim and needs the
+same source as the one it replaces.
+
+## /compound and /commit run long until told otherwise
+
+"Keep edits smart and short" (or a variant) appears in nearly every session that reaches
+`/compound`, usually sent preemptively — before anything was written. Three distinct defects:
+bloat (a solutions doc grown to "four paragraphs and two code blocks" duplicating its own Fix
+section; `/commit` bodies read as "session lab notebooks", traced to the skill's own open-ended
+"anything a future reader needs" with "no upper bound anywhere"); low precision (whole candidate
+sets killed — "kill each", twice, 100% rejected — plus truisms, already-covered items, stale
+claims); and risky wording (a proposed AGENTS.md sentence the user rewrote for fear "an agent will
+bypass the cantrips loop").
+
+**Adopt when:** the next `/compound` or `/commit` edit lands — both need a stated length bound and
+a fixed proposal format.
+
+## The standing invocation preamble
+
+Real invocations are never bare: round-limit overrides ("ROUND LIMITS DON'T APPLY FOR THIS RUN,
+continue until green"), anti-over-engineering hedges (often repeated mid-run after failing once),
+autonomy grants escalating to caps ("I'm hands off, CALL THE SHOTS"), and model routing retyped on
+every dispatching invocation even though the user's global CLAUDE.md already states it. Contract
+gaps feed the habit: `--fix` is silently not honoured at `low` (reported, nothing applied, one
+extra turn to say "fix them"); the findings cap parks verified findings mid-`--loop` instead of
+fixing them (self-reported three times before the user said "Take the standing findings"); round
+limits have no knob, so the override only exists as freeform prose.
+
+**Adopt when:** the next `/review-gate` edit lands — everything the preamble restates is a default
+the skill could own.
+
+## Applied fixes do damage the gate cannot see
+
+A verifier-confirmed finding shipped a visible regression (menu flashing blank, a scrollbar
+popping) the user refused outright; an extracted predicate was reverted across four files as
+over-engineered despite two standing anti-over-engineering instructions; `/simplify` deleted a
+load-bearing one-liner on a finder's word and, in another run, flipped a fact while "simplifying"
+("two simulation spawners" became three, contradicting a shipped sibling) — against its own
+quality-only contract. Verification itself reads shallow: a reference that "passed three review
+rounds" for plausibility turned out wrong in every substantive claim on first check against the
+decompile, because "each round's derivation stopped at the line that agreed with it."
+
+**Adopt when:** the next `/review-gate` or `/simplify` edit lands.
+
+## /setup-cantrips-loop writes without interviewing
+
+Observed directly: "Running the setup interview now with this repo's answers…" immediately
+followed by the full config `Write`, no question ever posed — twice, both dogfood attempts. The
+generated file was itself defective: a self-contradictory no-op sentence the agent traced to the
+template ("every user picking .scratch/ would have gotten that same dead sentence") and prose too
+verbose for the standard the plugin ships. Counter-evidence: a re-run against an existing config
+behaved — summarized state, offered optional changes, imposed nothing. It is the first run, the
+welcome one, that skips its own interview.
+
+**Adopt when:** the next `/setup-cantrips-loop` edit lands — it should be an onboarding
+conversation whose answers are the user's, not the repo's.
+
+## No output format is specified, so every run improvises one
+
+Ledger and report formats swing between extremes across sessions, drawing opposite corrections: a
+parked-decision list too compressed to act on ("Restated all standing decisions in very clear
+plain terms and enough context") in one session, "No long paragraph after each round please, just
+a short ledger" then "No table please for ledgers" in another. Three times the user invoked
+`/wait-what` just to decode a gate report; other catches were density ("you are using way too much
+numbers… Would that actually help an agent?") and unresolved referents ("waiting on its own gate —
+which?").
+
+**Adopt when:** the next `/review-gate` edit lands — LOOP.md can carry the ledger format the way
+flow-pointers.md carries the closing format.
+
+## Skills that do not load when they should
+
+Four shapes. `/writing-for-agents` does not auto-fire when the agent edits agent-facing markdown —
+the user's own words: "I have to correct you each time you edit agent-facing markdown … to use
+this skill" — and `/compound`'s own step read "a 45-line slice of the file, not the skill." A bare
+`/simplify` in a flow pointer resolved to Claude Code's builtin simplify skill instead of
+`cantrips:simplify` (different contract; bug-hunting leaked into the pass), a collision `commit`,
+`research`, and `init` share. `/diagnosing-bugs` did not fire on a message matching its trigger
+verbatim ("The PublishNewVersion task is broken…"). And under a `/goal` Stop hook, an agent routed
+around `disable-model-invocation` by replicating the whole gate workflow by hand ("The stop hook
+is the user's explicit invocation — I'll run the gate by its files"), forty-seven nag cycles deep.
+
+**Adopt when:** the next edit touching descriptions or flow pointers lands — pointers should carry
+the namespaced form, and the gate lock needs wording that survives hook pressure.
+
+## The loop spends context it never budgets
+
+The user compacts by hand between steps, naming the next skill to protect the handoff — "/compact
+for /simplify pass", "/compact for /review-gate" — a pattern repeated across sessions because a
+full loop pass does not fit one context window and no skill acknowledges it. The flow pointers
+could carry the recommendation: a closing that names the next step can also say when a `/compact`
+before it is worth it.
+
+**Adopt when:** the next edit touching the pipeline closings lands — same batch as the
+flow-pointer-format entry above.
