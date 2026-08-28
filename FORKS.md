@@ -31,8 +31,8 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 
 ### /diagnosing-bugs (diagnosing-bugs)
 
-- "Phase 0 — Search past learnings" added ahead of Phase 1, with no upstream counterpart — it opens the loop on `/compound`'s `docs/solutions/` store so a recorded root cause can short-circuit the diagnosis before any harness gets built.
-- Upstream's opening `CONTEXT.md`-and-ADRs sentence not carried — this pipeline produces neither artifact, so the instruction would send the agent hunting for files that never exist.
+- "Phase 0 — Search past learnings and decisions" added ahead of Phase 1 — its solutions search has no upstream counterpart, opening the loop on `/compound`'s `docs/solutions/` store so a recorded root cause can short-circuit the diagnosis before any harness gets built.
+- Upstream's opening `CONTEXT.md`-and-ADRs sentence is adapted into Phase 0 rather than carried: `CONTEXT.md` is an upstream-only file convention this repo lacks, and the ADR check becomes a read of the loop-config-gated ADR store, so the fix is designed against the standing decisions without a phantom read where the store is off.
 - "hand off to the `/improve-codebase-architecture` skill" reworded to "recommend `/improve-codebase-architecture` (user-invoked)" — the fork's target is `disable-model-invocation: true`, so the agent can only recommend it, never hand off to it.
 
 ### /grilling (grilling)
@@ -43,6 +43,7 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 - Question numbers run sequentially across the whole interview rather than restarting each round — upstream's rounds model says only "number each question", and per-round numbering makes an answer naming "Q2" ambiguous once a third round exists.
 - Presented questions are locked (revisable only by user feedback) and every interview message ends with its new questions plus a one-line tally of the numbers still open — upstream has no stability rule, and in practice returning sub-agents read as license to amend presented questions in prose, leaving the user to reconcile a round scattered across messages.
 - The downstream test for a running exploration is spelled out (a question whose wording the report could change is held; in doubt, hold) — the fork's own earlier "only the questions downstream of it wait" was applied by vibes, shipping questions whose bodies cited the pending result and guaranteeing their revision.
+- When an exploration reports, its findings get one short paragraph and fold into the questions they unblock, a finding that bears on a locked question staying commentary while the question stands as asked — upstream says nothing about how a report re-enters the interview, and the lock rule needs the return path stated, a returning report otherwise reading as license to amend presented questions.
 - Upstream's closing sentence keeps its frontier-empty done condition, but the fork's "## Closing" section adds the one-sentence close with no summary, the flow pointer, and the wait for go-ahead — this fork ends in a pipeline handoff rather than in the agent enacting the plan itself.
   That section also carries a hand-back branch for an interview another skill invoked, so the callee stops owning the close — `/improve-codebase-architecture` runs the interview mid-step and has work left after it, which upstream's grilling, having no in-repo caller, never had to allow for.
 - A fifth closing branch offering `/questionnaire` when the unresolved fact is held by a person rather than published anywhere — it completes the out-of-the-room case the `/research` branch opens, and it alone names when its answer arrives, since a recipient replies on their own clock while every other branch resolves in session.
@@ -72,6 +73,7 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 - "Don't list every theoretical refactor an ADR forbids." not carried — the retained "only surface it when the friction is real enough to warrant revisiting the decision" already carries that constraint.
 - "use the Agent tool with `subagent_type=Explore`" generalized to "dispatch an exploration subagent" — this plugin ships to two harnesses and `subagent_type=Explore` exists only in Claude Code.
 - The `/domain-modeling` side-effect block, including the offer to write an ADR, replaced by capture through `/compound` — this repo has no `/domain-modeling` skill, and `/compound` owns both glossary and `docs/solutions/` writes under a user gate.
+- Upstream's gate on the rejection capture — offer it only when the reason would be needed by a future explorer to avoid re-suggesting the same thing — is not carried, its skip clause (ephemeral and self-evident reasons) standing alone — the capture routes through `/compound`, whose user gate is where worth-recording is decided here.
 - Step 3 owns the close, offering `/codebase-design`, `/spec` or `/implement` by what the interview settled, because the `/grilling` it runs hands back instead of closing — upstream ends on its own side-effect block and never delegates an interview, so nothing there had to decide which skill closes.
 
 ### /prototype (prototype)
@@ -91,6 +93,7 @@ No divergences beyond the systematic conventions.
 ### /resolving-merge-conflicts (resolving-merge-conflicts)
 
 - Step 2's primary-source list ends by fetching the specs behind each change through the fetch-spec verb instead of upstream's "check original issues/tickets." — in this pipeline the recorded intent behind a change lives in the `/spec` artifact.
+- Step 2 adds the no-spec fallback — work from the commits and the PR, and say which side's intent you had to infer — the fetch-spec edit above introduces a source a backend can hold nothing for, and a resolution that guessed an intent without saying so reads as if it had read the spec.
 
 ### /review-gate (code-review)
 
@@ -141,6 +144,8 @@ No divergences beyond the systematic conventions.
 - "before Claude executes them" and "Claude sees a message" say "the agent" instead — the fork covers two harnesses, and only one of them is Claude.
 - Step 5's payload spells the blocked command in split quoting, so the test command's own text never matches a pattern — upstream's plain payload is denied by the very hook it is meant to test once one is installed, and a denied test proves nothing about the script or about anything the user changed in step 4.
   It then adds a live-fire step upstream has no counterpart to, a real `git push --dry-run` whose denial is the only evidence the wiring carries, since a script test that dodges the hook by design can say nothing about it.
+- Step 5 adds the Windows note to run the test through Git Bash by its full path — `bash` on the Windows PATH is the WSL stub, which reaches no script and reports no verdict — upstream's single-platform, executable-bit install never routes the test through a Windows shell.
+- HOOK-CONFIG.md's Codex `commandWindows` string carries its own contract, upstream having no Windows or Codex counterpart to any of it: the `&` call operator, the `; exit $LASTEXITCODE` re-raise (pwsh reports every non-zero native exit as 1, a hook error that lets the command through), the two substitution notes (the Git Bash path, the project path where the project is not the repository root), and a hand-run of the finished string from PowerShell before moving on — every mistake in that string fails open, and a wrong path shows up nowhere else.
 - The Claude blocks match `Bash|PowerShell` where upstream matches `Bash` — Claude Code ships a second shell tool named `PowerShell`, and `matcher` being a regex over the tool name, the upstream matcher leaves the agent a route around the guardrail wherever that tool is enabled.
 
 ### /spec (to-spec)
