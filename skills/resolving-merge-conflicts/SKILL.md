@@ -1,15 +1,13 @@
 ---
 name: resolving-merge-conflicts
-description: 'Use when you need to resolve an in-progress git merge/rebase conflict.'
-version: 1.1.1
+description: "Use when you need to resolve an in-progress git merge/rebase conflict."
+version: 1.1.2
 source: mattpocock/skills@1.2.0 (resolving-merge-conflicts)
 ---
 
 1. **See the current state** of the merge/rebase. Check git history, and the conflicting files.
 
-2. **Find the primary sources** for each conflict.
-   Understand deeply why each change was made, and what the original intent was.
-   Read the commit messages, check the PRs, and fetch any specs behind each change — the fetch-spec verb.
+2. **Find the primary sources** for each conflict. Understand deeply why each change was made, and what the original intent was. Read the commit messages, check the PRs, and fetch any specs behind each change — the fetch-spec verb.
    The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.md`, and when that doc is absent the plugin defaults ([defaults.md](../setup-cantrips-loop/defaults.md)) govern.
    A backend that keeps specs out of the repo may hold none for the incoming side: when a spec is out of reach, work from the commits and the PR and say which side's intent you had to infer.
 
