@@ -1,7 +1,7 @@
 ---
 name: writing-for-agents
 description: Load before writing or editing any file an agent will load and act on — a skill (SKILL.md), an AGENTS.md or CLAUDE.md, or a rules file. The vocabulary and principles that make those files predictable. A session that only reads them leaves this unloaded.
-version: 2.0.0
+version: 2.0.1
 source: mattpocock/skills@1.2.0 (writing-for-agents)
 ---
 
