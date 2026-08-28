@@ -2,12 +2,13 @@
 
 How this plugin relates to every skill of its two upstreams — [mattpocock/skills](https://github.com/mattpocock/skills) at v1.2.0 and [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) at compound-engineering-v3.21.2.
 Every upstream skill has a section: a forked skill lists how it deliberately differs and why — a wholesale rewrite's section naming the divergences worth recording rather than every one there is — and the rest are marked "Not ported." with the reason where one is known.
-Updated in the same edit that creates or ends a difference, whether a sync skips an upstream delta or a session rewrites a fork's own text; `/sync-upstream` keeps every listed difference standing without re-litigation.
+Updated in the same edit that creates or ends a difference, whether a sync skips an upstream delta or a session rewrites a fork's own text; `/sync-upstream` keeps every listed difference standing without re-litigation, save a divergence whose bullet offers no justification beyond house formatting — that class its audit may re-propose until the bullet records a reason.
 That standing is anchored, not permanent: a listed difference stands for as long as the upstream text its bullet was anchored to survives, and once upstream rewrites that text the delta is judged afresh.
 An entry stays until the difference is gone.
 One sync policy lives here because it describes no divergence in any fork's text: upstream deltas to `/simplify`'s retired persona files are evaluated as content candidates for the shared lens file ([QUALITY-LENSES.md](skills/review-gate/QUALITY-LENSES.md)) and rewritten in this repo's voice, never merged back as text.
 A section's "Verified against `<tag>`." line means a diff against that tag was actually run on it: for a carried fork, the hunk↔bullet correspondence was checked both ways; for a wholesale rewrite, only the weaker check — every bullet names a real difference and every byte-identity claim holds — which cannot see a divergence no bullet describes.
-Each fork's sync point lives in its own `source:` frontmatter; upstream credits live in [NOTICE.md](NOTICE.md).
+An annotated stamp, "Verified against `<tag>`. — `<reason>`.", weakens that claim by its reason — `<n> findings unresolved` for a section whose findings a sync deferred or held back, `not fully compared: <what>` for one a sync could not fully measure, the two chained `;`-separated where both hold — and a later refresh carries the annotation forward until its cause is resolved.
+Each fork's sync point lives in its own `source:` frontmatter — the per-fork truth, which may lag the preamble's pin where a sync could not measure that fork at the new tag; upstream credits live in [NOTICE.md](NOTICE.md).
 
 ## Systematic conventions
 
