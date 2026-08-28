@@ -2,7 +2,7 @@
 name: spec
 description: Synthesize the current conversation into a published spec, test seams included.
 disable-model-invocation: true
-version: 1.1.2
+version: 1.1.3
 source: mattpocock/skills@1.2.0 (to-spec)
 ---
 
@@ -11,19 +11,16 @@ Synthesize what you already know — the interview, if any, already happened (`/
 
 ## Process
 
-1. Explore the repo to understand the current state of the codebase, if you haven't already.
-   Use the project's domain vocabulary throughout the spec.
+1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain vocabulary throughout the spec.
 
 2. Read the repo's decision memory: the `AGENTS.md` conventions already in context, plus the records bearing on this feature from whichever knowledge stores the loop config enables — ADRs for decisions already made, solutions for gotchas and approaches that failed before.
    The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.md`, and when that doc is absent the plugin defaults ([defaults.md](../setup-cantrips-loop/defaults.md)) govern.
    Fold whatever applies into the spec's decisions.
    When this feature's decisions conflict with a standing ADR — one whose status is `accepted` — flag the conflict explicitly in the spec — name the ADR and the revised decision — and note that the revision routes through `/compound` at loop end; `/compound` is the ADR store's sole writer, so the standing record stays as written until then.
 
-3. Propose the **test seams** — the places `/implement` will drive TDD (seam vocabulary: `/codebase-design`).
-   Prefer existing seams to new ones; place any new seam at the highest point you can.
-   The fewer seams across the codebase, the better - the ideal number is one.
+3. Propose the **test seams** — the places `/implement` will drive TDD (seam vocabulary: `/codebase-design`). Prefer existing seams to new ones; place any new seam at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
 
-   Check the seams with the user before writing the spec: approving them now, while the decisions are fresh, lets implementation test at them later without relitigating the design.
+Check with the user that these seams match their expectations.
 
 4. Publish the spec — the publish-spec verb, translated by the loop config from step 2 — using the template below.
    The published body is frozen: a spec is a point-in-time decision record, and execution state lives in git and the backend, so work-status lines (pending, in-progress, done) never enter the body.
