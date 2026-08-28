@@ -194,3 +194,23 @@ closing upstream's code-quality rule 3 reach no Simplification-only carrier eith
 hoist covers it too, which is part of why it is the fix to try.
 
 **Adopt when:** the next `/review-gate` edit lands.
+
+## Inline the flow-pointer format into each pipeline skill
+
+The closings say "read [flow-pointers.md] for the format", and sessions routinely skip the read and
+improvise: the skill body already inlines the pointer's content (targets, `(user-invoked)`, flags),
+so the load has no visible payoff, and an agent that skips it cannot see its own deviation. The
+verb-first rewording recorded in `FORKS.md`'s "Pipeline closings" bullet fixed the citation-read
+failure and not this one. Observed again 2026-08-28 — two skills, two closings, zero reads — and it
+happens often.
+
+The proposal inverts the current design: carry the format in each pipeline skill's closing (it is
+two lines — an italic blockquote, `Next:` / `Next steps:`, an em-dash rationale per pointer) and
+demote `flow-pointers.md` to the authoring reference `/writing-for-agents` points at. That trades
+the one authoritative home for a dozen copies kept identical by hand — the drift cost AGENTS.md
+rule 3 exists to avoid — bought because a pointer whose target holds only presentation is a pointer
+agents demonstrably do not follow. A cheaper companion: the format's opener is a checkable token,
+so a done-when naming `Next:` would make the deviation observable whichever home the format keeps.
+
+**Adopt when:** the next edit touching the pipeline closings lands — it re-touches every pipeline
+skill anyway, which is when the copies are cheapest to stamp.
