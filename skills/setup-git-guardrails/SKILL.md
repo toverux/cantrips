@@ -3,7 +3,7 @@ name: setup-git-guardrails
 description: Set up a hook that blocks dangerous git commands before they execute, in Claude Code or Codex CLI.
 disable-model-invocation: true
 argument-hint: [project|global] [codex|claude]
-version: 1.0.0
+version: 1.0.1
 source: mattpocock/skills@1.2.0 (git-guardrails-claude-code)
 ---
 
@@ -26,7 +26,6 @@ When blocked, the agent sees a message telling it that it does not have authorit
 ### 1. Ask harness and scope
 
 Ask the user for whatever the arguments did not already supply: which harness — **Claude Code**, **Codex CLI**, or both — and install for **this project only** or **all projects**?
-The arguments name one harness at most, so "both" arrives here.
 
 ### 2. Copy the hook script
 

@@ -51,9 +51,6 @@ Global — `~/.claude/settings.json`:
 `matcher` is a regex over the tool name, and Claude Code has a second shell tool called `PowerShell` — matching `Bash` alone leaves the agent a route around the guardrail on any install where that tool is enabled.
 Both tools deliver the command at `.tool_input.command`, so the one script reads either without change.
 
-`"shell": "bash"` pins the interpreter, so a missing Git Bash on Windows surfaces as a named hook error rather than a silent PowerShell misfire.
-It does not close the hole: a hook that cannot launch exits non-2, which is a non-blocking error, so the command still runs — the key buys a diagnosis, not a deny.
-
 ## Codex CLI
 
 Project — `.codex/hooks.json`:
