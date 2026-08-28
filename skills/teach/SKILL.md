@@ -1,9 +1,9 @@
 ---
 name: teach
 description: Teach the user a new skill or concept, within this workspace.
-argument-hint: 'What would you like to learn about?'
 disable-model-invocation: true
-version: 1.0.2
+argument-hint: "What would you like to learn about?"
+version: 1.0.3
 source: mattpocock/skills@1.2.0 (teach)
 ---
 
@@ -14,14 +14,12 @@ The user has asked you to teach them something. This is a stateful request - the
 Treat the current directory as a teaching workspace. The state of their learning is captured in this directory in several files:
 
 - `MISSION.md`: A document capturing the _reason_ the user is interested in the topic. This should be used to ground all teaching. Use the format in [MISSION-FORMAT.md](./MISSION-FORMAT.md).
-- `RESOURCES.md`: A list of resources which can be explored to ground your teaching in contextual knowledge, or to acquire knowledge and wisdom. Use the format in [RESOURCES-FORMAT.md](./RESOURCES-FORMAT.md).
-- `./lessons/*.html`: A directory of lessons. A **lesson** is a single, self-contained HTML output that teaches one tightly-scoped thing tied to the mission. This is the primary unit of teaching in this workspace.
 - `./reference/*.html`: A directory of reference materials. These are the compressed learnings from the lessons - cheat sheets, reference algorithms, syntax, yoga poses, glossaries. They are the raw units of learning. They should be beautiful documents which print out well, and are designed for quick reference.
-- `./learning-records/*.md`: A directory of learning records, which capture what the user has learned.
-  They capture non-obvious lessons and key insights that may need to be revised later, or drive future sessions, and are used to calculate the zone of proximal development.
-  Use the format in [LEARNING-RECORD-FORMAT.md](./LEARNING-RECORD-FORMAT.md).
+- `RESOURCES.md`: A list of resources which can be explored to ground your teaching in contextual knowledge, or to acquire knowledge and wisdom. Use the format in [RESOURCES-FORMAT.md](./RESOURCES-FORMAT.md).
+- `./learning-records/*.md`: A directory of learning records, which capture what the user has learned. They capture non-obvious lessons and key insights that may need to be revised later, or drive future sessions. These should be used to calculate the zone of proximal development. Use the format in [LEARNING-RECORD-FORMAT.md](./LEARNING-RECORD-FORMAT.md).
+- `./lessons/*.html`: A directory of lessons. A **lesson** is a single, self-contained HTML output that teaches one tightly-scoped thing tied to the mission. This is the primary unit of teaching in this workspace.
 - `./assets/*`: Reusable **components** shared across lessons. See [Assets](#assets).
-- `NOTES.md`: A scratchpad for you to jot down user preferences ("teach me with more diagrams"), or working notes — refer back to it when designing lessons.
+- `NOTES.md`: A scratchpad for you to jot down user preferences, or working notes — refer back to it when designing lessons or working with the user.
 
 ## Philosophy
 
@@ -58,12 +56,11 @@ The lesson should be short, and completable very quickly. Learners' working memo
 
 If possible, open the lesson file for the user by running a CLI command.
 
-Each lesson should:
+Each lesson should link via HTML anchors to other lessons and reference documents.
 
-- Link via HTML anchors to other lessons and reference documents.
-- Recommend a primary source for the user to read or watch — the most high-quality, high-trust resource you found on the topic.
-- Contain a reminder to ask followup questions to the agent.
-  The agent is their teacher, and can assist with anything that's unclear.
+Each lesson should recommend a primary source for the user to read or watch. This should be the most high-quality, high-trust resource you found on the topic.
+
+Each lesson should contain a reminder to ask followup questions to the agent. The agent is their teacher, and can assist with anything that's unclear.
 
 ## Assets
 
@@ -138,5 +135,4 @@ Some learning topics lend themselves to reference:
 - Exercises and routines for fitness
 - Glossaries for any topic with its own nomenclature
 
-Glossaries, in particular, are an essential reference — use the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md).
-Once one is created, it should be adhered to in every lesson.
+Glossaries, in particular, are an essential reference — use the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md). Once one is created, it should be adhered to in every lesson.
