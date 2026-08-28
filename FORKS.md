@@ -49,7 +49,7 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 
 ### /handoff (handoff)
 
-- Upstream's four flat instruction paragraphs restructured into a lead paragraph plus four constraint bullets, each compressed — the `/writing-for-agents` standard asks for leading words, scannable constraints, and positive phrasing.
+- Upstream's "Do not duplicate content already captured in other artifacts" paragraph flipped to positive phrasing, referencing them by path or URL rather than duplicating — not a hard guardrail, so the `/writing-for-agents` standard phrases it by its positive target.
 - Added paragraph ruling a handoff out as a spec substitute, routing decisions that outlive the session into the feature's spec through the annotate-spec verb, or to `/compound` when the work has no spec — without it the skill invites durable decisions into a temp-directory file this pipeline never reads again.
 - Added closing line requiring the document's path be reported back — a checkable completion criterion, and the user cannot point a fresh session at a temp-directory file whose path was never surfaced.
 
@@ -167,11 +167,9 @@ No divergences beyond the systematic conventions.
 
 ### /teach (teach)
 
-- Teaching Workspace file list reordered so the files appear in the order a session touches them — upstream interleaves the workspace's inputs and outputs arbitrarily.
-- The `NOTES.md` bullet carries an example preference and a "refer back to it when designing lessons" clause, and upstream's trailing `## NOTES.md` section is not carried — the section only restated the bullet.
+- The `NOTES.md` bullet gains a "refer back to it when designing lessons or working with the user" clause, and upstream's trailing `## NOTES.md` section is not carried — the section carried that directive, which the bullet alone lacked, so the clause keeps it stated once, at the point of use.
 - The learning-records bullet drops upstream's "loosely equivalent to architectural decision records in software development" analogy and its `0001-<dash-case-name>.md` naming sentence — the numbering rule already lives in LEARNING-RECORD-FORMAT.md and the analogy earns nothing at the point of use.
 - LEARNING-RECORD-FORMAT.md spells out "architectural decision records" where upstream writes "ADRs" — dropping the analogy from SKILL.md left the acronym with no expansion anywhere in the skill.
-- Upstream's three consecutive "Each lesson should …" paragraphs are carried as one "Each lesson should:" bullet list — three parallel requirements scan as a list, not as prose.
 - The Glossaries closing line links GLOSSARY-FORMAT.md — upstream ships the file but no upstream skill body points at it.
 - LEARNING-RECORD-FORMAT.md writes `MISSION.md` and `GLOSSARY.md` as code spans where upstream uses `[[…]]` wiki-links — a teaching workspace is plain Markdown, not an Obsidian vault.
 
