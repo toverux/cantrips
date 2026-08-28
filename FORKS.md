@@ -153,7 +153,6 @@ No divergences beyond the systematic conventions.
 - Step 2 flags a conflict with a standing ADR explicitly in the spec and routes the revision through `/compound` at loop end — upstream's "respect any ADRs" clause left silent override open, and `/compound` is the ADR store's sole writer here.
 - Step 4 states the freeze-and-annotate rule at the template — body frozen at publication, work-status lines out, dated annotations via the annotate-spec verb — because downstream sessions read the spec as a point-in-time decision record, a lifecycle upstream delegates to its tracker.
 - Seams step condensed from four sentences to two and repointed at `/implement` and `/codebase-design` — upstream states the highest-seam rule three times over, and the fork owns the seam vocabulary in a dedicated skill.
-- The user check on seams carries an added rationale about approving seams while decisions are fresh — it explains why the gate sits before writing rather than at implementation time, which is what stops it being skipped.
 - Upstream's "Testing Decisions" template section replaced by "Test Seams" carrying the seams approved in step 3 — the fork's contract with `/implement` is the approved seam list, not a general description of what makes a good test.
 
 ### /tdd (tdd)
@@ -198,6 +197,8 @@ No divergences beyond the systematic conventions.
 
 ### /writing-for-agents (writing-for-agents)
 
+- The `description` is rewritten beyond what the systematic frontmatter rework covers — a deliberate widening of the model-invocation trigger from upstream's skills, `AGENTS.md` and `CLAUDE.md` to any file an agent will load and act on, rules files included — because the vocabulary applies to every agent-facing document, and a description scoped to skills left the skill unfired on the rest.
+- SKILL-MECHANICS.md's three claims that a user-invoked skill has no description — "keeps a `description`" in the model-invoked bullet, "with no descriptions" on shared reference, "user-invoked skills have no description" under router skills — are corrected to say the description is out of the agent's reach, fixing a contradiction in upstream's own text: its user-invoked bullet says the `description` becomes human-facing, so the skill has one and only the agent cannot see it.
 - "Pipeline closings" section added, pointing at the sibling [flow-pointers.md](skills/writing-for-agents/flow-pointers.md) — the pipeline skills here all end on a flow pointer, and the shared presentation format needs one authoritative home rather than a restatement in each skill.
   Its last line prescribes the pointer's verb-first wording, from an observed failure the section itself no longer names: an agent read the earlier `([presentation](…))` phrasing as a citation, never loaded the file, and invented a closing format.
 - A **gate** bullet added to Pruning — any line conditioning behaviour fails the no-op test when its condition names competence the agent already shows, and fails it worse when the agent cannot observe the condition — because upstream's no-op entry reaches only a weak leading word, and an audit of this repo's own skills found conditionals to be where no-ops actually accumulate, the unobservable condition worst of all since it reads to a maintainer as an enforced rule.
