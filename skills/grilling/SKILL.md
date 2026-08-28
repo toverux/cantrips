@@ -1,18 +1,13 @@
 ---
 name: grilling
 description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to be grilled about a plan, wants a decision stress-tested, or when requirements are fuzzy before a spec is written.
-version: 2.2.0
+version: 2.2.1
 source: mattpocock/skills@1.2.0 (grilling)
 ---
 
-Interview the user relentlessly until you reach a shared understanding.
-Map this as a **decision tree**: every decision branches into the decisions that hang off it.
+Interview the user relentlessly until you reach a shared understanding. Map this as a **decision tree**: every decision branches into the decisions that hang off it.
 
-Work the tree in **rounds**.
-The **frontier** is every decision whose prerequisites are already settled — the questions you can ask _now_ without guessing at answers you haven't heard yet.
-Ask the whole frontier in one round: number each question and give your recommended answer.
-Number sequentially across the whole interview rather than restarting each round, so an answer naming Q2 points at one question.
-Then wait for the user's answers before the next round.
+Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled — the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round: number each question and give your recommended answer. Number sequentially across the whole interview rather than restarting each round, so an answer naming Q2 points at one question. Then wait for the user's answers before the next round.
 
 Each question should be formatted like so:
 
@@ -33,13 +28,7 @@ Each round the user answers reshapes the tree — settled decisions push the fro
 
 When the user's answers carry a question or remark of their own, answer it before opening the next round; never let a new round bury the reply.
 
-Finding _facts_ is your job, never the user's.
-When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it — in the background where the harness supports it (Claude Code: do not use `run_in_background: false`) — rather than asking the user for anything you could look up yourself.
-Don't block on it: a running exploration is an unsettled prerequisite — ask the rest of the frontier now, and hold every question the report could reword.
-A question is downstream of an exploration when its body, options, or recommendation would read differently depending on what comes back — a body that mentions the pending result has declared itself downstream; when in doubt, hold it, since a held question costs one round and a locked question overtaken by facts costs the user's trust in every question still on the table.
-When an exploration reports, give its findings one short paragraph and fold them into the questions it unblocks; a finding that bears on a locked question goes in that paragraph as commentary for the user to weigh, and the question stands as asked.
-When the fact lives in external docs or specs rather than the environment, propose `/research` instead.
-The _decisions_ are the user's — put each to them and wait.
+Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it — in the background where the harness supports it (Claude Code: do not use `run_in_background: false`) — rather than asking the user for anything you could look up yourself. Don't block on it: a running exploration is an unsettled prerequisite — ask the rest of the frontier now, and hold every question the report could reword. A question is downstream of an exploration when its body, options, or recommendation would read differently depending on what comes back — a body that mentions the pending result has declared itself downstream; when in doubt, hold it, since a held question costs one round and a locked question overtaken by facts costs the user's trust in every question still on the table. When an exploration reports, give its findings one short paragraph and fold them into the questions it unblocks; a finding that bears on a locked question goes in that paragraph as commentary for the user to weigh, and the question stands as asked. When the fact lives in external docs or specs rather than the environment, propose `/research` instead. The _decisions_ are the user's — put each to them and wait.
 
 ## Closing
 
