@@ -44,7 +44,7 @@ Give each one:
 - the resolved scope (the full diff or file set).
 
 Paraphrasing any of it from memory loses the restraints that keep the pass preserving.
-Where a dispatch fails, or the harness offers no way to make one, run that fixer's pass inline in the parent context under the same contract, lens and scope, and disclose the substitution in one line.
+Where a dispatch fails, or the harness offers no way to make one, run that fixer's pass inline in the parent context under the same preservation contract, lens and scope, and disclose the substitution in one line.
 
 <fixer-brief>
 Propose fixes; the skill that dispatched you applies them. Edit nothing yourself.

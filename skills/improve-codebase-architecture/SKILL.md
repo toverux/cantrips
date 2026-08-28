@@ -23,7 +23,7 @@ Where the project keeps a domain glossary (an `AGENTS.md` glossary section or `C
 - Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots — the files and areas that keep coming up — and let those paths pull your attention first. If the changes are scattered with no clear hot spot, widen the net.
 
 Read the project's domain glossary first, then — for whichever of the two stores the loop config enables — search `docs/adr/` for standing decisions and `docs/solutions/` for learnings and recorded rejections in the area: decisions already settled there should not be re-litigated.
-The loop config is `docs/agents/cantrips-loop.md`; when that doc is absent, both stores are off and neither search runs.
+The loop config is `docs/agents/cantrips-loop.md`; when that doc is absent, both stores are off.
 
 Then dispatch an exploration subagent to walk the codebase, in the background where the harness supports it (Claude Code: do not use `run_in_background: false`). Don't follow rigid heuristics — explore organically and note where you experience friction:
 

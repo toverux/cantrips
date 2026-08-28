@@ -59,7 +59,7 @@ Judgment rules:
 Read the project's `AGENTS.md` (or the substantive file when one of `AGENTS.md`/`CLAUDE.md` merely includes the other) through three lenses:
 
 - **Bloat** — lines that stopped earning their always-loaded cost: no-ops the model does by default, sediment from finished migrations, duplication of what rules files or skills already say.
-  An outgrown glossary section is bloat with a home — propose graduating it to `CONCEPTS.md`, per `compound`'s convention.
+  An outgrown glossary section is bloat with a home — propose graduating it to `CONCEPTS.md`, per `/compound`'s convention.
 - **Contradictions** — entries that conflict with each other, with rules files, or with what the code actually does.
 - **Staleness** — references to renamed, moved, or deleted files, tools, or workflows.
 
