@@ -50,7 +50,8 @@ Global — `~/.claude/settings.json`:
 
 `matcher` is a regex over the tool name, and Claude Code has a second shell tool called `PowerShell` — matching `Bash` alone leaves the agent a route around the guardrail on any install where that tool is enabled.
 Both tools deliver the command at `.tool_input.command`, so the one script reads either without change.
-A hook that cannot launch — `"shell": "bash"` with no Git Bash installed — exits non-2, a non-blocking error, so the command still runs and the guardrail fails open; step 5's live-fire check is what proves the wiring.
+`"shell": "bash"` pins the hook's interpreter to Git Bash rather than whatever default shell the harness would pick.
+A hook that cannot launch exits non-2, a non-blocking error, so the command still runs and the guardrail fails open; step 5's live-fire check is what proves the wiring.
 
 ## Codex CLI
 
