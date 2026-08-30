@@ -47,6 +47,7 @@ Verified against `v1.2.0`.
 
 Verified against `v1.2.0`.
 
+- The `description`'s "Use when" half is rewritten beyond what the systematic frontmatter rework covers — upstream triggers on stress-testing "or uses any 'grill' trigger phrases", the fork on being grilled about a plan, a decision stress-tested, or requirements fuzzy before a spec is written — `/grilling` opens this loop, and the fuzzy-requirements trigger is what fires it ahead of `/spec`, a pipeline position upstream's skill does not hold.
 - Upstream's "design tree" is a "decision tree" throughout — the fork grills any plan, decision, or idea, code-related or not, so design-specific framing would misdescribe its own trigger.
 - A rule carried over from the fork's retired "How to ask" section: a question or remark inside the user's answers is answered before the next round opens — upstream's rounds model says nothing about the reply direction, and a fresh round is exactly what buries a reply.
 - `/research` proposed mid-interview when a frontier fact lives in external docs rather than the environment — upstream ships the skill but its grilling routes to it nowhere, leaving the user to remember it exists; here `/grilling` is a pipeline step, so it names the next one.
@@ -335,7 +336,8 @@ Verified against `compound-engineering-v3.21.2`.
 - Upstream's `gh repo view --json defaultBranchRef` fallback not carried — `git rev-parse` plus a `main` default resolves the branch without adding a `gh` dependency to the skill.
 - The body is a condensed rewrite in this repo's voice: the H1 and the standalone Context table are gone, and upstream's `## Context` section merges with the Workflow step 0 that only re-runs it into one Step 2 bullet list.
   The table itself is not restored — it carries a not-a-git-repo stop and an unborn-repo column the fork's bullets lack, while the fork's clean-tree stop and `origin/`-strip rule run the other way, both recorded below.
-- Step 4's conventional-commit default names the type enum where upstream gives the shape `type(scope): description` alone — handed the shape without the set, an agent invents types outside it, and a repo whose release tooling keys on the type then skips the commit silently.
+- Step 4's conventional-commit default names the type enum where upstream gives the shape `type(scope): description` with only a fix-over-feat tie-break — handed the shape without the set, an agent invents types outside it, and a repo whose release tooling keys on the type then skips the commit silently.
+  The tie-break is carried reworded into Step 4 with its why test spelled out; upstream's closing "User override wins." is not carried.
 - Upstream's Bad/Good subject examples not carried — Step 4 states the subject rule as its own bullet with the _why_ test spelled out.
 - A "Formatting details" bullet added, deferring wrapping, trailers, and sign-offs to the repo's documented rules and the user's global instructions — the plugin must stay distributable, so per-user commit-message habits belong outside the skill body.
 - Upstream's v3.21.2 "**Done when:** / **Stop when:**" header and its "Do not use `git diff HEAD` alone as cleanliness (it misses untracked files)" and "never compare against `origin/<name>`" guards not carried — each states what the fork already does elsewhere.
