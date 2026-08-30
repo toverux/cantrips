@@ -11,7 +11,7 @@ Nothing enters the repository without an approval, and a case these rules do not
 
 Get the exact new tag from `gh release list -R <upstream>`.
 Every measurement comes from `scripts/fork-diff.sh` (through `mise run dev:fork-diff -- …`); fetch nothing by hand.
-The tool reads each fork's `source:` frontmatter, re-prefixes its bare pinned version into the real tag (`v<version>` for mattpocock/skills, `compound-engineering-v<version>` for compound-engineering), resolves the upstream skill's directory from the repository tree API rather than guessing it, fetches and caches the upstream files under `.scratch/sync/`, and prints a unified diff per file with a divergent-line count.
+The tool reads each fork's `source:` frontmatter, re-prefixes its bare pinned version into the real tag, resolves the upstream skill's directory from the repository tree API rather than guessing it, fetches and caches the upstream files under `.scratch/sync/`, and prints a unified diff per file with a divergent-line count.
 
 Run it twice:
 
@@ -35,7 +35,7 @@ The non-updated upstream's forks are measured once, against their pins, so every
 Treat `source:` as provenance, not ground truth: a fork may have been cut from upstream main between releases and already contain wording "newer" than its recorded version.
 An audit divergence is therefore not proof of local invention: a revert proposal states the divergence and leaves its origin open — for the non-updated upstream the run holds nothing newer than the pin, so origin stays uncheckable until that upstream's own sync.
 
-The orchestrating session reads every diff itself: ranking findings and writing the ledger take the whole picture, and the tool has already done the measuring.
+The orchestrating session reads every diff itself and dispatches no sub-agents: ranking findings and writing the ledger take the whole picture, the tool has already done the measuring, and a sub-agent's summary would stand in for the diff the gate must show.
 
 ## Step 2: Disposition every delta
 

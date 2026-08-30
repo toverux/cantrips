@@ -130,9 +130,8 @@ skip() {
 }
 
 # --- report -------------------------------------------------------------------------------------
-# `.claude/skills/sync-upstream/SKILL.md` matches several literal report strings below
-# (`skipped:`, `could not fetch`, `upstream only`, `upstream copy unreadable`, the tag line):
-# reword them there in the same edit.
+# `.claude/skills/sync-upstream/SKILL.md` quotes this script's report strings literally
+# (`skip()`'s prefix included): reword one there in the same edit.
 
 declare -A tree_fetched=()
 unreadable=()
