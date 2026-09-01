@@ -1,7 +1,7 @@
 ---
 name: sync-upstream
 description: Reconcile this repo's forked skills with a new upstream release. Use when the user says an upstream (compound-engineering, mattpocock/skills) was updated, asks to merge/sync upstream changes into the forks, or wants the forks' divergence audited.
-version: 1.2.0
+version: 1.3.0
 ---
 
 Reconcile the forked skills with a new upstream release: disposition every upstream delta, gate every disposition on the user's approval, audit the whole divergence surface, and record the new sync point.
@@ -42,7 +42,7 @@ The orchestrating session reads every diff itself and dispatches no sub-agents: 
 Consult the divergence ledger, [FORKS.md](../../../FORKS.md), then give each delta exactly one of four dispositions:
 
 - **Standing** — a ledgered difference already covers it, or it lands in a section the fork dropped entirely and the recorded skip decides it.
-  Zero churn: it bypasses the gate and is reported as reviewed in the Standing summary.
+  Zero churn: its gate block asks only for confirmation, and a confirmed Standing writes nothing.
 - **Merge** — nothing in this repo's environment forces words different from upstream's current text.
   On approval: the delta lands byte-identical to upstream; where the fork already carries upstream's text — upstream converged — nothing lands and the Merge's whole effect is ending the stale bullet.
   Byte-identity is scoped to the delta — where it lands inside a sentence carrying a fork-wide systematic convention, that convention stays.
@@ -62,37 +62,52 @@ Its evidence is a diff against upstream, never against the fork's current text: 
 
 ## Step 3: Gate
 
-Present the run in three sections, in order:
+Open the gate with one overview message: the tags measured and each section's count — Standing deltas, dispositions, audit findings — so the first block's `X/Y` lands in known territory.
+Then present the run as one stream of blocks — every Standing delta, then every Merge, Rework and Skip, then every audit finding — one block per message, waiting for the user's verdict before presenting the next.
+A bulk answer ("OK to everything remaining") is an explicit verdict covering every remaining block at its recommendation; silence covers nothing and writes nothing.
 
-1. **The Standing summary** — one list, a line per Standing delta naming the bullet or dropped-section skip that covers it.
-   A bypassed delta whose changed lines reach half the section it lands in appears individually with its diff instead — "already decided" never quietly covers a substantial change.
-2. **The delta dispositions** — every Merge, Rework and Skip individually, for the user to approve, adjust, or reject.
-   Per delta: the diff and a one-line disposition, and nothing else.
-3. **The audit's divergence findings** — every local divergence no bullet covers, every bullet describing a difference that no longer exists, and every divergence justified by house formatting alone (a reflow, a restructure, a reordering, a gloss).
-   Ranked by what leaving them costs — behavior above maintenance — capped at ten, with a cut line marking what is worth acting on and the held-back count reported.
+Each block is numbered within its own section and shaped:
 
-Apply only approved dispositions.
-Audit findings are proposals for a later `/spec`, and the run applies none of them — the restores and bullet deletions AGENTS.md rule 2 orders for house-formatting divergences included, deferred through the same route rather than applied unapproved.
-That house-formatting class travels as one grouped finding with each divergence listed, riding above the cut line, so ranking cannot bury it.
+```
+❓ **<Standing | Disposition | Audit finding> <X>/<Y>** - **<fork or scope>: <topic>**: <the context, then the diff>
+
+➡️ <the recommended verdict, with its cost>
+```
+
+The context rebuilds what the verdict needs, in order: the fork and its place in the pipeline, one line; where the delta sits and what upstream changed there, in plain words; what the ledger already records about that spot.
+Write those parts with a little context before any claim, in ASD-STE100 Simplified Technical English, in this repo's own vocabulary; the diff stays raw.
+The user maintains thousands of lines of prose and syncs occasionally, so the block carries the whole re-exposure their judgment runs on.
+
+Verdicts by section:
+
+- **Standing** — an OK confirms the ledgered decision still covers the delta and writes nothing; a contest re-dispositions the delta in place as Merge, Rework or Skip, which then follows the normal regime.
+- **Disposition** — approve, adjust, or reject.
+- **Audit finding** — apply now, defer to a later `/spec`, or keep; defer is the default recommendation.
+
+The audit findings are every local divergence no bullet covers, every bullet describing a difference that no longer exists, and every divergence justified by house formatting alone (a reflow, a restructure, a reordering, a gloss), ranked by what leaving them costs — behavior above maintenance.
+The house-formatting class travels as one grouped block with each divergence listed, one verdict covering the class.
+An apply-now lands this run under Step 4's rules — the restores and bullet deletions AGENTS.md rule 2 orders included.
+A defer travels to the `/spec` the closing flow pointer names; the edit an adjustment asks for travels the same way unless the user orders it applied now, the bullet recording the intent.
 A keep is the user's explicit answer to a presented finding, and what it writes depends on the finding's class.
 A kept uncovered divergence gets one ledger bullet per divergence, in its section, recording the user's reason; a kept house-formatting divergence gets its bullet rewritten around that reason, which then justifies more than formatting, so neither the audit's classes nor rule 2 match it again.
 A kept stale-bullet proposal — the user declining a deletion — leaves the bullet standing and writes nothing new.
-The edit an adjustment asks for still travels to the `/spec`, the bullet recording the intent.
-Silence keeps nothing and writes nothing.
+
+Apply only what a verdict ordered: approved dispositions and apply-now findings.
 
 ## Step 4: Apply and record
 
 - An approved Merge lands byte-identical; where it ends a difference the ledger still describes, delete that bullet in the same edit.
 - An approved Rework or Skip lands with its ledger bullet written in the same edit.
+- An apply-now audit finding lands with its ledger edit — a bullet written, rewritten or deleted — in the same edit.
 - Refresh the `Verified against <tag>.` line of every section the run measured — under the full audit, every fork section, whether or not anything changed — to the newest tag it was fully compared against: the new tag for the updated upstream's forks, the pinned tag for the rest, always the full prefixed tag the stamps already use.
   A section merely consulted keeps its old stamp untouched.
-- A section whose findings the run left unresolved — deferred to a spec, or held back by the cap — takes the annotated stamp the ledger's preamble defines, reason `<n> findings unresolved`, so the stamp does not read as a clean verification.
+- A section whose findings the run deferred to the `/spec` takes the annotated stamp the ledger's preamble defines, reason `<n> findings unresolved`, so the stamp does not read as a clean verification.
   A measurement the run could not complete — a fork skipped at the new tag, or a file still unread after the retry — adds the reason `not fully compared: <what>` to that same stamp, so the failure survives in the ledger rather than only in this session.
 - Advance the updated upstream's pin in the ledger's preamble and set each of its forks' `source:` to the new version, including forks where nothing merged — never one not fully compared at the new tag, which keeps its own `source:` and parks as a question — so the next sync starts from the right baseline.
 - Bump each touched fork's `version` for what the sync changed — patch for clarifications, minor for new rules, major for a breaking change — at one bump per skill per release, sized to the largest change in it.
   A fork whose `version:` line already differs from `git show <this repo's last release tag>:skills/<fork>/SKILL.md` (a cantrips `v…` tag, never an upstream one) takes no second bump; where the sync's change is the larger, resize that bump instead.
 - A fork whose only change is its `source:` line takes a patch bump where no bump this release already covers it: that line is shipped frontmatter that moved, and left unbumped it would break the property that a fork's recorded version matches what it carries.
 
-Done when every delta carries an approved disposition, every approved disposition has been applied, every kept audit finding carries its ledger bullet, every fully compared section is stamped, every touched fork's `version` carries a bump covering this sync, the sync point is recorded, every parked question has been put to the user, and the sync's diff has been through `/review-gate high --loop` — an invocation handed to the user, the run holding the sync open until that gate has run; it stops short of the rest only by parking a question for the user.
+Done when every block of the stream carries the user's verdict, every approved disposition and apply-now finding has been applied, every kept audit finding carries its ledger bullet, every fully compared section is stamped, every touched fork's `version` carries a bump covering this sync, the sync point is recorded, every parked question has been put to the user, and the sync's diff has been through `/review-gate high --loop` — an invocation handed to the user, the run holding the sync open until that gate has run; it stops short of the rest only by parking a question for the user.
 
-Close with a flow pointer (read [flow-pointers.md](../../../skills/writing-for-agents/flow-pointers.md) for the format): `/review-gate high --loop` (user-invoked) — a byte-level diff spanning many shipped skills is not landed on trust — then `/commit` (user-invoked), then `/spec` (user-invoked) when audit findings survive above the cut line.
+Close with a flow pointer (read [flow-pointers.md](../../../skills/writing-for-agents/flow-pointers.md) for the format): `/review-gate high --loop` (user-invoked) — a byte-level diff spanning many shipped skills is not landed on trust — then `/commit` (user-invoked), then `/spec` (user-invoked) when the run deferred audit findings to it.
