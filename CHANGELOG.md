@@ -1,5 +1,36 @@
 # Changelog
 
+## [2.5.0](https://github.com/toverux/cantrips/compare/v2.4.0...v2.5.0) (2026-09-01)
+
+
+### Features
+
+* carry upstream's new behavior into /diagnosing-bugs, /commit and /simplify ([1d9efe4](https://github.com/toverux/cantrips/commit/1d9efe4cb7b2a5d2412810550950e20bcbcbdcdd))
+* **review-gate:** tell a churning loop from a converging one ([f2462e8](https://github.com/toverux/cantrips/commit/f2462e8e07cc13bdbef22c9c08837132a8979f1d))
+
+
+### Bug Fixes
+
+* advance every fork's sync point to the current upstream releases ([c2a705f](https://github.com/toverux/cantrips/commit/c2a705f47e9e36431725876df57269ea8e3102d7))
+* close four wording holes the review sweep found in shipped skills ([19ddbee](https://github.com/toverux/cantrips/commit/19ddbee92247179afacbdeac37023aa98bf86e29))
+* **codebase-design:** keep the dispatch sentence to the systematic wording ([27b8e3e](https://github.com/toverux/cantrips/commit/27b8e3ed2ff8910307af137c2c2b206b6be04344))
+* **commit:** name the staging and detached-HEAD prohibitions the fork had softened ([2762840](https://github.com/toverux/cantrips/commit/27628407dcc0fea813904911c2b3cfc26c62f7fc))
+* **compound-refresh:** keep an unverifiable claim from being stripped in a merge ([cad16b3](https://github.com/toverux/cantrips/commit/cad16b3f7ff687577b8b3d55a833ac14bd2a59dc))
+* **diagnosing-bugs:** read the standing decisions before designing the fix ([1b2d29b](https://github.com/toverux/cantrips/commit/1b2d29bcae1c76ed7b8aa6743414690b73669c8d))
+* **grilling:** restore upstream's line breaks to the carried paragraphs ([b48cb85](https://github.com/toverux/cantrips/commit/b48cb85830a9ff22ea7a93a2dc1b226029ca0323))
+* **handoff:** return the instruction paragraphs to upstream's text ([6c16488](https://github.com/toverux/cantrips/commit/6c164889446952cc37616e7f62145ecf21eeaedc))
+* **improve-codebase-architecture:** restore upstream's line breaks to the carried paragraphs ([cddefac](https://github.com/toverux/cantrips/commit/cddefacb25c331019002d1f7730c1aeccb4507fb))
+* **resolving-merge-conflicts:** return step 2 and the description to upstream's shape ([ffca0f5](https://github.com/toverux/cantrips/commit/ffca0f5b358f31c1b7ff343fa750867737932ff8))
+* **review-gate:** carry the detector cues and consolidation gate a lone lens needs ([788eb79](https://github.com/toverux/cantrips/commit/788eb791203913785c0b26d3889332f864fc659c))
+* **setup-git-guardrails:** drop the two glosses the reader never needed ([13a77c6](https://github.com/toverux/cantrips/commit/13a77c67d32bbdd30bbd06442ab00ee50f2bcb03))
+* **setup-git-guardrails:** state what the shell pin buys before its fail-open caveat ([e7395b5](https://github.com/toverux/cantrips/commit/e7395b5de53b99aaeb8bf2ae30303f3a787d320f))
+* **simplify:** run a lost fixer pass inline instead of losing the lens ([eedb749](https://github.com/toverux/cantrips/commit/eedb74951767bfccd3a9cbca7770fd7ef021ebeb))
+* **spec:** restore upstream's seam-check sentence and the carried line breaks ([f502f32](https://github.com/toverux/cantrips/commit/f502f328d5b1a01e68c1506d48b81f6d5b6e7c44))
+* **tdd:** read the standing decisions when nothing upstream has ([8c5e2a0](https://github.com/toverux/cantrips/commit/8c5e2a03ff189fe668d27a3c1959880bf531f4c4))
+* **teach:** restore upstream's shape and line breaks to carried text ([dbe2780](https://github.com/toverux/cantrips/commit/dbe278040bd72e54635b2c640b99c85aebe08dba))
+* **tickets:** keep upstream's line breaks so a sync conflicts by the sentence ([9b2badc](https://github.com/toverux/cantrips/commit/9b2badc0c6bce1493ddf52fe734f02f347cb9117))
+* **writing-for-agents:** keep upstream's line breaks so a sync conflicts by the sentence ([3507b38](https://github.com/toverux/cantrips/commit/3507b38bfdab238e2f99b912f56f1357d7e29968))
+
 ## [2.4.0](https://github.com/toverux/cantrips/compare/v2.3.0...v2.4.0) (2026-08-09)
 
 
