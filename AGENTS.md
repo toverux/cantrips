@@ -39,7 +39,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 1. Write against the `/writing-for-agents` standard (`skills/writing-for-agents/SKILL.md`): predictability, leading words, checkable completion criteria, progressive disclosure, positive phrasing, no no-ops, prune sediment.
    Forks prune rather than pad: a fork carries no restatement upstream lacks.
    Running longer than upstream is not a violation of that: a fork may add rules upstream has no counterpart for.
-2. Frontmatter: `name`, `description` (trigger-rich for model-invoked skills; one human-facing line + `disable-model-invocation: true` for user-invoked ones), `argument-hint` where an argument is meaningful, `version` (per-skill semver; bumped per the versioning section below), and for forks `source` recording upstream provenance, e.g. `source: mattpocock/skills@1.2.0 (to-spec)`.
+2. Frontmatter: `name`, `description` (trigger-rich for model-invoked skills; one human-facing line + `disable-model-invocation: true` for user-invoked ones), `argument-hint` where an argument is meaningful, `version` (per-skill semver; bumped per the versioning section below), and for forks `source` recording upstream provenance, e.g. `source: mattpocock/skills@1.2.3 (to-spec)`.
    `version` and `source` are unofficial keys the loaders ignore.
    Changing a fork's body beyond its upstream text is a divergence: record it in [FORKS.md](FORKS.md) in the same edit, so `/sync-upstream` preserves it instead of merging upstream's wording back.
    A passage carried byte-identical stays that way even where a quality pass finds a real improvement in it: skip the finding and name the reason, since the edit trades a permanent sync divergence for a redundancy upstream chose.

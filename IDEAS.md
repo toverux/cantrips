@@ -352,6 +352,19 @@ fork-divergence spec kept out of bounds, which is why it waits here.
 
 **Adopt when:** the next `/compound-refresh` edit lands.
 
+## The redaction discipline lives in one skill
+
+Upstream's `## Redact` section landed in `/diagnosing-bugs` at v1.2.3: every secret redacted before
+a command, output, or captured artifact is shown, loops built against env vars. The concern is not
+diagnosis-specific — `/commit` prints `git status` and diff output, `/review-gate` hands whole
+diffs and untracked files to dispatched finders, and `/handoff` carries only its own one-line
+variant ("Redact any sensitive information") — so the plugin now holds two divergent redaction
+rules in two skills and none elsewhere. The section is carried upstream bytes and stays
+byte-identical where it is; the honest home for a plugin-wide rule is a shared reference the other
+skills point at, reconciling the two wordings on the way.
+
+**Adopt when:** the next edit touching `/commit`, `/review-gate`, or `/handoff` lands.
+
 ## /review-gate loses an angle silently when one dispatch fails mid-run
 
 Its only fallback triggers on "the harness cannot run parallel sub-agents" — a capability check

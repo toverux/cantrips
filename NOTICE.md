@@ -10,4 +10,4 @@ It includes and adapts material from the following MIT-licensed projects:
   Several are forks of, or inspired by, skills from this plugin.
 
 Every forked skill records its exact upstream in its frontmatter `source` key, e.g.
-`source: mattpocock/skills@1.2.0 (to-spec)`.
+`source: mattpocock/skills@1.2.3 (to-spec)`.

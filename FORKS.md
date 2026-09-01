@@ -1,6 +1,6 @@
 # Fork divergence ledger
 
-How this plugin relates to every skill of its two upstreams — [mattpocock/skills](https://github.com/mattpocock/skills) at v1.2.0 and [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) at compound-engineering-v3.21.2.
+How this plugin relates to every skill of its two upstreams — [mattpocock/skills](https://github.com/mattpocock/skills) at v1.2.3 and [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) at compound-engineering-v3.24.0.
 Every upstream skill has a section: a forked skill lists how it deliberately differs and why — a wholesale rewrite's section naming the divergences worth recording rather than every one there is — and the rest are marked "Not ported." with the reason where one is known.
 Updated in the same edit that creates or ends a difference, whether a sync skips an upstream delta or a session rewrites a fork's own text; `/sync-upstream` keeps every listed difference standing without re-litigation, save a divergence whose bullet offers no justification beyond house formatting — that class its audit may re-propose until the bullet records a reason.
 That standing is anchored, not permanent: a listed difference stands for as long as the upstream text its bullet was anchored to survives, and once upstream rewrites that text the delta is judged afresh.
@@ -14,9 +14,9 @@ Each fork's sync point lives in its own `source:` frontmatter — the per-fork t
 
 Differences every fork shares, recorded once; per-skill sections list only what goes beyond these.
 
-- Renamed to this repo's skill name, with cross-skill references rewritten to this repo's names.
+- Renamed to this repo's skill name, with cross-skill references rewritten to this repo's names and the sidecar's `display_name` titlecasing the repo's name where upstream's differed.
 - Frontmatter reworked: `version` and `source` added, `description` rewritten where the invocation mode needs it, `disable-model-invocation` and `argument-hint` set per invocation mode.
-- An `agents/openai.yaml` sidecar beside every SKILL.md.
+- Every sidecar (`agents/openai.yaml`) states `policy.allow_implicit_invocation` explicitly, per AGENTS.md rule 2 — upstream ships sidecars of its own but leaves the policy block off its model-invoked skills — and the three CE forks carry a sidecar upstream lacks entirely.
 - A closing flow pointer naming the next pipeline step(s), where the fork hands on to one.
   Where a review-tail pointer leads into `/review-gate`, it offers `[--fix | --loop]` with a clause on when to take each — the fork's gate has an apply mode and a converge-until-green mode with no upstream counterpart ([docs/research/review-fix-looping-upstream.md](docs/research/review-fix-looping-upstream.md)), and the review tail is where a user chooses between them.
   A pointer with a settled answer names its flag outright instead, as `/review-gate --loop` does when the loop itself stops short of green.
@@ -30,14 +30,14 @@ Differences every fork shares, recorded once; per-skill sections list only what 
 
 ### /codebase-design (codebase-design)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
-- DESIGN-IT-TWICE.md step 2 opens "Spawn 3+ sub-agents, in parallel where the harness supports it (sequentially otherwise)" instead of upstream's "in parallel using the Agent tool" — this plugin ships to Codex CLI as well, where no Agent tool exists and fan-out may have to be sequential.
+- DESIGN-IT-TWICE.md step 2 opens "Spawn 3+ sub-agents, in parallel where the harness supports it (sequentially otherwise)" instead of upstream's unqualified "in parallel" — this plugin ships to Codex CLI as well, where fan-out may have to be sequential.
 - DESIGN-IT-TWICE.md step 2 asks for "the project's domain glossary (the `AGENTS.md` glossary section or `CONCEPTS.md`, where present)" in the sub-agent brief instead of upstream's bare "CONTEXT.md vocabulary" — `CONTEXT.md` is an upstream-only file convention this repo lacks.
 
 ### /diagnosing-bugs (diagnosing-bugs)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - "Phase 0 — Search past learnings and decisions" added ahead of Phase 1 — its solutions search has no upstream counterpart, opening the loop on `/compound`'s `docs/solutions/` store so a recorded root cause can short-circuit the diagnosis before any harness gets built.
 - Upstream's opening `CONTEXT.md`-and-ADRs sentence is adapted into Phase 0 rather than carried: its `CONTEXT.md` mental-model read is dropped outright, not retargeted — `CONTEXT.md` is an upstream-only file convention this repo lacks — and the ADR check becomes a read of the loop-config-gated ADR store, so the fix is designed against the standing decisions without a phantom read where the store is off.
@@ -45,7 +45,7 @@ Verified against `v1.2.0`.
 
 ### /grilling (grilling)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - The `description`'s "Use when" half is rewritten beyond what the systematic frontmatter rework covers — upstream triggers on stress-testing "or uses any 'grill' trigger phrases", the fork on being grilled about a plan, a decision stress-tested, or requirements fuzzy before a spec is written — `/grilling` opens this loop, and the fuzzy-requirements trigger is what fires it ahead of `/spec`, a pipeline position upstream's skill does not hold.
 - Upstream's "design tree" is a "decision tree" throughout — the fork grills any plan, decision, or idea, code-related or not, so design-specific framing would misdescribe its own trigger.
@@ -61,7 +61,7 @@ Verified against `v1.2.0`.
 
 ### /handoff (handoff)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - Upstream's "Do not duplicate content already captured in other artifacts" paragraph flipped to positive phrasing, referencing them by path or URL rather than duplicating — not a hard guardrail, so the `/writing-for-agents` standard phrases it by its positive target.
 - Added paragraph ruling a handoff out as a spec substitute, routing decisions that outlive the session into the feature's spec through the annotate-spec verb, or to `/compound` when the work has no spec — without it the skill invites durable decisions into a temp-directory file this pipeline never reads again.
@@ -69,7 +69,7 @@ Verified against `v1.2.0`.
 
 ### /implement (implement)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - Body rewritten rather than carried; only the typechecking line is upstream bytes.
 - Opening fetches the spec or ticket through the fetch-spec / fetch-ticket verbs and requires it in full first, plus a ticket's parent spec — the fork's inputs come from `/spec` and `/tickets`, so the parent link is known.
@@ -82,20 +82,19 @@ Verified against `v1.2.0`.
 
 ### /improve-codebase-architecture (improve-codebase-architecture)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - The inline vocabulary enumeration — the seven terms and the three principles — not carried; the fork points at `/codebase-design` instead, since restating a referenced skill's glossary duplicates both the file the reader is about to load and HTML-REPORT.md's own "Use exactly" list.
 - `CONTEXT.md` replaced throughout by the project's domain glossary (an `AGENTS.md` glossary section or `CONCEPTS.md`) — this pipeline's knowledge stores, set by `/compound` and echoed by `/tdd` and `/codebase-design`, have no `CONTEXT.md`.
 - HTML-REPORT.md's "ADR callout" renamed "Settled-decision callout", and the settled decisions this scan must not re-litigate are read from whichever of `docs/adr/` and `docs/solutions/` the loop config enables — upstream assumes an always-present ADR tree, where both stores are opt-in here and a recorded rejection may sit in either.
 - "Don't list every theoretical refactor an ADR forbids." not carried — the retained "only surface it when the friction is real enough to warrant revisiting the decision" already carries that constraint.
-- "use the Agent tool with `subagent_type=Explore`" generalized to "dispatch an exploration subagent" — this plugin ships to two harnesses and `subagent_type=Explore` exists only in Claude Code.
 - The `/domain-modeling` side-effect block, including the offer to write an ADR, replaced by capture through `/compound` — this repo has no `/domain-modeling` skill, and `/compound` owns both glossary and `docs/solutions/` writes under a user gate.
 - Upstream's gate on the rejection capture — offer it only when the reason would be needed by a future explorer to avoid re-suggesting the same thing — is not carried, its skip clause (ephemeral and self-evident reasons) standing alone — the capture routes through `/compound`, whose user gate is where worth-recording is decided here.
 - Step 3 owns the close, offering `/codebase-design`, `/spec` or `/implement` by what the interview settled, because the `/grilling` it runs hands back instead of closing — upstream ends on its own side-effect block and never delegates an interview, so nothing there had to decide which skill closes.
 
 ### /prototype (prototype)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - Rule 6's capture destination is the feature's spec — a dated annotation through the annotate-spec verb carrying the branch pointer, the verdict, and the question it settled, falling back to the folding commit when no spec exists — where upstream leaves a context pointer on the implementation issue; this pipeline has no tracker, and the spec is where a prototype's verdict re-enters the loop.
 - LOGIC.md anti-patterns "Don't add tests" and "Don't wire it to the real database" not carried — both restate SKILL.md's "Skip the polish" and "No persistence by default" rules.
@@ -103,26 +102,26 @@ Verified against `v1.2.0`.
 
 ### /questionnaire (to-questionnaire)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - Step 3 writes `questionnaire-<slug>.md` where upstream writes `to-questionnaire-<slug>.md` — the rename drops the `to-` prefix, and this filename is the one the recipient sees.
 
 ### /research (research)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 No divergences beyond the systematic conventions.
 
 ### /resolving-merge-conflicts (resolving-merge-conflicts)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - Step 2's primary-source list ends by fetching the specs behind each change through the fetch-spec verb instead of upstream's "check original issues/tickets." — in this pipeline the recorded intent behind a change lives in the `/spec` artifact.
 - Step 2 adds the no-spec fallback — work from the commits and the PR, and say which side's intent you had to infer — the fetch-spec edit above introduces a source a backend can hold nothing for, and a resolution that guessed an intent without saying so reads as if it had read the spec.
 
 ### /review-gate (code-review)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - Upstream's two fixed axes (Standards + Spec, two parallel sub-agents, reports aggregated verbatim) replaced wholesale by an effort-scaled finder/verifier pipeline — `low`/`medium`/`high`, correctness angles A–F, quality lenses, one independent verifier per location returning CONFIRMED/PLAUSIBLE/REFUTED, a `high`-only sweep, a ranked capped report with outcome tracking, `--fix` apply mode, and a no-sub-agent fallback — because independent verification of every candidate is what buys precision at `medium` and recall at `high`, which unverified side-by-side axis reports cannot.
 - Findings are deduped, merged by root cause, ranked, and capped, reversing upstream's explicit "do not merge or rerank findings" and dropping its _Why two axes_ rationale section — the separation upstream protected with that rule is served here by finder isolation, so ranking no longer lets one axis mask another.
@@ -158,10 +157,11 @@ Verified against `v1.2.0`.
 - Added rule that user-supplied arguments are scope guidance only and never carry actions to perform — the diff and the arguments both reach sub-agents, so the injection boundary has to be stated where the scope is assembled.
 - A `--loop` flag added, implying `--fix` and driving the gate to a defined green state, with its rules disclosed to [LOOP.md](skills/review-gate/LOOP.md) and loaded only when the flag is passed: fix batches verified by the project's own checks, self-scaling delta rounds between them, a certifying pass at the invoked level over the final tree where the loop's fixes reached past the ground already reviewed, park-and-continue escalation of everything needing the user, trajectory, budget and repeat-question guards, and a closing report carrying the round and disposition ledgers.
   No upstream source loops review→fix→re-review before the PR, and compound-engineering re-reviews only once a diff has changed materially, so this diverges knowingly, adapting the patterns of `ce-babysit-pr`, upstream's one true loop ([docs/research/review-fix-looping-upstream.md](docs/research/review-fix-looping-upstream.md)).
+- The sidecar's `short_description` is rewritten ("Effort-scaled, verified review of the changes since a fixed point") — upstream's "Review a diff on standards and spec" describes the two-axis design this fork replaced wholesale.
 
 ### /setup-git-guardrails (git-guardrails-claude-code)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - Generalized from Claude Code alone to both harnesses: step 1 asks which one, step 2 lists four script destinations, step 4 edits every copy it wrote rather than upstream's singular "the copied script".
   Codex ships a wire-compatible `PreToolUse` hook, so one unmodified script serves both and only the config around it differs.
@@ -180,7 +180,7 @@ Verified against `v1.2.0`.
 
 ### /spec (to-spec)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - Issue-tracker publication and the `ready-for-agent` triage label not carried — the fork publishes through the publish-spec verb, and the label vocabulary has no counterpart here.
 - The `/setup-matt-pocock-skills` prerequisite line not carried — per-repo setup is `/setup-cantrips-loop`'s job here, reached through the loop config the fork already points at rather than a prerequisite line.
@@ -194,7 +194,7 @@ Verified against `v1.2.0`.
 
 ### /tdd (tdd)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - Domain-vocabulary sentence rewritten to point at the `AGENTS.md` glossary section or `CONCEPTS.md` — `CONTEXT.md` is an upstream-only file convention this repo lacks.
 - Upstream's "respect ADRs in the area you're touching" is carried in substance rather than in text, scoped to the case where nothing upstream of this skill has read those records — a spec that folded them in, as `/spec` step 2 does, stands in for the read.
@@ -206,7 +206,7 @@ Verified against `v1.2.0`.
 
 ### /teach (teach)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - The `NOTES.md` bullet gains a "refer back to it when designing lessons or working with the user" clause, and upstream's trailing `## NOTES.md` section is not carried — the section carried that directive, which the bullet alone lacked, so the clause keeps it stated once, at the point of use.
 - The learning-records bullet drops upstream's "loosely equivalent to architectural decision records in software development" analogy and its `0001-<dash-case-name>.md` naming sentence — the numbering rule already lives in LEARNING-RECORD-FORMAT.md and the analogy earns nothing at the point of use.
@@ -216,7 +216,7 @@ Verified against `v1.2.0`.
 
 ### /tickets (to-tickets)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - Ticket publication runs through the publish-tickets verb instead of upstream's issue-tracker conventions, and the spec is fetched through the fetch-spec verb the same way.
 - Blocking edges ride the backend's native dependency links where it has them, each ticket's "Blocked by" prose otherwise — one breakdown serves a files-backed and a tracker-backed repo alike.
@@ -233,14 +233,14 @@ Verified against `v1.2.0`.
 
 ### /wait-what (wait-what)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - The body is carried byte-identical but for its closing clause: "use the ubiquitous language from `CONTEXT.md`" becomes "use the project's ubiquitous language", naming no file.
   The other forks point at a domain glossary because they are composing something; this one re-says a message already on screen, where a file read would cost the interrupt the speed that is its whole value.
 
 ### /writing-for-agents (writing-for-agents)
 
-Verified against `v1.2.0`.
+Verified against `v1.2.3`.
 
 - The `description` is rewritten beyond what the systematic frontmatter rework covers — a deliberate widening of the model-invocation trigger from upstream's skills, `AGENTS.md` and `CLAUDE.md` to any file an agent will load and act on, rules files included — because the vocabulary applies to every agent-facing document, and a description scoped to skills left the skill unfired on the rest.
 - SKILL-MECHANICS.md's three claims that a user-invoked skill has no description — "keeps a `description`" in the model-invoked bullet, "with no descriptions" on shared reference, "user-invoked skills have no description" under router skills — are corrected to say the description is out of the agent's reach, fixing a contradiction in upstream's own text: its user-invoked bullet says the `description` becomes human-facing, so the skill has one and only the agent cannot see it.
@@ -326,7 +326,7 @@ Not ported. Upstream marks it in-progress.
 
 ### /commit (ce-commit)
 
-Verified against `compound-engineering-v3.21.2`.
+Verified against `compound-engineering-v3.24.0`.
 
 - Step 4 body discipline rewritten: the body states the problem and why this approach, plain and self-contained, and the session's process (attempts, verification) dies with the session — upstream-style open-ended guidance produced verbose session-narrative bodies.
 - Step 1's compound-candidate scan added — with a diff-review stop on `/compound`'s written prose before it enters a commit, since the destination gate clears a one-line proposal, not the document — along with the loop-closing frame around it (the opening line, Step 5's note that learning writes form their own `docs`-type commit, and the closing "learnings captured, committed" paragraph) — `/commit` closes this repo's engineering loop and must leave the tree clean including `/compound`'s writes, which upstream's single-purpose commit skill has no equivalent for.
@@ -340,12 +340,15 @@ Verified against `compound-engineering-v3.21.2`.
   The tie-break is carried reworded into Step 4 with its why test spelled out; upstream's closing "User override wins." is not carried.
 - Upstream's Bad/Good subject examples not carried — Step 4 states the subject rule as its own bullet with the _why_ test spelled out.
 - A "Formatting details" bullet added, deferring wrapping, trailers, and sign-offs to the repo's documented rules and the user's global instructions — the plugin must stay distributable, so per-user commit-message habits belong outside the skill body.
-- Upstream's v3.21.2 "**Done when:** / **Stop when:**" header and its "Do not use `git diff HEAD` alone as cleanliness (it misses untracked files)" and "never compare against `origin/<name>`" guards not carried — each states what the fork already does elsewhere.
+- Upstream's "**Done when:** / **Stop when:**" header and its "Do not use `git diff HEAD` alone as cleanliness (it misses untracked files)" and "never compare against `origin/<name>`" guards not carried — each states what the fork already does elsewhere.
   Step 2's clean-tree stop and the closing "learnings captured, committed" paragraph state the header's both limbs, and the fork's done condition has to include Step 1's learning writes, which upstream's has no equivalent for; the two guards prohibit a path the fork does not take: Step 2 reads cleanliness from `git status` and strips the `origin/` prefix.
+- Upstream's `exclude:<paths>` invocation contract not carried — no caller here passes one, `/commit` being invoked bare — and Step 5's staged-index rationale drops upstream's "a caller's `exclude:` paths" example with it, the rest of the passage riding byte-identical.
+- Upstream's plan-unit subject trailer (append the unit's U-ID, `(U3)`, when a plan Implementation Unit is in hand) not carried — it is ce-plan's plan-format vocabulary, which has no counterpart here; `/spec` is this pipeline's plan artifact and defines no unit IDs.
+- Step 5 adds two guard lines after upstream's path-list rationale — during a merge or rebase drop the path list (git refuses a partial commit) and check the index first, the bare commit taking it whole; and commit straight after staging, since the path list takes the named files' working-tree content — edges upstream's own text leaves undocumented.
 
 ### /compound-refresh (ce-compound-refresh)
 
-Verified against `compound-engineering-v3.21.2`.
+Verified against `compound-engineering-v3.24.0`.
 
 - The body is an original-words reimplementation rather than carried text, and the bullets below record the divergences worth naming rather than every one there is.
   The two judgment rules merged at v3.21.2 are the exception: "Unverifiable is not false" keeps upstream's wording nearly intact and "Shared code is not shared problem" condenses upstream's clause, so a future sync reconciles those two against upstream and the rest against this entry.
@@ -354,7 +357,7 @@ Verified against `compound-engineering-v3.21.2`.
 - Four verdicts instead of upstream's five, with Replace folded into Update — the fork's Update already covers rewriting a contradicted fix to the current truth and presenting it as the rewrite it is.
 - Upstream's non-interactive mode (`mode:non-interactive`, with `mode:headless` its deprecated alias) not carried, and with it the stale-marking that mode falls back on — `status`, `stale_reason` and `stale_date` written into a doc's frontmatter whenever a classification is too ambiguous to act on unattended.
   Every change in this pipeline is user-gated, so there is no unattended path to fall back from, and the fork's format contract defines no such fields.
-- Upstream's `## Blocking questions` section not carried — it names four harnesses' question tools and their fallback rules, then adds its own ask-one-at-a-time and recommended-option-first principles; the fork presents verdicts for approval in plain prose.
+- Upstream's blocking-question protocol not carried — host-neutral capability matching, tool-discovery loading, a numbered-options fallback, and ask-one-at-a-time / recommended-option-first principles, in `references/modes.md` as of v3.24.0 — the fork presents its verdicts for approval together, in plain prose.
 - The pattern-doc tier (`<root>/solutions/patterns/`, which upstream classifies as derived guidance) and the `_archived/` legacy cleanup not carried — [solutions-format.md](skills/compound/solutions-format.md) defines one flat directory with no derived tier and no archive.
 - Scope matching is filename, then `area`/`tags`, then content keyword — this repo's frontmatter has `area` and `tags` where upstream has `module`, `component`, and category subdirectories.
 - The `CONCEPTS.md` vocabulary machinery — upstream's `## CONCEPTS.md bootstrap requests` disambiguation, its `## Vocabulary Capture` step and the `references/concepts-vocabulary.md` that step reads — reduces to a single pointer, `/compound` owning the glossary-graduation convention here.
@@ -367,12 +370,10 @@ Verified against `compound-engineering-v3.21.2`.
   The fork investigates every doc in scope before a single gate, so there is no batch to order and no continuation to confirm.
 - Upstream's `assets/` and `references/` not bundled — they encode a richer doc schema (`problem_type`, `component`, `severity` enums, resolution templates) that [solutions-format.md](skills/compound/solutions-format.md) supersedes.
 - Upstream's `scripts/` not bundled — the two Python validators would reintroduce a dependency and a check step this repo deliberately lacks, and there is no enum schema left to validate.
-- Upstream's `## Setup` section not carried — a Node fence running `scripts/context.mjs` ahead of any dispatch, plus its truncation-recovery and rerun rules; it injects one harness's session context, and this repo's Boundaries rule out shipping a runtime dependency.
-  The same section opens `ce-simplify-code` and is skipped there for this reason.
 
 ### /simplify (ce-simplify-code)
 
-Verified against `compound-engineering-v3.21.2`.
+Verified against `compound-engineering-v3.24.0`.
 
 - Body rewritten; the three paragraphs merged from upstream stay byte-identical: model selection, the mutation boundary, and pre-release compatibility scaffolding.
 - The three reviewer personas and `references/personas/` are gone, the hunt taxonomy having moved into the shared [QUALITY-LENSES.md](skills/review-gate/QUALITY-LENSES.md) that `/review-gate` reads too, with the fixer preamble each persona separately repeated now stated once in the body and paired with a single lens at dispatch — upstream and this fork maintained the same three dimensions in two separately-authored texts that had already drifted apart in both directions, so refining either meant editing both or letting the gap widen.
@@ -388,14 +389,13 @@ Verified against `compound-engineering-v3.21.2`.
 - Step 4 verifies per material rather than per diff, running the code checks over code and, over prose, a diff-read of every line the pass removed or reworded — a consequence of the widened gate, since upstream's typecheck/lint/test step has nothing to check on prose and re-reading the post-pass file cannot reveal an instruction the pass cut.
 - The safety-check prohibition gains its prose analogue: a gate or a prohibition is a safety check.
 - "Structure pins" paragraph not carried — tied to ce-plan's `session-settled:` plan convention; nothing in this pipeline passes a plan to `/simplify`.
-- Upstream's `## Setup` section not carried, for the reason recorded under `/compound-refresh` — both CE skills open on the same fence.
 - Task-tracking paragraph not carried — harness housekeeping.
 - "Bounded dispatch" paragraph carried in part: its queueing and active-agent-limit backpressure is dropped — the harness's business, and three fixed reviewers never reach the limit — while its inline-fallback rule stays in Step 2, a lost dispatch otherwise costing the pass a whole lens in silence.
-  That rule is reworded rather than carried, both changes following from dropping the backpressure half: upstream triggers on "any other reason" than the backpressure it had just excluded, which names nothing once that clause is gone, so the fork triggers on a failed dispatch or a harness with no way to make one — the case upstream's own "run the reviews inline or serially" covered.
+  That rule is reworded rather than carried: the fork adds the harness-with-no-dispatch-primitive branch — the case upstream's own "run the reviews inline or serially" covered — and its sentence otherwise tracks upstream's v3.24.0 wording, the test "for a reason that survives correcting the invocation" carried byte-identical.
   And upstream's "the same prompt asset" is a persona file this fork does not have, so the fork names the contract, the lens and the scope instead — everything Step 2 hands a fixer except the fixer brief, whose "Edit nothing yourself" is addressed to a dispatched agent and would forbid the parent the very fixes Step 3 tells it to apply.
   Step 3's opening carries upstream's own "whether returned by subagents or produced inline" coverage, reworded to name a dispatched fixer and this context — the same breadth, in the fallback's vocabulary.
 - "Permission mode" paragraph not carried — no dispatch primitive here takes a `mode` parameter, so telling the agent to omit it is a no-op.
-- Upstream's per-harness tool enumerations not carried — the blocking-question tools in Step 1 and the subagent primitives in Step 2 — no skill in this repo names a harness tool, and such names go stale; the background-dispatch parameter in Step 2 is the standing exception the systematic conventions record.
+- Upstream's harness tool mechanics not carried — Step 1's blocking-question protocol (host-neutral capability matching as of v3.24.0) and Step 2's subagent-primitive enumeration — the enumerated names go stale, and a tool-use protocol is the harness's business, not the skill's; the background-dispatch parameter in Step 2 is the standing exception the systematic conventions record.
 - Step 4's failure rule keeps upstream's free choice between repairing the break and reverting the simplification, and narrows it with the mutation boundary — a repair landing outside it leaves revert the only route — because carrying upstream's boundary paragraph into Step 3 turned "fix the underlying break" into an instruction that could reach outside a user-named scope.
 - Step 5's skipped-findings category splits upstream's undifferentiated "skipped" into false positives, churn not worth it, and fixes the mutation boundary put out of reach — the third only exists because Step 3 carries upstream's boundary rule, and a skip it caused is the one a user most needs named.
 - Step 1's third branch is narrowed to "outside a git repository", where upstream also routes a git repository that yields no diff — inside git the fork's own empty-scope stop asks the user instead, and falling back to conversation files there would simplify material the user never put in scope.
@@ -473,6 +473,10 @@ Not ported. Every-specific editorial workflow.
 ### ce-proof
 
 Not ported. Every-specific editorial workflow.
+
+### ce-prototype
+
+Not ported. `/prototype` (forked from Pocock) is this pipeline's prototyping step; ce-prototype's contract and handoffs ride CE's outer loop (ce-brainstorm, ce-plan).
 
 ### ce-resolve-pr-feedback
 
