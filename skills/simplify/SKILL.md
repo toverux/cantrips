@@ -3,8 +3,8 @@ name: simplify
 description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, and efficiency lenses. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify current branch changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.6.1
-source: EveryInc/compound-engineering-plugin@3.21.2 (ce-simplify-code)
+version: 1.7.0
+source: EveryInc/compound-engineering-plugin@3.24.0 (ce-simplify-code)
 ---
 
 Simplify recently changed material while preserving what it does.
@@ -44,7 +44,7 @@ Give each one:
 - the resolved scope (the full diff or file set).
 
 Paraphrasing any of it from memory loses the restraints that keep the pass preserving.
-Where a dispatch fails, or the harness offers no way to make one, run that fixer's pass inline in the parent context under the same preservation contract, lens and scope, and disclose the substitution in one line.
+Where a dispatch fails for a reason that survives correcting the invocation, or the harness offers no way to make a dispatch at all, run that fixer's pass inline in the parent context under the same preservation contract, lens and scope, and disclose the substitution in one line.
 
 <fixer-brief>
 Propose fixes; the skill that dispatched you applies them. Edit nothing yourself.
