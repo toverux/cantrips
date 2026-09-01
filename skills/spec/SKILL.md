@@ -3,7 +3,7 @@ name: spec
 description: Synthesize the current conversation into a published spec, test seams included.
 disable-model-invocation: true
 version: 1.1.3
-source: mattpocock/skills@1.2.0 (to-spec)
+source: mattpocock/skills@1.2.3 (to-spec)
 ---
 
 Produce a spec from the current conversation and codebase understanding.

@@ -2,7 +2,7 @@
 name: codebase-design
 description: Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.
 version: 1.0.4
-source: mattpocock/skills@1.2.0 (codebase-design)
+source: mattpocock/skills@1.2.3 (codebase-design)
 ---
 
 # Codebase Design

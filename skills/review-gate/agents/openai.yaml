@@ -1,5 +1,5 @@
 interface:
-  display_name: 'Review Gate'
-  short_description: 'Effort-scaled, verified review of the changes since a fixed point'
+  display_name: "Review Gate"
+  short_description: "Effort-scaled, verified review of the changes since a fixed point"
 policy:
   allow_implicit_invocation: false

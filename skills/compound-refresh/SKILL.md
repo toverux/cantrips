@@ -4,7 +4,7 @@ description: Garbage-collect the knowledge stores — audit AGENTS.md, and docs/
 argument-hint: '[optional: scope — directory, module, or keyword; blank audits everything]'
 disable-model-invocation: true
 version: 1.2.1
-source: EveryInc/compound-engineering-plugin@3.21.2 (ce-compound-refresh)
+source: EveryInc/compound-engineering-plugin@3.24.0 (ce-compound-refresh)
 ---
 
 Audit the knowledge stores against the current codebase and prune what no longer earns its place.

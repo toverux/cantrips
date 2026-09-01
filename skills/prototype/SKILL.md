@@ -1,8 +1,8 @@
 ---
 name: prototype
 description: Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.
-version: 1.2.0
-source: mattpocock/skills@1.2.0 (prototype)
+version: 1.2.1
+source: mattpocock/skills@1.2.3 (prototype)
 ---
 
 # Prototype

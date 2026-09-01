@@ -4,7 +4,7 @@ description: Set up a hook that blocks dangerous git commands before they execut
 disable-model-invocation: true
 argument-hint: [project|global] [codex|claude]
 version: 1.0.1
-source: mattpocock/skills@1.2.0 (git-guardrails-claude-code)
+source: mattpocock/skills@1.2.3 (git-guardrails-claude-code)
 ---
 
 # Setup Git Guardrails

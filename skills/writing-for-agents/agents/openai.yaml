@@ -1,5 +1,5 @@
 interface:
-  display_name: 'Writing for Agents'
-  short_description: 'Reference for writing predictable agent-facing documents'
+  display_name: "Writing for Agents"
+  short_description: "Write documents agents consume"
 policy:
   allow_implicit_invocation: true

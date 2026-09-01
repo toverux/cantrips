@@ -3,8 +3,8 @@ name: implement
 description: Implement a spec or a single ticket, driving TDD at the seams agreed in the spec.
 argument-hint: '[spec or ticket; blank asks]'
 disable-model-invocation: true
-version: 1.2.1
-source: mattpocock/skills@1.2.0 (implement)
+version: 1.2.2
+source: mattpocock/skills@1.2.3 (implement)
 ---
 
 Implement the work in the spec or the ticket the user names.

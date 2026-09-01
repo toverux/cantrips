@@ -4,7 +4,7 @@ description: 'The review gate — effort-scaled, multi-angle review of the worki
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
 disable-model-invocation: true
 version: 1.6.0
-source: mattpocock/skills@1.2.0 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
+source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 ---
 
 Review the working diff (or the changes since a fixed point) through independent **finder** angles, judge every candidate with an independent **verifier**, and report a ranked, capped findings list.

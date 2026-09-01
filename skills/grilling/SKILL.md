@@ -2,7 +2,7 @@
 name: grilling
 description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to be grilled about a plan, wants a decision stress-tested, or when requirements are fuzzy before a spec is written.
 version: 2.2.1
-source: mattpocock/skills@1.2.0 (grilling)
+source: mattpocock/skills@1.2.3 (grilling)
 ---
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **decision tree**: every decision branches into the decisions that hang off it.

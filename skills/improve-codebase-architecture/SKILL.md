@@ -3,7 +3,7 @@ name: improve-codebase-architecture
 description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 disable-model-invocation: true
 version: 1.2.1
-source: mattpocock/skills@1.2.0 (improve-codebase-architecture)
+source: mattpocock/skills@1.2.3 (improve-codebase-architecture)
 ---
 
 # Improve Codebase Architecture
@@ -25,7 +25,7 @@ Where the project keeps a domain glossary (an `AGENTS.md` glossary section or `C
 Read the project's domain glossary first, then — for whichever of the two stores the loop config enables — search `docs/adr/` for standing decisions and `docs/solutions/` for learnings and recorded rejections in the area: decisions already settled there should not be re-litigated.
 The loop config is `docs/agents/cantrips-loop.md`; when that doc is absent, both stores are off.
 
-Then dispatch an exploration subagent to walk the codebase, in the background where the harness supports it (Claude Code: do not use `run_in_background: false`). Don't follow rigid heuristics — explore organically and note where you experience friction:
+Then spawn a sub-agent to walk the codebase, in the background where the harness supports it (Claude Code: do not use `run_in_background: false`). Don't follow rigid heuristics — explore organically and note where you experience friction:
 
 - Where does understanding one concept require bouncing between many small modules?
 - Where are modules **shallow** — interface nearly as complex as the implementation?

@@ -3,7 +3,7 @@ name: tickets
 description: Break a spec, plan, or the current conversation into tracer-bullet tickets, each declaring its blocking edges.
 disable-model-invocation: true
 version: 1.1.3
-source: mattpocock/skills@1.2.0 (to-tickets)
+source: mattpocock/skills@1.2.3 (to-tickets)
 ---
 
 # Tickets
