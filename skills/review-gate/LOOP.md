@@ -1,76 +1,56 @@
 # Loop mode
 
 Drive the gate to **green** instead of reporting once.
-These rules govern the whole run at every level and on every harness: they extend Scope, Find, Verify and Sweep where those run, and they stand in for whatever reporting and closing the level would otherwise have done — Synthesize and report's at `medium` and `high`, the inline pass's at `low`, the Fallback's unverified-review note where the harness has no sub-agents, and the Close section's on every path.
-What they stand in for is when a report lands and what it closes on; how a finding is judged, shaped and channelled still comes from the section the level would have run.
-Apply mode is on throughout, `--loop` implying `--fix`, including on those two paths where the gate grants it nowhere else.
-Every fix a round applies stays inside the run's mutation boundary, which SKILL.md gives its own section: a delta round narrowed to one batch's diff narrows what gets read, never what may be changed.
+These rules govern the whole run at every level and on every harness: they leave Scope, Find, Verify and Sweep as they are where those run, and stand in for the reporting and closing the level would otherwise have done — Synthesize and report's at `medium` and `high`, the inline pass's at `low`, the Fallback's unverified-review note where the harness has no sub-agents, and the Close section's on every path.
+How a finding is judged, shaped and channelled still comes from the section the level would have run; every path writes its fixes under Synthesize and report's apply mode, inside the run's mutation boundary, which a delta round's narrower scope never narrows.
 
-**Green** is every finding the loop surfaced carrying an explicit disposition — fixed, hardened, no longer present, or user-acknowledged — with the project's checks back where they started.
-Dispositions live in this session, so a finding a later pass re-finds already carries one and is not new — except where a batch tried to fix it and it came back anyway, which is the loop's signal that the fix is not taking.
-Each disposition reports through the findings tool as one of its outcomes: a fix or a hardening as `fixed`, a finding the tree no longer exhibits as `no_change_needed`, anything you acknowledged, skipped or routed as `skipped`.
+**Green** is a certifying pass over the whole target that surfaces nothing new, with the project's checks back at their baseline.
+Every finding the loop acted on carries one disposition, reported as it lands, through the findings tool where the harness offers one: `fixed` for a fix or a hardening, `no_change_needed` where the tree no longer exhibits it, `skipped` for anything you acknowledged, declined or routed.
 
-## The round
+## The loop
 
-Open with a **certifying pass**: the full gate at the invoked level over the target, its checks run before anything changes so their result stands as the baseline.
-An opening pass that finds nothing closes the run there, green on that pass alone.
+```python
+def loop(target, level):
+  baseline = checks()
+  queue, parked = [], []
+  while True:                                        # one round
+    if not queue:
+      found = gate(target, level)                    # certifying pass
+      if refound := refound_fixed(found): return f"STOP: fix_not_taking — {refound}"
+      queue = new(found)
+      if not queue and not new_failures(baseline): return "GREEN: certifying pass surfaced nothing new, checks at baseline"
+    record = apply_batch(take(queue), parked)        # next batch in rank order; parks what needs you
+    if new_failures(baseline): record = keep_baseline(record, parked)
+    if record:
+      queue += new(gate(diff(record), delta_level(record, level)))   # delta round
+    if stop := asked_twice(parked) or fourth_novel_round(): return f"STOP: {stop}"
+    if parked: queue += answers(present(parked)); parked = []
+```
 
-Then each round: apply the findings worth fixing, most severe first, parking what needs the user; run the project's checks; then review just what the batch changed — a **delta round**, scoped to the batch's own diff plus any file it created.
-Pick that round's level by the batch itself, capped at the invoked level: a few lines inside one file earn `low`, a batch spanning several files or touching anything other code depends on earns `medium`, and one you would not want reviewed hunk-only earns the invoked level.
-Record the batch's files and hunks as it lands: the working tree holds no fixed point separating them from the feature work around them.
-A batch that changed nothing — everything parked, or the batch reverted — has no diff to review, so it skips its delta round and goes straight to the parked set.
-Repeat while the rounds keep returning findings or the queue still holds any.
-
-The queue holds every finding surfaced and not yet dispositioned or parked; parking moves a finding out of it, and an answer dispositions it.
-A queued finding the tree no longer exhibits leaves it too, dispositioned `no_change_needed` — a neighbouring fix resolving one is why the queue can empty without every finding being applied.
-Re-read its location before dropping it: judging from memory of what you just edited is the author-clearing-their-own-work bias the gate runs independent verifiers to route around.
-The findings cap sizes one batch and truncates nothing — cap-held findings stay queued and drain into later batches, since they are already found and in session.
-Findings arrive verified where the level ran a verify stage and unverified at `low` or on a harness without sub-agents; severity orders a batch either way.
-
-When a delta round comes back clean, the queue is empty and the checks stand at baseline, close: run a second certifying pass first **if any fix reached past what the delta rounds read** — an export's signature or its behaviour, a shared rule, a cross-file pointer — since that interaction is the only thing a second pass buys.
-A certifying pass that returns findings has closed nothing: they enter the queue and the rounds resume.
-Where every fix both stayed inside the file its finding was reported in and touched nothing another file depends on, the opening pass plus the delta rounds have already read every line that ships, and the report says so rather than claiming a pass that never ran.
-Behaviour counts as much as shape: returning `null` where callers expect an empty list breaks them without touching a signature, and that fix reached past what any delta round read.
+- `checks()` — the project's own checks (the commands its `AGENTS.md`/`CLAUDE.md` names, or the obvious suite runner); the opening run is the **baseline**, `new_failures` is what a rerun adds to it, and a project with no checks sits at baseline by definition.
+- `gate` — the full gate at that level: a **certifying pass** over the run's target as the tree now stands, a **delta round** over one batch's diff, handed to Scope as the target; the level's cap sizes `take`'s batch, and the gate hands over everything it found, whatever cap its level's report would apply.
+- `new(found)` — what is neither queued, parked, nor `skipped` by you; a finding the loop already dispositioned that comes back is queued for one retry, then parked for you — except the `fixed` one a certifying pass brings back, which stopped the run above.
+- `apply_batch` — each finding's fix under apply mode, or the edit you made yourself where that was your answer, its disposition `fixed`; the **record** is the batch's edits, files and hunks, since no fixed point separates them from the feature work around them, and `diff(record)` adds any file the batch created.
+- `keep_baseline` — back out the edit likeliest behind the red, yours included; where that clears the checks, repair it once, parking it backed out where the checks still fail; where it does not, revert the batch and park it for you as one item, a red that survives the revert, or that no edit explains, parked with it; a backed-out or reverted edit leaves the record and loses its disposition, a repaired one is `fixed`.
+- `delta_level` — the highest level the batch earns, capped at the invoked one: a few lines inside one file earn `low`, several files or anything other code depends on earn `medium`, one nobody would want reviewed hunk-only earns the invoked level.
 
 ## What needs you
 
-Park it and finish the round — one open question does not abandon the batch already in flight.
-Park a spec finding's route (this is where the gate's ask-before-applying rule lands), a finding whose evidence no fix can resolve, one whose only fix would reach outside the mutation boundary, one you judge real but not worth the churn, an action only you can perform, and a fix the checks reverted.
-A finding no fix can resolve is escalated once and then rides on its disposition, so the loop never waters down code to silence it.
-
-Present the parked set at the end of the round that filled it, as one numbered list: each item with its finding, its verdict where it has one, its evidence, what the loop already tried, a concrete actionable message, and explicit options.
-Then stop and wait — the next round runs on your answers, and a question raised while the work rolls past it is a question missed.
-An answer that changes the tree is a batch like any other: it gets the checks and its own delta round before anything closes.
-Nothing ends the run before the parked set has been put to you either: a loop that stops holding a question you never saw has failed at the thing this mode is for.
-
-## Checks
-
-Discover the project's checks from its own conventions — the commands its `AGENTS.md`/`CLAUDE.md` states, or the obvious suite runner — and run them over each batch: the cheapest oracle available catches a fix that breaks the tree.
-What the opening pass's run reports is the **baseline**; a project with no checks sits at baseline by definition, and a red the loop did not cause blocks nothing.
-On a new failure, attribute it before reverting anything: re-run with the likeliest fix backed out, and where that clears it, give that fix one repair attempt and park it reverted if the repair fails.
-Where backing it out does not clear the failure, revert the batch and park it as one item — an unattributable failure belongs to the batch, not to a guessed fix.
+Unless your answer re-queued it, `apply_batch` parks a spec finding's route (the gate's ask-before-applying rule lands here), a finding no fix can resolve, one whose only fix reaches outside the mutation boundary, one the loop judges real but not worth the churn, an action only you can perform, and anything else the loop cannot resolve — a question beats an improvisation, and a finding is never silenced by weakening what surfaces it.
+`present` is one numbered list: each item with its finding, its verdict where it has one, its evidence, what the loop tried, the question asked, and explicit options — a reverted batch as one item, an edit of yours named as yours.
+`answers` stops the run until you reply, then re-queues what you asked fixed or fixed yourself, your answer widening the mutation boundary where the fix needs it; what you declined is `skipped`, a declined red joining the baseline.
 
 ## Stopping
 
-Three conditions, each checkable, any one of them ending the run:
+Three conditions, each ending the run on a `STOP:` line naming it and what tripped it:
 
-- a certifying pass surfaces a finding an earlier one surfaced and a batch has since tried to fix — the fix is not taking;
-- an item reaches you a second time, a reverted fix counting as the item it answered;
-- a fourth round still surfaces findings the loop had not already found, counted whether or not the rounds between came back clean — a streak that resets is one an alternating cycle evades forever, while draining a backlog the cap held back surfaces nothing new and is not churn.
-
-A finding whose disposition flips between rounds means the rule or contract judging it is ambiguous: repair that, since deciding the disposition again only moves it.
-Read convergence per finder rather than per round: divide by the finders that ran before calling the loop churning or settled.
-
-Anything else the loop cannot resolve becomes a question rather than an improvisation: ask, and let the answer decide.
+- `fix_not_taking` — a certifying pass surfaced a finding dispositioned `fixed`.
+- `asked_twice` — a finding is about to reach you a second time, a reverted fix counting as the finding it answered.
+- `fourth_novel_round` — four gate calls past the first surfaced a finding none before had, counted over the whole run since a count that resets is one an alternating cycle evades; draining what the cap held back surfaces nothing new and is not churn, and a run stopped here relaunches with a fresh count.
 
 ## Reporting
 
-One progress line per round: round number, scope, level, found and fixed counts, checks status.
-Naming the level is what keeps a scaled-down round reported rather than silent.
-Re-report each finding's outcome as its round lands rather than at the end, so the findings tool stays truthful mid-run.
-
-Close on green with, in order: **green and what carries it** — a certifying pass at its level, or the opening pass plus its delta rounds where no fix reached past them — the checks status or that none ran, and, where any pass in that claim ran no verifier, that its findings went independently unverified; **the round ledger** — rounds and certifying passes run, findings fixed per class, how many the cap held back, whether a spec was available, how many candidates the session settled inline; and **the disposition ledger** — every acknowledged, skipped, or spec-routed finding with its one-line reason, so the trust exceptions stay auditable.
-
-A stop reports the same three, opening on the standing findings and the condition that fired, and closes on concrete options.
-
-Flag `/compound` material either way, and close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): on green `/commit` (user-invoked), since what carries the claim above already served as the re-review; on a stop the standing findings first, then `/review-gate --loop` (user-invoked) over the result.
+One progress line per gate call: round number, scope, level, found, novel and fixed counts, checks status.
+The closing report opens on the line the procedure returned, verbatim, then what qualifies it — checks status, or that the project has none, and whether any pass ran unverified — then **the round ledger** (passes and rounds run, findings fixed per class, inline-settled count, spec available or not) and **the disposition ledger** (every skipped or spec-routed finding with its one-line reason).
+A stop adds its standing findings, the parked set included, each with concrete options.
+Flag `/compound` material either way, and close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): on green `/commit` (user-invoked) — the certifying pass already served as the re-review; on a stop `/review-gate --loop` (user-invoked) once the standing findings are settled — nothing has reviewed the fixes since.

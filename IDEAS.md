@@ -136,26 +136,6 @@ sentence being compressed.
 
 **Adopt when:** the next `/writing-for-agents` edit lands.
 
-## Delta rounds narrow the readership, and the round count hides it
-
-`LOOP.md` scopes each delta round to the batch the previous round fixed, and reads convergence from
-findings per round. The two interact in a way it does not warn about: scoping a delta to the batch
-guarantees coverage narrows, so the count falls whether or not the work is settling.
-
-Observed on a seven-round prose gate. Findings ran 24, 11, 10, 9, 5 — then the certifying pass found
-14, more than the delta before it. Nine of those fourteen were in eight files no delta round had ever
-re-read, because the deltas kept landing on the same seven files the fixes kept touching. The falling
-count measured a shrinking readership, not converging prose, and a loop trusting it would have closed
-three rounds early on a number that was going down for the wrong reason.
-
-Candidate rule for the round section: track which files in the target no delta round has read, and
-scope one late pass at those before a low count is allowed to close the loop. Read the trend per file
-rather than per round — a file at zero findings because nobody opened it is not the same observation
-as a file at zero after three passes, and the per-round count cannot tell them apart.
-
-**Adopt when:** the next `/review-gate` edit lands — pairs with the verifier-grouping entry above,
-since both are places where the stated contract and a real pass diverge.
-
 ## Closure claims that were never true
 
 `/writing-for-agents` prunes a **Snapshot** — a count standing where an invariant belongs — because
@@ -217,35 +197,6 @@ so a done-when naming `Next:` would make the deviation observable whichever home
 **Adopt when:** the next edit touching the pipeline closings lands — it re-touches every pipeline
 skill anyway, which is when the copies are cheapest to stamp.
 
-## The gate calls green before the close it owes
-
-The dominant failure in a 2026-08-28 survey of ~85 sessions: `/review-gate` applies fixes, then
-declares green without the delta verification or certifying pass the loop requires, rationalizing
-that the batch was small or that the letter of the rule was satisfied. It recurs within a single
-session after being caught ("the green call was one notch early again"), and the forced close finds
-real defects every time — one certifying pass found eight, "including two in the very fix I made to
-justify running it." The user's countermeasures escalated from an oral reminder to a PERMANENT
-REMINDER pasted into every `--loop` invocation, to a `/goal` Stop hook, to a mechanical
-`stop-review-gate-hook.mjs` — and even under the hook one run took thirteen delta rounds and ended
-by the user clearing the goal by hand. LOOP.md already states the rule; the rule does not survive
-the pull to conclude.
-
-**Adopt when:** the next `/review-gate` edit lands — the close needs a checkable token the agent
-must produce, not a rule it must remember.
-
-## Fixes written from summaries reintroduce defects
-
-The mechanism behind the gate's slow convergence. In one long gate, roughly a third of ~95 fixed
-findings were errors a previous round's fix introduced; in another, five of seven delta rounds
-caught defects in the prior batch's new sentences, and the orchestrator isolated the cause itself:
-"every time I wrote a fix from a verdict's summary instead of from the quoted decompile line, the
-next round caught it" — batches written from quoted lines came back clean. At scale this is the
-non-convergence failure: three sessions on one diff, the 200-subagent cap, "Seventy-six repairs
-bought no measurable drop in defect density" — and the loop has no churn detector.
-
-**Adopt when:** the next `/review-gate` edit lands — a fix sentence is a new claim and needs the
-same source as the one it replaces.
-
 ## /compound and /commit run long until told otherwise
 
 "Keep edits smart and short" (or a variant) appears in nearly every session that reaches
@@ -259,21 +210,6 @@ bypass the cantrips loop").
 
 **Adopt when:** the next `/compound` or `/commit` edit lands — both need a stated length bound and
 a fixed proposal format.
-
-## The standing invocation preamble
-
-Real invocations are never bare: round-limit overrides ("ROUND LIMITS DON'T APPLY FOR THIS RUN,
-continue until green"), anti-over-engineering hedges (often repeated mid-run after failing once),
-autonomy grants escalating to caps ("I'm hands off, CALL THE SHOTS"), and model routing retyped on
-every dispatching invocation even though the user's global CLAUDE.md already states it. Contract
-gaps feed the habit: at `low` the stated contract itself makes `--fix` report without applying —
-and observed runs also skipped the disclosure that contract requires — costing one extra turn to
-say "fix them"; the findings cap parks verified findings mid-`--loop` instead of
-fixing them (self-reported three times before the user said "Take the standing findings"); round
-limits have no knob, so the override only exists as freeform prose.
-
-**Adopt when:** the next `/review-gate` edit lands — everything the preamble restates is a default
-the skill could own.
 
 ## Applied fixes do damage the gate cannot see
 
@@ -375,3 +311,13 @@ per-fixer inline fallback; the gate
 has no counterpart.
 
 **Adopt when:** the next `/review-gate` edit lands.
+
+## Fix disciplines live in one skill and /simplify lacks them
+
+`/review-gate`'s apply mode writes each fix from the line the finding quotes rather than its
+summary, and rereads any prose it wrote before reporting the outcome — the two rules that stopped
+fixes from reintroducing the defect the next round caught. `/simplify` applies fixes from the same
+lens file and has neither. The honest home is the shared lens file's governing rules, which both
+skills already load.
+
+**Adopt when:** the next `/simplify` edit lands.

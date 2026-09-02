@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
 disable-model-invocation: true
-version: 1.6.0
+version: 1.7.0
 source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 ---
 
@@ -13,7 +13,7 @@ Finders find and verifiers judge — a finder never drops a candidate it half-be
 ## Arguments
 
 The effort level is whichever of `low`, `medium`, or `high` appears among the arguments; default `medium`.
-`--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report) on the `medium` and `high` pipelines; `low` and the no-sub-agent fallback report their findings and apply nothing, since neither ran a verifier over them.
+`--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report) on the `medium` and `high` pipelines; `low` and the no-sub-agent fallback report their findings and apply nothing, since neither ran a verifier over them — except under `--loop`, which re-reviews every batch and reports what ran unverified.
 A run handed a `--fix` it cannot honour says so in its summary, so a report with no applied outcomes never reads as nothing having been worth applying.
 `--loop`, anywhere in the arguments, implies `--fix` and drives that apply mode to a defined green state instead of reporting once — read [LOOP.md](LOOP.md) before Scope and run the whole gate under its rules.
 What remains once the level and the flags are taken out is the fixed point.
@@ -102,9 +102,9 @@ Sweep candidates go through Verify like any others.
 
 ## Synthesize and report
 
-Rank: correctness and spec findings outrank quality findings; CONFIRMED outranks PLAUSIBLE.
+Rank: correctness and spec findings outrank quality findings; CONFIRMED outranks PLAUSIBLE; severity orders the rest.
 Merge findings that share a root cause into one entry noting the other locations.
-Cap at the level's maximum, dropping the least severe — the cap sizes one fix batch; dropped findings stay available on request in this session and get another chance on the re-run after the fixes land.
+Cap at the level's maximum, dropping from the bottom of the rank — the cap sizes one fix batch; dropped findings stay available on request in this session and get another chance on the re-run after the fixes land.
 
 A spec finding's report entry carries both fixes: (1) align the code with the spec, or (2) the decision was revised mid-implementation — annotate the spec with the revision (the annotate-spec verb from Scope's loop config) and flag it for `/compound` at loop end.
 The user picks the route at fix time; in apply mode, ask before applying a spec finding.
@@ -115,7 +115,9 @@ For a high-stakes change, offer a cross-model second pass where the harness prov
 
 **Outcome tracking:** whenever reported findings get fixed later in the session — asked-for or incidental — immediately re-report each with its outcome: `fixed`, `no_change_needed`, or `skipped`.
 
-**Apply mode (`--fix`):** after reporting, apply the findings worth fixing — CONFIRMED first — and re-report each applied finding's outcome as you go; leave `skipped` findings named so the user can pick them up.
+**Apply mode (`--fix`):** after reporting, apply the findings worth fixing in rank order and re-report each applied finding's outcome as you go; leave `skipped` findings named so the user can pick them up.
+Write each fix from the line the finding quotes — the verdict's evidence, or the hunk it was flagged on where no verifier ran or the evidence quotes no line — never from its summary.
+Where a fix wrote prose, reread every sentence it wrote in place, as its reader will meet it, and fix what that reading catches before reporting the outcome.
 
 ## Fallback — no sub-agent support
 

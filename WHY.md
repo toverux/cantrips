@@ -103,8 +103,8 @@ additions of its own.
 A single reviewer reading a diff top to bottom misses bugs for two reasons — attention dilutes across
 concerns, and the finder of a candidate bug is a poor judge of it. So finders each hold exactly one
 concern, and an independent verifier judges every candidate, returning CONFIRMED, PLAUSIBLE or
-REFUTED with evidence. Refuted and unverified candidates never reach the report. A finder that
-silently drops a bug it half-believes is the failure this structure exists to prevent.
+REFUTED with evidence. Refuted and unverified candidates never reach a `medium` or `high` report.
+A finder that silently drops a bug it half-believes is the failure this structure exists to prevent.
 
 Two further properties:
 
@@ -114,7 +114,7 @@ Two further properties:
 - **Effort is a precision/recall dial**, stated as such: `low` is one inline pass, `medium` favors
   precision, `high` favors recall and adds a gap-hunting sweep. `--loop` converges until green — fix
   batch, project checks, delta re-review, then a certifying pass — parking anything that needs you
-  instead of blocking on it.
+  until the round ends.
 
 ### Auto-fix has a boundary
 
