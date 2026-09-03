@@ -4,7 +4,7 @@ description: 'The review gate — effort-scaled, multi-angle review of the worki
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
 disable-model-invocation: true
 version: 1.7.0
-source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
+source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer; model-selection paragraph from EveryInc/compound-engineering-plugin@3.24.0 (ce-simplify-code) via /simplify
 ---
 
 Review the working diff (or the changes since a fixed point) through independent **finder** angles, judge every candidate with an independent **verifier**, and report a ranked, capped findings list.
@@ -64,6 +64,8 @@ Dispatch the finders as parallel sub-agents — in the background where the harn
 - **Correctness finders** — one angle brief each from [ANGLES.md](ANGLES.md): A–D at `medium`, A–F at `high` (minus Angle D when Scope found no spec).
 - **Quality finders** — one lens brief per lens carried, from [QUALITY-LENSES.md](QUALITY-LENSES.md), each lens pasted into the prompt with the restraints printed under it and the governing rules from that file's preamble.
   At `medium`, two finders: one carrying the mechanical lenses (Reuse, Simplification, Efficiency), one the judgement lenses (Design, Conventions); at `high`, one finder per lens.
+
+**Model selection.** Use the platform's balanced mid-tier model for the `medium` mechanical-lens finder when the current harness exposes a known override. In Claude Code this is the Sonnet class. In Codex, apply this tier only when the active dispatch primitive exposes an explicit model or custom-agent selector; task wording alone does not select a different model. Otherwise omit the override and inherit the parent model -- a working pass on the parent model beats a broken dispatch.
 
 Where the scope block carries matched `docs/solutions/` learnings, add to every finder's brief the instruction to re-check those learnings where they touch its angle or lens and to cite the learning file when the diff re-triggers one — a finder acts on the brief it is handed, so the rule binds only by travelling inside one.
 

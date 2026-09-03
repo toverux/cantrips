@@ -59,7 +59,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
    `/simplify`'s fixer brief says "Edit nothing yourself" — right for a fixer, and in the parent context it forbids the fixes the next step tells that same context to apply.
 5. Every step that dispatches a sub-agent asks for a background dispatch where the harness supports one, and carries the parenthetical "(Claude Code: do not use `run_in_background: false`)".
    A blocking dispatch freezes the session for as long as the agent runs, which degrades the user experience and is invisible from inside the skill.
-   This is the sole harness parameter a skill body may name; keep the wording identical across skills so a reader meets one clause, not five.
+   A step that tiers a dispatch carries the "Model selection" paragraph `/simplify` holds from its upstream, changing only the noun for the dispatch it tiers; these two are the only harness-specific settings a skill body may name, and the parenthetical stays identical across skills so a reader meets one clause, not five.
 6. Distributability rule: the plugin must be installable by anybody — no user-specific paths, names, or personal conventions inside skill bodies.
    Personalization belongs in the user's own global CLAUDE.md.
 7. Cross-skill references use this repo's names (`/spec`, `/commit`, `/compound`…), never upstream names.
