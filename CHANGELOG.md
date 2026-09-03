@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.6.0](https://github.com/toverux/cantrips/compare/v2.5.0...v2.6.0) (2026-09-03)
+
+
+### Features
+
+* **compound:** always load /writing-for-agents and write each learning to fit its neighbourhood ([f1c9a64](https://github.com/toverux/cantrips/commit/f1c9a648dd86dd32d567a5bdb84d23d4ced8a67f))
+* **review-gate:** make --loop's green a certifying pass that surfaces nothing new, and state its control flow in sixteen lines ([50c7685](https://github.com/toverux/cantrips/commit/50c76855c76c07571fe779a2bc2f02172c817dfc))
+* **review-gate:** run the medium mechanical-lens finder on the mid-tier model ([51e613d](https://github.com/toverux/cantrips/commit/51e613dece092bd6948294d5d4ad44b2ca768d37))
+
 ## [2.5.0](https://github.com/toverux/cantrips/compare/v2.4.0...v2.5.0) (2026-09-01)
 
 
