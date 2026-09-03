@@ -2,7 +2,7 @@
 name: compound
 description: Capture this session's durable learnings and route each to the right knowledge store, every write user-gated. Use at loop end when /commit's opening scan finds candidates, when /diagnosing-bugs closes out a fix, or when the user wants to capture, remember, or write down a learning, convention, gotcha, decision, or preference.
 argument-hint: '[optional: what to capture; blank scans the whole session]'
-version: 1.2.0
+version: 1.3.0
 ---
 
 Harvest what this session learned so future sessions inherit it.
@@ -46,7 +46,11 @@ A write happens only on an approval.
 
 ## 5. Write the approved ones
 
-- Before editing `AGENTS.md`, a rules file, or a skill: load the `/writing-for-agents` skill ([`../writing-for-agents/SKILL.md`](../writing-for-agents/SKILL.md)) and hold the edit to it.
+Load the `/writing-for-agents` skill ([`../writing-for-agents/SKILL.md`](../writing-for-agents/SKILL.md)) and hold every write to it: each store is a file an agent will load.
+Every write lands among text that already exists — in the file, or in its sibling records — so read the neighbourhood first and write to fit it: match the density of what surrounds it, extend the line or section that already covers the subject rather than adding one beside it.
+**Keep the edit as short as it possibly can be.**
+The rationale was for the gate; the file carries the rule.
+
 - Before writing to `docs/adr/`: read [`adr-format.md`](adr-format.md) and hold to it, and search the store for the record a reversal supersedes — the pair only lands when its other half is found.
 - Before writing to `docs/solutions/`: read [`solutions-format.md`](solutions-format.md), then search existing docs (frontmatter `area`, `tags`, `symptoms`) for one covering the same problem — fold fresh context into an existing doc rather than writing a near-duplicate.
 
