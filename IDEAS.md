@@ -312,3 +312,33 @@ declining correctly therefore heads for a STOP with nothing standing — that ru
 novel rounds short of it. Counting only what `ruled` lets through would fix it.
 
 **Adopt when:** a `--loop` run ends on `fourth_novel_round` with an empty standing set.
+
+## `/review-gate`'s default target is empty once the work is committed
+
+The default target is the uncommitted diff, and Scope fails fast on an empty one. A session that
+commits as it goes — a feature amended into one PR commit — reaches the gate with a clean tree, so
+the run fails or the agent picks a fixed point itself: twice in one session it substituted
+`main...HEAD` and said so. Scope could propose the default branch as the fixed point when the tree
+is clean and the branch is ahead of it.
+
+**Adopt when:** the next `/review-gate` edit lands.
+
+## Later-round finders never see the disposition ledger
+
+`new(found)` filters what a round re-raises only after the finders return, so each pass pays
+finders, and sometimes verifiers, to rediscover what the run already skipped or refuted. Handing
+delta and certifying finders the skipped, declined and refuted findings as a do-not-re-raise list
+cut re-raised candidates from about half of a round's to one or two. The list leaves out `fixed`
+findings, since `fix_not_taking` depends on a certifying pass finding one again.
+
+**Adopt when:** the next `/review-gate` edit lands.
+
+## A widened mutation boundary leaves earlier fixes shaped by the narrow one
+
+A fix is written to fit the boundary it was applied under, and nothing sends the loop back to it
+when the user's answer widens that boundary. A charset bug was fixed by replacing `▲`/`▼` with a
+signed number because the symbol table was out of reach; one round later the boundary widened to
+add other symbol keys, and the arrows stayed gone until the user asked why. `answers` could
+re-queue the applied fixes whose record names the boundary as their constraint.
+
+**Adopt when:** the next `/review-gate` edit lands.
