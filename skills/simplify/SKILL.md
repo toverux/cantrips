@@ -64,6 +64,7 @@ Inspect beyond the resolved scope when needed to evaluate a finding, but edit on
 
 Before applying each fix, confirm it satisfies the preservation contract for that material.
 If it can't clear that test, skip it.
+Write each fix from the line at the finding's location, read in place — never from the finding's description of it.
 
 An interface or data shape that existed only in an earlier iteration of the current unshipped scope is not protected behavior once you verify it has no deployed, persisted, public, external, dependent-branch, or in-repo caller outside the resolved scope. Remove that compatibility path only when every required caller update fits the existing mutation boundary; otherwise preserve it.
 
@@ -89,10 +90,11 @@ If no checks are configured, state that in the summary.
 For a file git tracks that state is `HEAD`; for an untracked one it is the Step 1 snapshot, since git holds none.
 That pre-pass text is the only place a cut instruction still exists, so re-reading the file as it now stands cannot find one.
 For each removed or reworded line, confirm it carried no directive, prohibition, gate, or completion criterion — and restore it where it did.
+Then reread every sentence the pass wrote in place, as its reader will meet it, and fix what that reading catches.
 
 ## Step 5: Summarize
 
-Report fixes applied per lens (reuse, simplification, efficiency), findings skipped (as false positives, as not worth the churn, or as fixes the mutation boundary put out of reach), and which verifications ran — the code checks with their results, the prose diff-read, or both.
+Report fixes applied per lens (reuse, simplification, efficiency), findings skipped (as false positives, as not worth the churn, or as fixes the mutation boundary put out of reach), and which verifications ran — the code checks with their results, the prose diff-read and reread, or both.
 The measure is what improved and that the contract held — many clarity and safety fixes preserve or add lines.
 
 Close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/review-gate [--fix | --loop]` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise; pair `--fix` with a `medium` or `high` suggestion to apply the findings once, or `--loop` with any level to converge the gate to green.

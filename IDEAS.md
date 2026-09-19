@@ -171,14 +171,11 @@ a fixed proposal format.
 ## Applied fixes do damage the gate cannot see
 
 A verifier-confirmed finding shipped a visible regression (menu flashing blank, a scrollbar
-popping) the user refused outright; `/simplify` deleted a load-bearing one-liner on a finder's word
-and, in another run, flipped a fact while "simplifying" ("two simulation spawners" became three,
-contradicting a shipped sibling) — against its own quality-only contract. Verification itself reads
-shallow: a reference that "passed three review rounds" for plausibility turned out wrong in every
-substantive claim on first check against the decompile, because "each round's derivation stopped at
-the line that agreed with it."
+popping) the user refused outright. Verification itself reads shallow: a reference that "passed
+three review rounds" for plausibility turned out wrong in every substantive claim on first check
+against the decompile, because "each round's derivation stopped at the line that agreed with it."
 
-**Adopt when:** the next `/review-gate` or `/simplify` edit lands.
+**Adopt when:** the next `/review-gate` edit lands.
 
 ## /setup-cantrips-loop writes without interviewing
 
@@ -267,16 +264,6 @@ per-fixer inline fallback; the gate
 has no counterpart.
 
 **Adopt when:** the next `/review-gate` edit lands.
-
-## Fix disciplines live in one skill and /simplify lacks them
-
-`/review-gate`'s apply mode writes each fix from the line the finding quotes rather than its
-summary, and rereads any prose it wrote before reporting the outcome — the two rules that stopped
-fixes from reintroducing the defect the next round caught. `/simplify` applies fixes from the same
-lens file and has neither. The honest home is the shared lens file's governing rules, which both
-skills already load.
-
-**Adopt when:** the next `/simplify` edit lands.
 
 ## /setup-cantrips-loop sets up model-tier preferences
 

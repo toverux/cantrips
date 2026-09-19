@@ -393,6 +393,8 @@ Verified against `compound-engineering-v3.27.0`.
 - Upstream's scope preflight is not carried at all — it refuses documentation-only diffs, where this plugin is itself prose and a blank invocation under that gate bailed on exactly the material most worth passing over.
   Its enumeration of generated, vendored, lockfile and mechanical-churn content went with it: an agent handed a diff to simplify does not refactor a lockfile or rewrite vendored code, so the gate spent four lines restating the default and a fifth undoing its own over-reach.
 - Step 4 verifies per material rather than per diff, running the code checks over code and, over prose, a diff-read of every line the pass removed or reworded — a consequence of the widened gate, since upstream's typecheck/lint/test step has nothing to check on prose and re-reading the post-pass file cannot reveal an instruction the pass cut.
+- Step 3 writes each fix from the line at the finding's location rather than from the finding's description of it, and Step 4's prose verification closes on a reread of every sentence the pass wrote — `/review-gate`'s two apply-mode disciplines, worded for a finding shape that quotes no line.
+  Each skill keeps its own copy: the gate's copy binds its correctness fixes too, which the shared lens file never reaches, and that file's preamble travels to carriers that apply nothing.
 - The safety-check prohibition gains its prose analogue: a gate or a prohibition is a safety check.
 - "Structure pins" paragraph not carried — tied to ce-plan's `session-settled:` plan convention; nothing in this pipeline passes a plan to `/simplify`.
 - Task-tracking paragraph not carried — harness housekeeping.
