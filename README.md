@@ -342,7 +342,7 @@ flowchart TD
     scope["🔭 <b>Scope</b><br/>target diff · spec · standards · docs/solutions/ learnings"]
     scope ==> corr["🐞 Correctness finders — one per angle<br/>A line-by-line · B removed behavior · C cross-file<br/>D spec conformance · E language pitfalls* · F wrappers*"]
     scope ==> qual["🧹 Quality finders<br/>reuse · simplification · efficiency<br/>design (Fowler smells) · conventions"]
-    corr ==> verify["⚖️ <b>Verify</b> — one independent verifier per location<br/>CONFIRMED / PLAUSIBLE / REFUTED, with evidence"]
+    corr ==> verify["⚖️ <b>Verify</b> — independent verifiers, one per file or section<br/>CONFIRMED / PLAUSIBLE / REFUTED, with evidence"]
     qual ==> verify
     verify -- "high only" --> sweep["🕵️ Sweep — a fresh finder<br/>hunting only gaps"]
     sweep -- "re-verified" --> verify
@@ -358,11 +358,11 @@ flowchart TD
   dispatches 4 correctness + 2 quality finders reviewing for **precision** (≤8); `high` dispatches
   6 correctness + 5 quality finders reviewing for **recall**, then a gap-hunting sweep (≤15).
   Finders run as parallel sub-agents, each briefed on a single angle or lens; every candidate must
-  name a concrete failure scenario. Verifiers judge per location and refuted or unverified
-  candidates never reach a `medium` or `high` report. Findings flow through the harness's typed
-  findings tool where one exists; from `medium` up, `--fix` applies the surviving findings that fit
-  inside the scope it reviewed, naming any it had to hand back. On a harness without sub-agents
-  (Codex), the same angles run inline as a single-pass review that says so.
+  name a concrete failure scenario. Verifiers judge each candidate on its own evidence, and refuted
+  or unverified candidates never reach a `medium` or `high` report. Findings flow through the
+  harness's typed findings tool where one exists; from `medium` up, `--fix` applies the surviving
+  findings that fit inside the scope it reviewed, naming any it had to hand back. On a harness
+  without sub-agents (Codex), the same angles run inline as a single-pass review that says so.
 - **Converge until green** — `--loop` implies `--fix` at any level, `low` and the sub-agent-less
   fallback included, and drives the gate instead of reporting once: fix batch, project checks,
   delta re-review, repeat, until a full-scope certifying pass over the final tree surfaces nothing

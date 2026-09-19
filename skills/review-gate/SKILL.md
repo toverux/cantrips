@@ -83,7 +83,8 @@ Wait for all finders (grouping needs every finder's output), then dedup near-dup
 Settle inline the candidates this session can decide from evidence it already holds — a recorded decision, a rule-quote check, a fact established earlier in the session — locating the deciding quote in your reasoning exactly as a verifier would, without narrating it.
 Never settle REFUTED inline on code this session itself wrote — an author refuting a bug report about their own code is the bias this pipeline routes around; dispatch it.
 
-Group the remaining candidates by `(file, line)` and run **one verifier per distinct location** — an independent sub-agent given the scope block, the relevant files, and the group's candidates, dispatched in the background like the finders (Claude Code: do not use `run_in_background: false`).
+Group the remaining candidates by what one read covers — usually a file for code, a section for prose — keeping each group small enough that every candidate in it gets its own look.
+Run **one verifier per group** — an independent sub-agent given the scope block, the relevant files, the group's candidates, and the instruction to judge each candidate on its own evidence, never weighing it against another in its group, dispatched in the background like the finders (Claude Code: do not use `run_in_background: false`).
 A verifier returns nothing but JSON: an array of verdict objects, each carrying `index` (the candidate it judges), `verdict`, and `evidence` (the quoted line that proves or refutes):
 
 - **CONFIRMED** — can name the inputs or state that trigger it and the wrong output or crash; the evidence quotes the failing line.
@@ -114,7 +115,7 @@ A spec finding's report entry carries both fixes: (1) align the code with the sp
 The user picks the route at fix time; in apply mode, ask before applying a spec finding.
 
 Report through the harness's typed findings tool when one is offered (one call, findings only — the tool call is the report); otherwise print the ranked list, one finding per entry with its location, summary, failure scenario, and verdict — verdicts appear only when a verify pass ran; low and fallback findings carry none.
-End with a one-line summary: findings kept per class, how many verified findings the cap held back (phrased so the user knows they are available on request), whether a spec was available, and how many candidates were settled inline.
+End with a one-line summary: findings kept per class, how many verified findings the cap held back (phrased so the user knows they are available on request), whether a spec was available, how many candidates were settled inline, and how many verifiers judged the rest, grouped by what.
 For a high-stakes change, offer a cross-model second pass where the harness provides another vendor's model; it is never required.
 
 **Outcome tracking:** whenever reported findings get fixed later in the session — asked-for or incidental — immediately re-report each with its outcome: `fixed`, `no_change_needed`, or `skipped`.

@@ -108,24 +108,6 @@ almost mechanically if the surface ever opens.
 
 **Adopt when:** Claude Code (or another harness) exposes plugin-defined workflows.
 
-## A grouping mechanism for `/review-gate`'s verifiers
-
-Verify says to group candidates by `(file, line)` and run one verifier per distinct location. That
-arithmetic runs away on a real pass: twenty-seven candidates over six files resolved to fourteen
-locations, and the orchestrator grouped them by file instead of spawning fourteen sub-agents.
-Observed behaviour is that agents consistently adapt this rule rather than follow it — which makes
-it a rule that does not hold, and the adaptation goes unreported unless the orchestrator volunteers
-it.
-
-Per-location isolation buys one thing: a verifier cannot trade a weak candidate against a strong one
-somewhere else. It costs one sub-agent per location plus a re-read of the same file by each of them.
-A stated grouping mechanism would keep the isolation where it pays and bound the fan-out — group by
-file by default, split a file only past a candidate threshold, and name the grouping in the report
-so the reader knows how much independence was actually bought.
-
-**Adopt when:** the next `/review-gate` edit lands. The stated contract and the observed behaviour
-have already diverged, so the skill is describing a pipeline nobody runs.
-
 ## Compression that falsifies
 
 Pruning weighs what a line costs, not what tightening it asserts. Compressing a loose claim can
@@ -354,7 +336,7 @@ outside the cap, would restore the batch size.
 ## A `/review-gate` level between `low` and `medium`
 
 `low` is one inline pass with no sub-agents and no verifier; `medium` is six finders and a
-verifier per location. Nothing sits between them, so a small change that deserves independent
+verifier per group. Nothing sits between them, so a small change that deserves independent
 verification pays for the full fan-out: on some 240 lines of skill prose, each `medium` certifying
 pass cost five finders and five to ten verifiers, and surfaced a dozen novel candidates on text
 that had not changed. A middle level could run one or two finders and verify what they return.
@@ -368,12 +350,3 @@ declining correctly therefore heads for a STOP with nothing standing — that ru
 novel rounds short of it. Counting only what `ruled` lets through would fix it.
 
 **Adopt when:** a `--loop` run ends on `fourth_novel_round` with an empty standing set.
-
-## One verifier per location over-fans on one-sentence-per-line prose
-
-`/review-gate` groups candidates by `(file, line)`, which suits code; in agent-facing markdown one
-paragraph is several lines, and thirty candidates sat at twenty-two locations inside six
-paragraphs. Grouping by section halved the verifiers over the run with no loss it could see, as an
-orchestrator's deviation the skill does not yet license.
-
-**Adopt when:** the next `/review-gate` edit lands.
