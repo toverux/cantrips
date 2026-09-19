@@ -44,7 +44,7 @@ Restraints:
 
 - Before proposing a shared abstraction for a duplicate, check whether the duplicate can be eliminated instead, derived from an existing source of truth.
   Otherwise consolidate only when behavior-preserving.
-  Eliminating it by leaning on a platform, framework or downstream guarantee is the Reuse lens's call, under the conditions printed there — do not propose it from this lens.
+  Eliminating it by leaning on a platform, framework or downstream guarantee is the Reuse lens's call — do not propose it from this lens.
 - Flatten nesting with early returns, guard clauses, a lookup table, or an if/else-if cascade, and name which.
 - Keep the non-obvious WHY: hidden constraints, subtle invariants, workarounds.
 - Verify "unused" with the project's dead-code linter where one is configured, else a structural search (`ast-grep`) over plain grep, which false-positives on strings, comments and substring matches.
