@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.7.0](https://github.com/toverux/cantrips/compare/v2.6.0...v2.7.0) (2026-09-19)
+
+
+### Features
+
+* **review-gate:** add an arbiter that rules whether each finding is worth fixing, so --fix and --loop stop over-engineering ([4775c78](https://github.com/toverux/cantrips/commit/4775c78fdc7b6c6dbf76558518b2d26566367277))
+* **skills:** carry the closing format in each pipeline skill and hand over a compact keep-list, so closings stop being improvised and resolve to the plugin's skills ([88aea7b](https://github.com/toverux/cantrips/commit/88aea7b30cb70ce181623ab07fea4b27ae2e1b0d))
+* **skills:** sync the compound-engineering forks to v3.27.0 and give /compound-refresh an evidence bar for redundancy ([d7577f1](https://github.com/toverux/cantrips/commit/d7577f10112be2444dc18430abf44b7e210c31da))
+
+
+### Bug Fixes
+
+* **review-gate:** group verifiers by what one read covers, so the skill describes the pipeline runs actually take ([7ae9eed](https://github.com/toverux/cantrips/commit/7ae9eedadc641f92f541d70dc53b1f60d6827008))
+* **review-gate:** stop the Simplification lens pointing into Reuse text its carrier never holds ([6b85ed7](https://github.com/toverux/cantrips/commit/6b85ed7920a859bb8d4545b9f3f067b99e477780))
+* **simplify:** write each fix from the line in place and reread the prose the pass wrote ([8b7eee9](https://github.com/toverux/cantrips/commit/8b7eee9ef7177c041fac86988a967b7ffcaa7b8d))
+
 ## [2.6.0](https://github.com/toverux/cantrips/compare/v2.5.0...v2.6.0) (2026-09-03)
 
 
