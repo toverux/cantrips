@@ -367,10 +367,17 @@ flowchart TD
   fallback included, and drives the gate instead of reporting once: fix batch, project checks,
   delta re-review, repeat, until a full-scope certifying pass over the final tree surfaces nothing
   new — that pass is green, with the project's checks back where they started and every finding
-  explicitly dispositioned: fixed, hardened, or acknowledged by you. Anything needing you is parked
-  and batched at a round boundary while the loop keeps fixing the rest, and guards hand you the
-  wheel when a fix stops taking, when a question comes back twice, or when rounds keep surfacing
-  findings nothing earlier saw.
+  explicitly dispositioned: fixed, hardened, acknowledged by you, or declined by the arbiter.
+  Anything needing you is parked and batched at a round boundary while the loop keeps fixing the
+  rest, and guards hand you the wheel when a fix stops taking, when a question comes back twice,
+  or when rounds keep surfacing findings nothing earlier saw.
+- **Held proportionate** — wherever `--fix` or `--loop` applies fixes after a verify pass, an
+  **arbiter** rules beside the verifiers: one sub-agent on the harness's most capable model, the
+  long-term maintainer guarding YAGNI and KISS, deciding whether each finding is worth fixing
+  _here_. Its ruling binds — a declined finding is skipped with its reason, listed in the report
+  for you to overrule, and never asked about — and under `--loop` it stays alive across rounds,
+  watches how much the fixes have grown the target, and may have an overbuilt fix shrunk or backed
+  out. A fifty-line script stays a fifty-line script.
 - **Next** — fix what's worth fixing, re-run after substantial fixes, then `/commit`. Findings
   that exposed a durable gotcha are flagged as `/compound` material for commit's opening scan.
 

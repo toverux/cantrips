@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
 disable-model-invocation: true
-version: 1.7.1
+version: 1.8.0
 source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer; model-selection paragraph from EveryInc/compound-engineering-plugin@3.27.0 (ce-simplify-code) via /simplify
 ---
 
@@ -90,6 +90,8 @@ A verifier returns nothing but JSON: an array of verdict objects, each carrying 
 - **PLAUSIBLE** — the mechanism is real, the trigger uncertain (timing, env, config); the evidence states what would confirm it.
 - **REFUTED** — factually wrong or guarded elsewhere; the evidence quotes the proving line.
 
+Where this run applies fixes — `--fix` or `--loop` — read [ARBITER.md](ARBITER.md) and dispatch the **arbiter** over every candidate still standing after inline triage, at the same time as the verifiers and whether or not any was needed: it rules which findings are worth fixing here, and its ruling binds.
+
 A spec candidate is judged on whether the mismatch is real, never on whether it was deliberate: cite deliberateness evidence (session transcript, commit messages) in the verdict's evidence to inform the user, and let the finding stand — the user routes it at fix time.
 
 Keep CONFIRMED and PLAUSIBLE; drop REFUTED.
@@ -117,7 +119,7 @@ For a high-stakes change, offer a cross-model second pass where the harness prov
 
 **Outcome tracking:** whenever reported findings get fixed later in the session — asked-for or incidental — immediately re-report each with its outcome: `fixed`, `no_change_needed`, or `skipped`.
 
-**Apply mode (`--fix`):** after reporting, apply the findings worth fixing in rank order and re-report each applied finding's outcome as you go; leave `skipped` findings named so the user can pick them up.
+**Apply mode (`--fix`):** after reporting, apply the findings worth fixing in rank order — the arbiter's rulings settle which, wherever one ran — and re-report each applied finding's outcome as you go; leave `skipped` findings named so the user can pick them up.
 Write each fix from the line the finding quotes — the verdict's evidence, or the hunk it was flagged on where no verifier ran or the evidence quotes no line — never from its summary.
 Where a fix wrote prose, reread every sentence it wrote in place, as its reader will meet it, and fix what that reading catches before reporting the outcome.
 
