@@ -116,7 +116,7 @@ lineStart/lineEnd range is capped at 400 lines", pinning an unconditional cap on
 Candidate rule for Pruning: re-verify a compressed claim against its source, not against the
 sentence being compressed.
 
-**Adopt when:** the next `/writing-for-agents` edit lands.
+**Adopt when:** the next edit to `/writing-for-agents`' Pruning section lands.
 
 ## Closure claims that were never true
 
@@ -131,28 +131,8 @@ short list tells `/sync-upstream` that an unlisted divergence is drift to merge 
 for Pruning: count an exhaustive claim as you write it, or phrase it so counting is unnecessary —
 "recorded below" cannot be off by one.
 
-**Adopt when:** the next `/writing-for-agents` edit lands, with "Compression that falsifies" above —
-the same defect one step earlier.
-
-## Inline the flow-pointer format into each pipeline skill
-
-The closings say "read [flow-pointers.md] for the format", and sessions routinely skip the read and
-improvise: the skill body already inlines the pointer's content (targets, `(user-invoked)`, flags),
-so the load has no visible payoff, and an agent that skips it cannot see its own deviation. The
-verb-first rewording recorded in `FORKS.md`'s "Pipeline closings" bullet fixed the citation-read
-failure and not this one. Observed again 2026-08-28 — two skills, two closings, zero reads — and it
-happens often.
-
-The proposal inverts the current design: carry the format in each pipeline skill's closing (it is
-two lines — an italic blockquote, `Next:` / `Next steps:`, an em-dash rationale per pointer) and
-demote `flow-pointers.md` to the authoring reference `/writing-for-agents` points at. That trades
-the one authoritative home for a dozen copies kept identical by hand — the drift cost AGENTS.md
-rule 3 exists to avoid — bought because a pointer whose target holds only presentation is a pointer
-agents demonstrably do not follow. A cheaper companion: the format's opener is a checkable token,
-so a done-when naming `Next:` would make the deviation observable whichever home the format keeps.
-
-**Adopt when:** the next edit touching the pipeline closings lands — it re-touches every pipeline
-skill anyway, which is when the copies are cheapest to stamp.
+**Adopt when:** the next edit to `/writing-for-agents`' Pruning section lands, with "Compression
+that falsifies" above — the same defect one step earlier.
 
 ## /compound and /commit run long until told otherwise
 
@@ -200,34 +180,20 @@ a short ledger" then "No table please for ledgers" in another. Three times the u
 numbers… Would that actually help an agent?") and unresolved referents ("waiting on its own gate —
 which?").
 
-**Adopt when:** the next `/review-gate` edit lands — LOOP.md can carry the ledger format the way
-flow-pointers.md carries the closing format.
+**Adopt when:** the next `/review-gate` edit lands — LOOP.md can carry the ledger format.
 
 ## Skills that do not load when they should
 
-Four shapes. `/writing-for-agents` does not auto-fire when the agent edits agent-facing markdown —
+Three shapes. `/writing-for-agents` does not auto-fire when the agent edits agent-facing markdown —
 the user's own words: "I have to correct you each time you edit agent-facing markdown … to use
-this skill" — and `/compound`'s own step read "a 45-line slice of the file, not the skill." A bare
-`/simplify` in a flow pointer resolved to Claude Code's builtin simplify skill instead of
-`cantrips:simplify` (different contract; bug-hunting leaked into the pass), a collision `commit`,
-`research`, and `init` share. `/diagnosing-bugs` did not fire on a message matching its trigger
-verbatim ("The PublishNewVersion task is broken…"). And under a `/goal` Stop hook, an agent routed
-around `disable-model-invocation` by replicating the whole gate workflow by hand ("The stop hook
-is the user's explicit invocation — I'll run the gate by its files"), forty-seven nag cycles deep.
+this skill" — and `/compound`'s own step read "a 45-line slice of the file, not the skill."
+`/diagnosing-bugs` did not fire on a message matching its trigger verbatim ("The PublishNewVersion
+task is broken…"). And under a `/goal` Stop hook, an agent routed around
+`disable-model-invocation` by replicating the whole gate workflow by hand ("The stop hook is the
+user's explicit invocation — I'll run the gate by its files"), forty-seven nag cycles deep.
 
-**Adopt when:** the next edit touching descriptions or flow pointers lands — pointers should carry
-the namespaced form, and the gate lock needs wording that survives hook pressure.
-
-## The loop spends context it never budgets
-
-The user compacts by hand between steps, naming the next skill to protect the handoff — "/compact
-for /simplify pass", "/compact for /review-gate" — a pattern repeated across sessions because a
-full loop pass does not fit one context window and no skill acknowledges it. The flow pointers
-could carry the recommendation: a closing that names the next step can also say when a `/compact`
-before it is worth it.
-
-**Adopt when:** the next edit touching the pipeline closings lands — same batch as the
-flow-pointer-format entry above.
+**Adopt when:** the next edit touching descriptions lands, or the next `/review-gate` edit for the
+gate lock, which needs wording that survives hook pressure.
 
 ## /compound-refresh's judgment rules guard only the audit that never runs here
 
@@ -340,5 +306,24 @@ when the user's answer widens that boundary. A charset bug was fixed by replacin
 signed number because the symbol table was out of reach; one round later the boundary widened to
 add other symbol keys, and the arrows stayed gone until the user asked why. `answers` could
 re-queue the applied fixes whose record names the boundary as their constraint.
+
+**Adopt when:** the next `/review-gate` edit lands.
+
+## A fix the arbiter narrows trips `fix_not_taking`
+
+The arbiter can rule `fix` and advise fixing one site of a finding while keeping the rest. The
+finding is dispositioned `fixed`, the next certifying pass re-finds the residue kept on purpose,
+and the loop stops on `fix_not_taking` as though the fix had failed. The residue wants its own
+`skipped` disposition, with the arbiter's reason, when the narrowed fix is ruled.
+
+**Adopt when:** the next `/review-gate` edit lands.
+
+## A stopped loop parks for the user what the arbiter could rule
+
+`--loop` stops and waits on every parked item, including those asking only whether a fix is worth
+it — the arbiter's own question. Twice in one run the user answered "ask the arbiter", then
+delegated to it everything parked from then on. A flag, or a first answer, could hand the arbiter
+the parked set, keeping for the user what it cannot rule: spec routes and actions only they can
+perform.
 
 **Adopt when:** the next `/review-gate` edit lands.
