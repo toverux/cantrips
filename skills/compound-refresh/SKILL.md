@@ -3,8 +3,8 @@ name: compound-refresh
 description: Garbage-collect the knowledge stores — audit AGENTS.md, and docs/solutions/ where that store is enabled, against the current code.
 argument-hint: '[optional: scope — directory, module, or keyword; blank audits everything]'
 disable-model-invocation: true
-version: 1.2.1
-source: EveryInc/compound-engineering-plugin@3.24.0 (ce-compound-refresh)
+version: 1.3.0
+source: EveryInc/compound-engineering-plugin@3.27.0 (ce-compound-refresh)
 ---
 
 Audit the knowledge stores against the current codebase and prune what no longer earns its place.
@@ -44,6 +44,9 @@ Judgment rules:
   A claim the repo cannot corroborate — a schema fact, an operational practice, an environment behavior — is not thereby wrong; repos rarely witness their own operations.
   Never delete content, or strip it during a merge, solely because no in-repo artifact confirms it.
   Act only on contradiction, where the code demonstrably does otherwise; an unverifiable-but-plausible claim is a Keep with the verification gap noted in the report.
+- **Redundant needs a quoted artifact.**
+  A doc is fully redundant only when a named in-repo artifact states its reasoning in its own text — a test, a code comment, `AGENTS.md`, a sibling doc — and the verdict quotes it; topical overlap is not coverage.
+  Reasoning only partly recoverable → Update instead: cut what the artifact states, point at it in one line, and keep the measured facts, cross-file invariants, and rejected alternatives nothing else records.
 - **Shared code is not shared problem.**
   Two accurate docs on different sub-problems stay separate even when they cite the same file.
 - **Contradictions between docs outrank staleness** — they actively mislead.

@@ -2,7 +2,7 @@
 name: tickets
 description: Break a spec, plan, or the current conversation into tracer-bullet tickets, each declaring its blocking edges.
 disable-model-invocation: true
-version: 1.1.3
+version: 1.1.4
 source: mattpocock/skills@1.2.3 (to-tickets)
 ---
 
@@ -61,7 +61,7 @@ Iterate until the user approves the breakdown.
 Publish the tickets — the publish-tickets verb, translated by the loop config from step 1 — in dependency order (blockers first).
 Use the template below — one ticket per artifact, never a single combined one.
 Blocking edges ride the backend's native dependency links where it has them (e.g. tracker issue links); otherwise each ticket's "Blocked by" line carries them as prose.
-Publishing leaves the parent spec untouched.
+Do NOT close or modify the parent spec.
 
 <ticket-template>
 

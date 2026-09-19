@@ -3,8 +3,8 @@ name: simplify
 description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, and efficiency lenses. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify current branch changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.7.0
-source: EveryInc/compound-engineering-plugin@3.24.0 (ce-simplify-code)
+version: 1.7.1
+source: EveryInc/compound-engineering-plugin@3.27.0 (ce-simplify-code)
 ---
 
 Simplify recently changed material while preserving what it does.
@@ -44,7 +44,7 @@ Give each one:
 - the resolved scope (the full diff or file set).
 
 Paraphrasing any of it from memory loses the restraints that keep the pass preserving.
-Where a dispatch fails for a reason that survives correcting the invocation, or the harness offers no way to make a dispatch at all, run that fixer's pass inline in the parent context under the same preservation contract, lens and scope, and disclose the substitution in one line.
+Where a dispatch fails for a reason that survives correcting the invocation, or the harness offers no way to make a dispatch at all, run that pass inline under the same preservation contract, lens and scope, and disclose the substitution.
 
 <fixer-brief>
 Propose fixes; the skill that dispatched you applies them. Edit nothing yourself.
@@ -60,7 +60,7 @@ If there is nothing to flag, say so explicitly.
 Proceed once all three lens passes are complete, whether a dispatched fixer returned one or this context ran it, aggregate their findings, and fix each issue directly.
 A false positive or a fix not worth its churn: note it, skip it, move on — settle it yourself rather than raising it to the user.
 
-Inspect beyond the resolved scope when needed to evaluate a finding, but edit only that scope and its necessary import/export seams. For a user-named file or directory scope, those seams must also be inside it; skip any fix that would edit outside the mutation boundary.
+Inspect beyond the resolved scope when needed to evaluate a finding, but edit only that scope and the import/export lines it needs. For a user-named file or directory scope, those import/export lines must also be inside it; skip any fix that would edit outside the mutation boundary.
 
 Before applying each fix, confirm it satisfies the preservation contract for that material.
 If it can't clear that test, skip it.

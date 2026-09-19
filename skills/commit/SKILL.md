@@ -2,8 +2,8 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.1.0
-source: EveryInc/compound-engineering-plugin@3.24.0 (ce-commit)
+version: 1.1.1
+source: EveryInc/compound-engineering-plugin@3.27.0 (ce-commit)
 ---
 
 Close the loop: harvest the session's learnings first, then create well-crafted git commits from the working tree — learning writes included, so the tree is clean when the loop ends.
@@ -79,7 +79,7 @@ git commit -F <message-file> -- file1 file2 file3
 
 No shell parses the message with `-F`: a `$`, quotes, backticks, or a multi-line body pass through literally under any shell, with no quoting rules to satisfy. Git's normal whitespace cleanup still applies (trailing spaces trimmed, blank-line runs collapsed), which is fine for a commit message.
 
-The trailing path list on `git commit` is load-bearing: a bare `git commit` takes the whole index, so anything already staged before this run (work the user staged and did not name) would ride into the commit. Naming the paths commits exactly the group and leaves other index entries alone.
+The trailing path list on `git commit` is required: a bare `git commit` takes the whole index, so anything already staged before this run (work the user staged and did not name) would ride into the commit. Naming the paths commits exactly the group and leaves other index entries alone.
 
 During a merge or rebase, git refuses a partial commit: drop the trailing path list, and — the bare commit taking the whole index — check nothing unrelated sits staged before running it.
 The path list also commits the named files' working-tree content, not the staged copy, so commit right after the `git add` above, before anything else touches those files.

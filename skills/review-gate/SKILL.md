@@ -3,8 +3,8 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
 disable-model-invocation: true
-version: 1.7.0
-source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer; model-selection paragraph from EveryInc/compound-engineering-plugin@3.24.0 (ce-simplify-code) via /simplify
+version: 1.7.1
+source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer; model-selection paragraph from EveryInc/compound-engineering-plugin@3.27.0 (ce-simplify-code) via /simplify
 ---
 
 Review the working diff (or the changes since a fixed point) through independent **finder** angles, judge every candidate with an independent **verifier**, and report a ranked, capped findings list.
@@ -45,7 +45,7 @@ The scope block is passed to every finder, verifier, and sweep agent; the fetche
 
 ## The mutation boundary
 
-Wherever this run applies a fix, that fix reaches only the target Scope established for the run, plus the import/export seams the target needs to keep working — and where step 5's guidance named files, those seams must sit inside them too.
+Wherever this run applies a fix, that fix reaches only the target Scope established for the run, plus the import/export lines the target needs to keep working — and where step 5's guidance named files, those import/export lines must sit inside them too.
 Creating or deleting a file inside that reach is a fix like any other.
 Judging a finding may read anywhere; a fix that cannot stay inside the reach, whatever angle or lens found it, is handed back rather than applied — never a reason to widen the scope — and reported among the run's skipped findings, so the user learns which fix is waiting on a scope only they can widen.
 The boundary governs the session that applies fixes and stays out of the scope block: a carrier told to withhold a fix withholds the candidate instead.

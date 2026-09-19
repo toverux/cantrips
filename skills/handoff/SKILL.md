@@ -3,7 +3,7 @@ name: handoff
 description: Compact the current conversation into a handoff document for another agent to pick up.
 argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
-version: 1.1.2
+version: 1.1.3
 source: mattpocock/skills@1.2.3 (handoff)
 ---
 
@@ -15,7 +15,7 @@ The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.m
 
 Include a "suggested skills" section in the document, which suggests skills that the agent should invoke.
 
-Reference artifacts already captured elsewhere (specs, plans, ADRs, issues, commits, diffs) by path or URL rather than duplicating their content.
+Do not duplicate content already captured in other artifacts (specs, plans, ADRs, issues, commits, diffs). Reference them by path or URL instead.
 
 Redact any sensitive information, such as API keys, passwords, or personally identifiable information.
 
