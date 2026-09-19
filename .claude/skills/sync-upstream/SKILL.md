@@ -1,7 +1,7 @@
 ---
 name: sync-upstream
 description: Reconcile this repo's forked skills with a new upstream release. Use when the user says an upstream (compound-engineering, mattpocock/skills) was updated, asks to merge/sync upstream changes into the forks, or wants the forks' divergence audited.
-version: 1.3.0
+version: 1.4.0
 ---
 
 Reconcile the forked skills with a new upstream release: disposition every upstream delta, gate every disposition on the user's approval, audit the whole divergence surface, and record the new sync point.
@@ -104,6 +104,7 @@ Apply only what a verdict ordered: approved dispositions and apply-now findings.
 - A section whose findings the run deferred to the `/spec` takes the annotated stamp the ledger's preamble defines, reason `<n> findings unresolved`, so the stamp does not read as a clean verification.
   A measurement the run could not complete — a fork skipped at the new tag, or a file still unread after the retry — adds the reason `not fully compared: <what>` to that same stamp, so the failure survives in the ledger rather than only in this session.
 - Advance the updated upstream's pin in the ledger's preamble and set each of its forks' `source:` to the new version, including forks where nothing merged — never one not fully compared at the new tag, which keeps its own `source:` and parks as a question — so the next sync starts from the right baseline.
+  A secondary pin — the updated upstream's version recorded inside the `source:` of a fork whose primary upstream is the other one — advances the same way once the passage it names has been compared at the new tag, read from the two cached tags under `.scratch/sync/` since the tool measures a fork against its primary upstream only; one not compared keeps its version and parks as a question.
 - Bump each touched fork's `version` for what the sync changed — patch for clarifications, minor for new rules, major for a breaking change — at one bump per skill per release, sized to the largest change in it.
   A fork whose `version:` line already differs from `git show <this repo's last release tag>:skills/<fork>/SKILL.md` (a cantrips `v…` tag, never an upstream one) takes no second bump; where the sync's change is the larger, resize that bump instead.
 - A fork whose only change is its `source:` line takes a patch bump where no bump this release already covers it: that line is shipped frontmatter that moved, and left unbumped it would break the property that a fork's recorded version matches what it carries.
