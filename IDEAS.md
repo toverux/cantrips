@@ -214,13 +214,12 @@ a fixed proposal format.
 ## Applied fixes do damage the gate cannot see
 
 A verifier-confirmed finding shipped a visible regression (menu flashing blank, a scrollbar
-popping) the user refused outright; an extracted predicate was reverted across four files as
-over-engineered despite two standing anti-over-engineering instructions; `/simplify` deleted a
-load-bearing one-liner on a finder's word and, in another run, flipped a fact while "simplifying"
-("two simulation spawners" became three, contradicting a shipped sibling) — against its own
-quality-only contract. Verification itself reads shallow: a reference that "passed three review
-rounds" for plausibility turned out wrong in every substantive claim on first check against the
-decompile, because "each round's derivation stopped at the line that agreed with it."
+popping) the user refused outright; `/simplify` deleted a load-bearing one-liner on a finder's word
+and, in another run, flipped a fact while "simplifying" ("two simulation spawners" became three,
+contradicting a shipped sibling) — against its own quality-only contract. Verification itself reads
+shallow: a reference that "passed three review rounds" for plausibility turned out wrong in every
+substantive claim on first check against the decompile, because "each round's derivation stopped at
+the line that agreed with it."
 
 **Adopt when:** the next `/review-gate` or `/simplify` edit lands.
 
@@ -321,3 +320,60 @@ lens file and has neither. The honest home is the shared lens file's governing r
 skills already load.
 
 **Adopt when:** the next `/simplify` edit lands.
+
+## /setup-cantrips-loop sets up model-tier preferences
+
+Skills that tier a dispatch name the tier abstractly — mid-tier for `/simplify`'s fixers and the
+gate's mechanical-lens finder, most capable for the arbiter — and fall back to the parent model
+wherever the harness exposes no selector. Which model a tier means is left to each run. The setup
+interview could ask once and record the answer in the loop config: the model each tier maps to on
+the user's harness, or that a tier is off, for tiering skills to read beside the storage verbs.
+
+## The arbiter can decline a spec finding without the user hearing of it
+
+A `decline` binds whatever the finding's category
+([ADR 0005](docs/adr/0005-an-authoritative-arbiter-of-proportionality-in-the-review-gate.md)), so
+a spec mismatch the arbiter judges not worth its fix is `skipped` with a reason: the user is never
+offered the two spec routes, the spec is never annotated with the revision, and `/compound` is
+never flagged. The arbiter's brief weighs a fix's cost against its failure's and gives it no
+criterion for which of code and spec is wrong. A carve-out would send spec findings past the
+arbiter to the user, as before it existed.
+
+**Adopt when:** a run's ledger shows a declined spec finding the user would have wanted to route.
+
+## A one-shot `--fix` spends its report cap on declined findings
+
+Rank is blind to the arbiter's rulings and nothing removes declines before the cap, which sizes one
+fix batch: twelve kept findings with five declined give a report of five declines and three
+fixables, the other four counted as held back and never named. `--loop` is unaffected, since
+`ruled` drops declines before a batch is taken. Capping after the rulings, with declines listed
+outside the cap, would restore the batch size.
+
+**Adopt when:** a one-shot `--fix` report comes back mostly declines.
+
+## A `/review-gate` level between `low` and `medium`
+
+`low` is one inline pass with no sub-agents and no verifier; `medium` is six finders and a
+verifier per location. Nothing sits between them, so a small change that deserves independent
+verification pays for the full fan-out: on some 240 lines of skill prose, each `medium` certifying
+pass cost five finders and five to ten verifiers, and surfaced a dozen novel candidates on text
+that had not changed. A middle level could run one or two finders and verify what they return.
+
+## The novelty stop counts findings the arbiter declined
+
+`fourth_novel_round` counts what a gate call surfaced, not what survived `ruled`, and finders do
+not run dry on a small target: three `medium` certifying passes over the same unchanged prose each
+brought a dozen novel candidates, most of them refuted or declined. A loop
+declining correctly therefore heads for a STOP with nothing standing — that run closed green two
+novel rounds short of it. Counting only what `ruled` lets through would fix it.
+
+**Adopt when:** a `--loop` run ends on `fourth_novel_round` with an empty standing set.
+
+## One verifier per location over-fans on one-sentence-per-line prose
+
+`/review-gate` groups candidates by `(file, line)`, which suits code; in agent-facing markdown one
+paragraph is several lines, and thirty candidates sat at twenty-two locations inside six
+paragraphs. Grouping by section halved the verifiers over the run with no loss it could see, as an
+orchestrator's deviation the skill does not yet license.
+
+**Adopt when:** the next `/review-gate` edit lands.
