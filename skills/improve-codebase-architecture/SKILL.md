@@ -2,7 +2,7 @@
 name: improve-codebase-architecture
 description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 disable-model-invocation: true
-version: 1.2.1
+version: 1.2.2
 source: mattpocock/skills@1.2.3 (improve-codebase-architecture)
 ---
 
@@ -71,5 +71,10 @@ Side effects happen inline as decisions crystallize — capture the durable ones
   Skip ephemeral reasons ("not worth it right now") and self-evident ones.
 
 The interview hands back here rather than closing itself, so this step owns the close.
-Close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format), picking by what the interview settled: `/codebase-design` when alternative interfaces for the deepened module are still worth exploring — its design-it-twice parallel sub-agent pattern surfaces the options; `/spec` (user-invoked) when the deepening is a change worth a written contract; `/implement` (user-invoked) when it is small enough to go straight in.
+Close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash) — a **choice**, rendering the step whose condition holds, by what the interview settled:
+
+- `/codebase-design` when alternative interfaces for the deepened module are still worth exploring — its design-it-twice parallel sub-agent pattern surfaces the options.
+- `/spec` (user-invoked) when the deepening is a change worth a written contract.
+- `/implement` (user-invoked) when it is small enough to go straight in.
+
 Where the interview ended in a rejection, the capture above is the outcome — say so and offer this skill again on the next candidate.

@@ -2,7 +2,7 @@
 name: compound
 description: Capture this session's durable learnings and route each to the right knowledge store, every write user-gated. Use at loop end when /commit's opening scan finds candidates, when /diagnosing-bugs closes out a fix, or when the user wants to capture, remember, or write down a learning, convention, gotcha, decision, or preference.
 argument-hint: '[optional: what to capture; blank scans the whole session]'
-version: 1.3.0
+version: 1.3.1
 ---
 
 Harvest what this session learned so future sessions inherit it.
@@ -55,4 +55,4 @@ The rationale was for the gate; the file carries the rule.
 - Before writing to `docs/solutions/`: read [`solutions-format.md`](solutions-format.md), then search existing docs (frontmatter `area`, `tags`, `symptoms`) for one covering the same problem — fold fresh context into an existing doc rather than writing a near-duplicate.
 
 Done when every approved candidate is written to its store.
-The writes join the working tree: `/commit`'s flow picks them up when it invoked this scan; on an ad-hoc run, close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/commit` (user-invoked) — it lands these writes with the rest of the diff.
+The writes join the working tree: `/commit`'s flow picks them up when it invoked this scan; on an ad-hoc run, close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash): `/commit` (user-invoked) — it lands these writes with the rest of the diff.

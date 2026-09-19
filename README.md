@@ -87,6 +87,9 @@ flowchart TD
 - **Bugs** enter through `/diagnosing-bugs` instead of grill/spec; the root cause becomes a
   learning at commit time.
 - `/handoff` breaks context at any tier (compaction for resuming — never a substitute for a spec).
+- A closing that points into `/simplify` or `/review-gate` hands you a keep-list to compact the
+  conversation with first: a full pass rarely fits one context window, and only you can see how
+  full yours is.
 
 ## Pluggable storage
 

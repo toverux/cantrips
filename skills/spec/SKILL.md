@@ -2,7 +2,7 @@
 name: spec
 description: Synthesize the current conversation into a published spec, test seams included.
 disable-model-invocation: true
-version: 1.1.3
+version: 1.1.4
 source: mattpocock/skills@1.2.3 (to-spec)
 ---
 
@@ -79,4 +79,7 @@ Any further notes about the feature.
 
 </spec-template>
 
-Spec published → close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/tickets` (user-invoked) if the work spans multiple sessions or context windows, else `/implement` (user-invoked) — in a fresh context either way.
+Spec published → close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash) — a **choice**, rendering the step whose condition holds:
+
+- `/tickets` (user-invoked) where the work spans multiple sessions or context windows — in a fresh context.
+- `/implement` (user-invoked) otherwise — in a fresh context.

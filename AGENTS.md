@@ -52,7 +52,9 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
    Every skill carries an `agents/openai.yaml` sidecar (`interface.display_name`, `interface.short_description`, `policy.allow_implicit_invocation`): `false` for user-invoked skills — Codex CLI ignores `disable-model-invocation`, so the sidecar is what stops auto-firing there — and `true` for model-invoked ones, stating the intent explicitly rather than leaning on Codex defaults.
    The sidecar's `allow_implicit_invocation` is always the logical inverse of the SKILL.md `disable-model-invocation`; a skill shipped without a sidecar auto-fires in Codex whatever its frontmatter says.
 3. Pipeline skills end with a flow pointer naming the next step(s) of the loop and marking a user-invoked target `(user-invoked)`; keep those pointers consistent when renaming or inserting skills.
-   The shared presentation format lives in [flow-pointers.md](skills/writing-for-agents/flow-pointers.md); skills point at that file instead of restating it, wording the pointer verb-first as an instruction to read it.
+   Author each closing from [flow-pointers.md](skills/writing-for-agents/flow-pointers.md): every closing carries its format clause word for word, and a closing that can point into `/simplify` or `/review-gate` carries its compact hint the same way, the copies staying identical across skills as rule 5 asks for its own clause.
+   The format rides in the closing because an agent closing a skill skips a read whose target holds only presentation.
+   An agent cannot observe its own context level, so the compact hint is unconditional and addressed to the user, who can.
 4. A sibling reference file that declares what it extends or replaces must cover every path the parent skill can take — the `low` inline pass and the no-sub-agent fallback included, since neither reaches the sections a main-path declaration names.
    A declaration that names only the main path leaves the other paths running the parent's own rules, which is how a mode degrades silently on one harness while reading correct on the other.
    The inverse costs as much: a brief written for a dispatched carrier holds lines addressed to one, so a fallback that runs the pass inline names what travels rather than reusing the whole prompt.
@@ -73,6 +75,8 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 10. Two settled sentences point at the loop config, and a skill takes the one its own use calls for: the verb form where it speaks a storage verb, the store form where it only gates a knowledge-store read.
     The store form states the fallback outright — the store is off — where the verb form sends the reader to [defaults.md](skills/setup-cantrips-loop/defaults.md) for it, so a skill that speaks no verb and takes the verb form buys a load it cannot act on.
     Copy the wording from a skill that already carries the form — `/spec` for the verb form; `/diagnosing-bugs` for the store form, swapping only which store or stores it names as off — as rule 5 asks for its own clause.
+11. Prove a skill edit by probing what it makes an agent produce: hand a sub-agent only the revised file, how it was invoked, and a finished-work scenario, and grade its output against a pass line written beforehand.
+    A gate run over skill prose reviews wording, and wording always yields another finding.
 
 ## Dual-manifest and catalog sync
 

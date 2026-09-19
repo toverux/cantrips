@@ -3,7 +3,7 @@ name: implement
 description: Implement a spec or a single ticket, driving TDD at the seams agreed in the spec.
 argument-hint: '[spec or ticket; blank asks]'
 disable-model-invocation: true
-version: 1.2.2
+version: 1.3.0
 source: mattpocock/skills@1.2.3 (implement)
 ---
 
@@ -21,5 +21,10 @@ When every criterion is verified, resolve the ticket — the resolve-ticket verb
 Resolve on the criteria without second-guessing: a wrong resolve is one human reopen away.
 The spec itself stays as published — no skill ever closes a spec; closing the feature is the human's act through the backend's native machinery.
 
-Done when every criterion is verified, the ticket (if any) is resolved, and the full suite passes → close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format) naming the review tail, all in this session with the working diff as context: `/simplify` (user-invoked) for an optional quality pass, then `/review-gate [--fix | --loop]` (user-invoked) — suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise, pairing `--fix` with a `medium` or `high` suggestion to apply the findings once, or `--loop` with any level to converge the gate to green — then `/commit` (user-invoked).
-If context runs low anywhere in that chain, recommend `/handoff` (user-invoked) and resume in a fresh session instead of pushing on degraded.
+Done when every criterion is verified, the ticket (if any) is resolved, and the full suite passes → close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash) naming the review tail, a **chain** rendered whole and in order, all in this session with the working diff as context:
+
+- `/simplify` (user-invoked) — an optional quality pass.
+- `/review-gate [--fix | --loop]` (user-invoked) — suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise; pair `--fix` with a `medium` or `high` suggestion to apply the findings once, or `--loop` with any level to converge the gate to green.
+- `/commit` (user-invoked) — once the gate stands.
+
+Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.

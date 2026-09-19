@@ -75,4 +75,4 @@ Present the verdicts: Keeps as one summarized list; every Update, Consolidate, D
 Apply only approved changes.
 
 Close with counts (kept / updated / consolidated / deleted / AGENTS.md findings) and a one-liner per touched file.
-Changes applied → close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/commit` (user-invoked) — to land the refreshed docs.
+Changes applied → close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash): `/commit` (user-invoked) — to land the refreshed docs.

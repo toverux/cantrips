@@ -1,7 +1,7 @@
 ---
 name: prototype
 description: Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.
-version: 1.2.1
+version: 1.2.2
 source: mattpocock/skills@1.2.3 (prototype)
 ---
 
@@ -31,4 +31,4 @@ The two branches produce very different artifacts — getting this wrong wastes 
    When the feature has no spec, leave the pointer in the commit that folds the decision in.
    The main branch keeps only the validated decision.
 
-Question answered → close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): feed the verdict back into the decision that spawned the prototype — the `/grilling` interview or the spec being written.
+Question answered → close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash): feed the verdict back into the decision that spawned the prototype — the `/grilling` interview or the spec being written.

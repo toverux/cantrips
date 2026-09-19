@@ -111,4 +111,12 @@ Apply only what a verdict ordered: approved dispositions and apply-now findings.
 
 Done when every block of the stream carries the user's verdict, every approved disposition and apply-now finding has been applied, every kept audit finding carries its ledger bullet, every fully compared section is stamped, every touched fork's `version` carries a bump covering this sync, the sync point is recorded, every parked question has been put to the user, and the sync's diff has been through `/review-gate high --loop` — an invocation handed to the user, the run holding the sync open until that gate has run; it stops short of the rest only by parking a question for the user.
 
-Close with a flow pointer (read [flow-pointers.md](../../../skills/writing-for-agents/flow-pointers.md) for the format): `/review-gate high --loop` (user-invoked) — a byte-level diff spanning many shipped skills is not landed on trust — then `/commit` (user-invoked), then `/spec` (user-invoked) when the run deferred audit findings to it.
+Close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash), a **chain** rendered in order:
+
+- `/review-gate high --loop` (user-invoked) — a byte-level diff spanning many shipped skills is not landed on trust.
+- `/commit` (user-invoked) — once the gate is green.
+- `/spec` (user-invoked), where the run deferred audit findings to it.
+
+This skill is invoked bare while its targets are the plugin's, so render each target under the plugin's namespace (`/cantrips:commit`).
+
+Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.

@@ -3,7 +3,7 @@ name: simplify
 description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, and efficiency lenses. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify current branch changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.7.1
+version: 1.8.0
 source: EveryInc/compound-engineering-plugin@3.27.0 (ce-simplify-code)
 ---
 
@@ -97,4 +97,5 @@ Then reread every sentence the pass wrote in place, as its reader will meet it, 
 Report fixes applied per lens (reuse, simplification, efficiency), findings skipped (as false positives, as not worth the churn, or as fixes the mutation boundary put out of reach), and which verifications ran — the code checks with their results, the prose diff-read and reread, or both.
 The measure is what improved and that the contract held — many clarity and safety fixes preserve or add lines.
 
-Close with a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format): `/review-gate [--fix | --loop]` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise; pair `--fix` with a `medium` or `high` suggestion to apply the findings once, or `--loop` with any level to converge the gate to green.
+Close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash): `/review-gate [--fix | --loop]` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise; pair `--fix` with a `medium` or `high` suggestion to apply the findings once, or `--loop` with any level to converge the gate to green.
+Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.

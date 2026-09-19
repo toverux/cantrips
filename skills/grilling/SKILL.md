@@ -1,7 +1,7 @@
 ---
 name: grilling
 description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to be grilled about a plan, wants a decision stress-tested, or when requirements are fuzzy before a spec is written.
-version: 2.2.1
+version: 2.2.2
 source: mattpocock/skills@1.2.3 (grilling)
 ---
 
@@ -34,7 +34,7 @@ Finding _facts_ is your job, never the user's. When a frontier question needs a 
 
 The session is done when the frontier is empty: every branch of the decision tree visited, nothing left silently assumed.
 Where another skill invoked this interview, hand back to it there — the close belongs to whichever skill owns the flow.
-Otherwise close with a single sentence stating that shared understanding is reached — no summary — then recommend the next step as a flow pointer (read [flow-pointers.md](../writing-for-agents/flow-pointers.md) for the format) and wait for the user's go-ahead:
+Otherwise close with a single sentence stating that shared understanding is reached — no summary — then recommend the next step as a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash) — a **choice**, rendering the step whose condition holds — and wait for the user's go-ahead:
 
 - `/spec` (user-invoked) when the outcome is a feature worth a written contract — in this session, since it synthesizes the interview; implementation then starts fresh.
 - `/implement` (user-invoked) directly when it's a small fix that needs no spec — in this session, which already carries the context.
