@@ -1,11 +1,12 @@
 # Loop mode
 
 Drive the gate to **green** instead of reporting once.
-These rules govern the whole run at every level and on every harness: they leave Scope, Find, Verify and Sweep as they are where those run, and stand in for the reporting and closing the level would otherwise have done — Synthesize and report's at `medium` and `high`, the inline pass's at `low`, the Fallback's unverified-review note where the harness has no sub-agents, and the Close section's on every path.
+These rules govern the whole run at every level and on every harness: they leave Scope, Find, Verify and Sweep as they are where those run, save what `gate` below adds to a finder's brief, and stand in for the reporting and closing the level would otherwise have done — Synthesize and report's at `medium` and `high`, the inline pass's at `low`, the Fallback's unverified-review note where the harness has no sub-agents, and the Close section's on every path.
 How a finding is judged, shaped and channelled still comes from the section the level would have run; every path writes its fixes under Synthesize and report's apply mode, inside the run's mutation boundary, which a delta round's narrower scope never narrows.
 
 **Green** is a certifying pass over the whole target that surfaces nothing new, with the project's checks back at their baseline.
 Every finding the loop acted on carries one disposition, reported as it lands, through the findings tool where the harness offers one: `fixed` for a fix or a hardening, `no_change_needed` where the tree no longer exhibits it, `skipped` for anything you acknowledged, declined or routed, and for what the arbiter declined.
+The run keeps a **disposition ledger**: every `skipped` or spec-routed finding and every candidate a verifier or inline triage refuted, each with its one-line reason — the arbiter's opinion, your answer, the refuting evidence.
 
 ## The loop
 
@@ -29,6 +30,7 @@ def loop(target, level):
 
 - `checks()` — the project's own checks (the commands its `AGENTS.md`/`CLAUDE.md` names, or the obvious suite runner); the opening run is the **baseline**, `new_failures` is what a rerun adds to it, and a project with no checks sits at baseline by definition.
 - `gate` — the full gate at that level: a **certifying pass** over the run's target as the tree now stands, a **delta round** over one batch's diff, handed to Scope as the target; the level's cap sizes `take`'s batch, and the gate hands over everything it found, whatever cap its level's report would apply.
+  Each finder's brief — the inline pass itself, where the level or the harness dispatches no finder — carries the ledger's `skipped` and refuted entries and the instruction to omit a candidate matching an entry, same defect at the same location for the same reason; a different mechanism at a listed location, or a refuted entry whose proving line the tree no longer holds, is new.
 - `new(found)` — what is neither queued, parked, nor `skipped`; a finding the loop already dispositioned that comes back is queued for one retry, then parked for you — except the `fixed` one a certifying pass brings back, which stopped the run above.
 - `ruled` — the arbiter's round ([ARBITER.md](ARBITER.md)), run at every gate call of a `medium` or `high` run whatever level the call ran at: what it declined leaves as `skipped`, what it ruled `fix` or left unruled stays, and its own findings against applied fixes join; a `low` run and a harness with no sub-agents have no arbiter, and `ruled` hands back what it was given.
 - `apply_batch` — each finding's fix under apply mode, or the edit you made yourself where that was your answer, its disposition `fixed`; the **record** is the batch's edits, files and hunks, since no fixed point separates them from the feature work around them, and `diff(record)` adds any file the batch created.
@@ -47,12 +49,12 @@ Three conditions, each ending the run on a `STOP:` line naming it and what tripp
 
 - `fix_not_taking` — a certifying pass surfaced a finding dispositioned `fixed`.
 - `asked_twice` — a finding is about to reach you a second time, a reverted fix counting as the finding it answered.
-- `fourth_novel_round` — four gate calls past the first surfaced a finding none before had, counted over the whole run since a count that resets is one an alternating cycle evades; draining what the cap held back surfaces nothing new and is not churn, and a run stopped here relaunches with a fresh count.
+- `fourth_novel_round` — four gate calls past the first each left in `ruled(new(found))` a finding none before had, counted over the whole run since a count that resets is one an alternating cycle evades; draining what the cap held back surfaces nothing new and is not churn, and a run stopped here relaunches with a fresh count.
 
 ## Reporting
 
 One progress line per gate call: round number, scope, level, found, novel, declined and fixed counts, checks status.
-The closing report opens on the line the procedure returned, verbatim, then what qualifies it — checks status, or that the project has none, whether any pass ran unverified, how many findings the arbiter declined and whether any round ran unjudged — then **the round ledger** (passes and rounds run, findings fixed per class, inline-settled count, spec available or not) and **the disposition ledger** (every skipped or spec-routed finding with its one-line reason).
+The closing report opens on the line the procedure returned, verbatim, then what qualifies it — checks status, or that the project has none, whether any pass ran unverified, how many findings the arbiter declined and whether any round ran unjudged — then **the round ledger** (passes and rounds run, findings fixed per class, inline-settled count, spec available or not) and **the disposition ledger**'s `skipped` and spec-routed entries.
 A stop adds its standing findings, the parked set included, each with concrete options.
 Flag `/compound` material either way, and close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash), a **choice** on how the run ended: on green `/commit` (user-invoked) — the certifying pass already served as the re-review; on a stop `/review-gate --loop` (user-invoked) once the standing findings are settled — nothing has reviewed the fixes since.
 Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.
