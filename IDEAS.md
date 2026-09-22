@@ -2,7 +2,8 @@
 
 Analyzed during the design of the loop and deliberately deferred. Most of these earn their keep at
 team scale or on big, long-running projects; cantrips targets a solo workflow. Each entry notes
-when it becomes worth adopting.
+when it becomes worth adopting; an edit that fires that trigger adopts the entry or re-defers it
+under a new one in the same change.
 
 ## More harnesses beyond Claude Code and Codex CLI
 
@@ -269,16 +270,6 @@ verification pays for the full fan-out: on some 240 lines of skill prose, each `
 pass cost five finders and five to ten verifiers, and surfaced a dozen novel candidates on text
 that had not changed. A middle level could run one or two finders and verify what they return.
 
-## The novelty stop counts findings the arbiter declined
-
-`fourth_novel_round` counts what a gate call surfaced, not what survived `ruled`, and finders do
-not run dry on a small target: three `medium` certifying passes over the same unchanged prose each
-brought a dozen novel candidates, most of them refuted or declined. A loop
-declining correctly therefore heads for a STOP with nothing standing — that run closed green two
-novel rounds short of it. Counting only what `ruled` lets through would fix it.
-
-**Adopt when:** a `--loop` run ends on `fourth_novel_round` with an empty standing set.
-
 ## `/review-gate`'s default target is empty once the work is committed
 
 The default target is the uncommitted diff, and Scope fails fast on an empty one. A session that
@@ -286,16 +277,6 @@ commits as it goes — a feature amended into one PR commit — reaches the gate
 the run fails or the agent picks a fixed point itself: twice in one session it substituted
 `main...HEAD` and said so. Scope could propose the default branch as the fixed point when the tree
 is clean and the branch is ahead of it.
-
-**Adopt when:** the next `/review-gate` edit lands.
-
-## Later-round finders never see the disposition ledger
-
-`new(found)` filters what a round re-raises only after the finders return, so each pass pays
-finders, and sometimes verifiers, to rediscover what the run already skipped or refuted. Handing
-delta and certifying finders the skipped, declined and refuted findings as a do-not-re-raise list
-cut re-raised candidates from about half of a round's to one or two. The list leaves out `fixed`
-findings, since `fix_not_taking` depends on a certifying pass finding one again.
 
 **Adopt when:** the next `/review-gate` edit lands.
 
