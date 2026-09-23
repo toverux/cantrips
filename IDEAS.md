@@ -308,3 +308,22 @@ the parked set, keeping for the user what it cannot rule: spec routes and action
 perform.
 
 **Adopt when:** the next `/review-gate` edit lands.
+
+## The arbiter's earlier rulings should bind it
+
+Over one `--loop` run (transcript `6155e3fb-b5ba-457a-8d49-c88c8e3d2a3a`) the arbiter ruled the same finding three ways in three rounds (a lock takeover
+refused, then endorsed, then refused; an accept status locked, then unlocked), each time on the round's
+message alone. Each ruling was applied, each reversal cost a batch and a delta round. Its own prior
+rulings travel in the message as drift data, but nothing says they stand unless the round brings new
+evidence; the brief should, so a reversal has to name what changed.
+
+**Adopt when:** the next `/review-gate` edit lands.
+
+## `ReportFindings` caps `short_summary` at sixty characters
+
+The typed findings tool rejects the whole call when one `short_summary` passes sixty characters, and
+the skill's report step does not mention the limit; three calls in one run (the same transcript) bounced on it. One clause in
+the report step, or a note that the field is optional, spares the retry.
+
+**Adopt when:** the next `/review-gate` edit lands.
+
