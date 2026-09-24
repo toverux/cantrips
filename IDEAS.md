@@ -269,6 +269,10 @@ verifier per group. Nothing sits between them, so a small change that deserves i
 verification pays for the full fan-out: on some 240 lines of skill prose, each `medium` certifying
 pass cost five finders and five to ten verifiers, and surfaced a dozen novel candidates on text
 that had not changed. A middle level could run one or two finders and verify what they return.
+`high` repeats it under `--loop` (transcript `f2253bc7-95bc-4533-beee-726347955eef`): each
+certifying pass after the first sent eleven finders for nits or reworded declines, three passes for
+three small fixes, while the arbiter twice ruled the run converged. Later certifying passes could
+run a level down, or the arbiter's converged trajectory could end the loop.
 
 ## `/review-gate`'s default target is empty once the work is committed
 
@@ -316,6 +320,16 @@ refused, then endorsed, then refused; an accept status locked, then unlocked), e
 message alone. Each ruling was applied, each reversal cost a batch and a delta round. Its own prior
 rulings travel in the message as drift data, but nothing says they stand unless the round brings new
 evidence; the brief should, so a reversal has to name what changed.
+
+**Adopt when:** the next `/review-gate` edit lands.
+
+## A test the arbiter shapes is never run against its defect
+
+An arbiter `fix` opinion can prescribe the test a fix adds, and nothing checks that the test fails
+with its guard removed before the finding is `fixed`. In transcript
+`f2253bc7-95bc-4533-beee-726347955eef` the prescribed dedup test held no copy dated outside the
+window, so it could not fail on the ablated guard; the verifier's own ablation named the case that
+bites. Apply mode could require a test-adding fix to go red on the ablation first.
 
 **Adopt when:** the next `/review-gate` edit lands.
 
