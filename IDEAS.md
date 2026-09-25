@@ -155,6 +155,11 @@ A verifier-confirmed finding shipped a visible regression (menu flashing blank, 
 popping) the user refused outright. Verification itself reads shallow: a reference that "passed
 three review rounds" for plausibility turned out wrong in every substantive claim on first check
 against the decompile, because "each round's derivation stopped at the line that agreed with it."
+Prose fixes do it too (transcript `2296fef0-9d0e-4541-bac7-ea15e7dd6158`): a conventions finding
+ruled `fix` reworded 22 passive lines the diff never wrote, and two rewrites named the wrong actor;
+a round later, three of five errors of fact came from wording the arbiter dictated. A prose fix
+could stay on lines the diff wrote, and dictated wording be checked against the code before it
+lands.
 
 **Adopt when:** the next `/review-gate` edit lands.
 
@@ -272,7 +277,9 @@ that had not changed. A middle level could run one or two finders and verify wha
 `high` repeats it under `--loop` (transcript `f2253bc7-95bc-4533-beee-726347955eef`): each
 certifying pass after the first sent eleven finders for nits or reworded declines, three passes for
 three small fixes, while the arbiter twice ruled the run converged. Later certifying passes could
-run a level down, or the arbiter's converged trajectory could end the loop.
+run a level down, or the arbiter's converged trajectory could end the loop. A user who handed the
+arbiter the end of each slice (transcript `2296fef0-9d0e-4541-bac7-ea15e7dd6158`) met the same: no
+certifying pass came back empty, and the slice ended on the arbiter's word after prose-only deltas.
 
 ## `/review-gate`'s default target is empty once the work is committed
 
@@ -341,3 +348,12 @@ the report step, or a note that the field is optional, spares the retry.
 
 **Adopt when:** the next `/review-gate` edit lands.
 
+## A delta round over uncommitted batches has no fixed point
+
+Under `--loop` every batch stays uncommitted, so `git diff HEAD` holds all of them and a delta round
+meant for the last batch gets the cumulative diff; in transcript
+`2296fef0-9d0e-4541-bac7-ea15e7dd6158` one round's target was rebuilt from the batch's description.
+`git stash create` before each batch (a commit no ref points at, the tree untouched) gives the fixed
+point: the delta round targets `git diff <snapshot>`.
+
+**Adopt when:** the next `/review-gate` edit lands.
