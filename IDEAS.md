@@ -1,8 +1,8 @@
 # IDEAS
 
 Analyzed during the design of the loop and deliberately deferred. Most of these earn their keep at
-team scale or on big, long-running projects; cantrips targets a solo workflow. Each entry notes
-when it becomes worth adopting; an edit that fires that trigger adopts the entry or re-defers it
+team scale or on big, long-running projects; cantrips targets a solo workflow. An entry may note
+when it becomes worth adopting; an edit that fires such a trigger adopts the entry or re-defers it
 under a new one in the same change.
 
 ## More harnesses beyond Claude Code and Codex CLI
@@ -29,6 +29,20 @@ before adding one.
 
 **Adopt when:** someone actually asks for a third harness — starting with the Copilot test, which
 costs five minutes and may already work.
+
+## What the plugin believes about each harness is stale
+
+WHY.md says Codex has no sub-agents, and casts `/review-gate`'s inline single-pass fallback as
+Codex's path; README said the same until this session corrected it. That is wrong: the user
+flagged it during session
+`33c53966-f425-4648-a8cf-2d5cf0de084b`, and ADR 0005 already records that "both harnesses proved
+able to message a spawned sub-agent, verified on 2026-09-19". The same kind of claim is scattered
+unchecked across the tree: which harness has sub-agents, background dispatch, a model or
+custom-agent selector, a close step for a spawned agent, or a typed findings tool. ADR 0005 also
+records a Codex session whose toolset differed from what its feature list implied. Rescan each
+supported harness's capabilities from primary sources (a `/research` note), then correct every
+claim that names a harness: README, WHY.md, AGENTS.md, FORKS.md, a superseding ADR for any that
+carries one, and each skill's fallback and model-selection wording.
 
 ## Wayfinder, adapted to local files
 
@@ -145,9 +159,13 @@ Prose fixes do it too (transcript `2296fef0-9d0e-4541-bac7-ea15e7dd6158`): a con
 ruled `fix` reworded 22 passive lines the diff never wrote, and two rewrites named the wrong actor;
 a round later, three of five errors of fact came from wording the arbiter dictated. A prose fix
 could stay on lines the diff wrote, and dictated wording be checked against the code before it
-lands.
+lands. A `--loop` run (transcript `bb9dec00-76ec-4cd6-b666-f7c2f43996e5`) stopped on
+`fourth_novel_round` from this churn alone: each delta round's findings were the last batch's
+rephrasings — a rephrase the arbiter asked for contradicting its own entry, another asserting a
+false fact — and the arbiter's own advice was to delete rather than rephrase.
 
-**Adopt when:** the next `/review-gate` edit lands.
+**Adopt when:** a third run shows a prose fix, or wording the arbiter dictated, adding an error of
+fact.
 
 ## /setup-cantrips-loop writes without interviewing
 
@@ -172,7 +190,17 @@ a short ledger" then "No table please for ledgers" in another. Three times the u
 numbers… Would that actually help an agent?") and unresolved referents ("waiting on its own gate —
 which?").
 
-**Adopt when:** the next `/review-gate` edit lands — LOOP.md can carry the ledger format.
+A survey of 29 gate sessions (10–26 September 2026) adds the loop's own shapes: a progress message
+per finder reporting (transcript `f2253bc7-95bc-4533-beee-726347955eef`; elsewhere the user
+answered one with "No need to announce things like that ;)"), round ledgers as tables in some runs
+and bullets in others, the disposition ledger often never named, and the closing `GREEN:`/`STOP:`
+line paraphrased or translated instead of returned verbatim. The rest of what the survey found is
+no format swing; it is recorded under "Findings are reported through no fixed contract".
+
+That trigger fired in session `33c53966-f425-4648-a8cf-2d5cf0de084b`. A `--loop` close laid out
+its disposition ledger as a table of fourteen skipped findings, each with a paraphrased reason,
+followed by two more in prose. The user's verdict was "that disposition ledger format is
+terrible", and they asked for it to be reworked. LOOP.md can carry the ledger format.
 
 ## Skills that do not load when they should
 
@@ -210,7 +238,8 @@ rules in two skills and none elsewhere. The section is carried upstream bytes an
 byte-identical where it is; the honest home for a plugin-wide rule is a shared reference the other
 skills point at, reconciling the two wordings on the way.
 
-**Adopt when:** the next edit touching `/commit`, `/review-gate`, or `/handoff` lands.
+**Adopt when:** the next edit touching `/commit` or `/handoff` lands, or a secret reaches a gate
+dispatch.
 
 ## /review-gate loses an angle silently when one dispatch fails mid-run
 
@@ -221,7 +250,7 @@ a spec was available, no other per-angle coverage. `/simplify` closed the same h
 per-fixer inline fallback; the gate
 has no counterpart.
 
-**Adopt when:** the next `/review-gate` edit lands.
+**Adopt when:** a gate dispatch fails mid-run.
 
 ## /setup-cantrips-loop sets up model-tier preferences
 
@@ -230,6 +259,22 @@ gate's mechanical-lens finder, most capable for the arbiter — and fall back to
 wherever the harness exposes no selector. Which model a tier means is left to each run. The setup
 interview could ask once and record the answer in the loop config: the model each tier maps to on
 the user's harness, or that a tier is off, for tiering skills to read beside the storage verbs.
+
+## Dispatched roles as agent definitions
+
+`/review-gate`'s finders, verifiers and arbiter, and `/simplify`'s fixers, are general-purpose
+dispatches handed a brief the orchestrator pastes from a sibling file (ANGLES.md,
+QUALITY-LENSES.md, ARBITER.md). The plugin could ship them as agent definitions instead, one per
+role. Claude Code reads agent definitions from a plugin, and the model-selection paragraphs already
+allow for Codex's custom-agent selector. Each role would then show up by name in the harness,
+carry its own brief behind a context pointer rather than the orchestrator's prompt, and pin its
+model tier and read-only toolset in frontmatter rather than in prose. Weigh the costs first:
+- **Packaging per harness.** Agent definitions come in a different format for each harness, so
+  every role becomes one more dual-manifest-style copy to keep in sync.
+- **Paths that still inline the brief.** `low` and the no-sub-agent fallback run the brief
+  inline, and AGENTS.md rule 4 makes every path carry what it needs.
+- **What each harness supports.** The capabilities rescan above (session
+  `33c53966-f425-4648-a8cf-2d5cf0de084b`) should settle this first.
 
 ## The arbiter can decline a spec finding without the user hearing of it
 
@@ -266,6 +311,9 @@ three small fixes, while the arbiter twice ruled the run converged. Later certif
 run a level down, or the arbiter's converged trajectory could end the loop. A user who handed the
 arbiter the end of each slice (transcript `2296fef0-9d0e-4541-bac7-ea15e7dd6158`) met the same: no
 certifying pass came back empty, and the slice ended on the arbiter's word after prose-only deltas.
+The next slice (transcript `f8610ffa-edad-4ede-bf8b-8c6f787e348a`) ended the same way with no
+certifying pass at all, and LOOP.md, which returns no line for such an end, left its closing line
+to be improvised.
 
 ## `/review-gate`'s default target is empty once the work is committed
 
@@ -275,7 +323,7 @@ the run fails or the agent picks a fixed point itself: twice in one session it s
 `main...HEAD` and said so. Scope could propose the default branch as the fixed point when the tree
 is clean and the branch is ahead of it.
 
-**Adopt when:** the next `/review-gate` edit lands.
+**Adopt when:** a run on a clean tree fails, or picks its own fixed point, again.
 
 ## A widened mutation boundary leaves earlier fixes shaped by the narrow one
 
@@ -285,7 +333,17 @@ signed number because the symbol table was out of reach; one round later the bou
 add other symbol keys, and the arrows stayed gone until the user asked why. `answers` could
 re-queue the applied fixes whose record names the boundary as their constraint.
 
-**Adopt when:** the next `/review-gate` edit lands.
+**Adopt when:** a fix shaped by the narrow boundary survives a widening again.
+
+## The mutation boundary is too conservative a default
+
+The user often ends up widening the mutation boundary, and finds agents too conservative about it.
+Every fix that needs a file just outside the target is handed back, and it waits on a question
+whose answer is usually yes. The user could choose the boundary up front, for example with a flag
+that lets fixes reach beyond the target. The gate could even default to extending the boundary and
+still hand back anything it could not reach. Weigh this against why the boundary exists: a fix
+outside the reviewed scope is one no finder or verifier looked at. Raised in session
+`33c53966-f425-4648-a8cf-2d5cf0de084b`.
 
 ## A fix the arbiter narrows trips `fix_not_taking`
 
@@ -294,7 +352,7 @@ finding is dispositioned `fixed`, the next certifying pass re-finds the residue 
 and the loop stops on `fix_not_taking` as though the fix had failed. The residue wants its own
 `skipped` disposition, with the arbiter's reason, when the narrowed fix is ruled.
 
-**Adopt when:** the next `/review-gate` edit lands.
+**Adopt when:** a run stops on `fix_not_taking` over residue the arbiter kept on purpose.
 
 ## A stopped loop parks for the user what the arbiter could rule
 
@@ -304,7 +362,7 @@ delegated to it everything parked from then on. A flag, or a first answer, could
 the parked set, keeping for the user what it cannot rule: spec routes and actions only they can
 perform.
 
-**Adopt when:** the next `/review-gate` edit lands.
+**Adopt when:** the user answers a parked item with "ask the arbiter" again.
 
 ## The arbiter's earlier rulings should bind it
 
@@ -314,25 +372,39 @@ message alone. Each ruling was applied, each reversal cost a batch and a delta r
 rulings travel in the message as drift data, but nothing says they stand unless the round brings new
 evidence; the brief should, so a reversal has to name what changed.
 
-**Adopt when:** the next `/review-gate` edit lands.
+**Adopt when:** the arbiter reverses a ruling with no new evidence again.
 
-## A test the arbiter shapes is never run against its defect
+## The arbiter's trajectory reaches the user only at the close
 
-An arbiter `fix` opinion can prescribe the test a fix adds, and nothing checks that the test fails
-with its guard removed before the finding is `fixed`. In transcript
-`f2253bc7-95bc-4533-beee-726347955eef` the prescribed dedup test held no copy dated outside the
-window, so it could not fail on the ablated guard; the verifier's own ablation named the case that
-bites. Apply mode could require a test-adding fix to go red on the ablation first.
+Under `--loop`, the arbiter returns a `trajectory` paragraph every round, covering where the run is
+heading, what the drift data says, and which findings it expects to keep declining. LOOP.md's
+per-round progress line carries only counts, and the closing report carries only the last
+trajectory. So the user watching a long run never sees the arbiter's read while they could still
+act on it, for instance by stopping a run that is only polishing settled lines. The progress line
+could carry each round's trajectory, condensed. The user asked for it in session
+`33c53966-f425-4648-a8cf-2d5cf0de084b`.
 
-**Adopt when:** the next `/review-gate` edit lands.
+## Findings are reported through no fixed contract
 
-## `ReportFindings` caps `short_summary` at sixty characters
+The survey that fed "No output format is specified" found `/review-gate`'s reporting unstable
+beneath its format:
 
-The typed findings tool rejects the whole call when one `short_summary` passes sixty characters, and
-the skill's report step does not mention the limit; three calls in one run (the same transcript) bounced on it. One clause in
-the report step, or a note that the field is optional, spares the retry.
-
-**Adopt when:** the next `/review-gate` edit lands.
+- **Identity:** each run invents its numbering ("N4, P1", "J1–J8", a 0-based list), and the user
+  answers by the findings tool's display line numbers instead ("97: fix it / 125: update the
+  spec", transcript `7bb11b96-6e49-49a9-aac5-0790e2d696b5`).
+- **Channel:** whole `--loop` runs never call the tool (`a3949d17-9865-4626-8956-2ff36980c90a`),
+  while some `low` runs call it and print the list again.
+- **Timing and outcomes:** some runs report only at the close with outcomes preset
+  (`42243455-8e07-4609-8eb3-2d051c106e6d`), others send subsets whose later findings first appear
+  `fixed` (`7db1077b-a9d5-44b3-a99e-eefb69bfcfa1`); `no_change_needed` stands in for "keep it",
+  where LOOP.md says `skipped`, and SKILL.md never defines the three outcomes.
+- **Reasons:** a skip reason has no field, so it is crammed into `summary` or dropped — about 5 of
+  17 carried one in `9d3bd193-e7ba-462d-8fae-402539778689`.
+- **Caps:** a `medium --fix` reported 20 findings against its 8, and a `high` run's declines were
+  cut at the tool's unannounced 32-item limit.
+- **Verdicts:** findings settled inline are reported with none.
+- **Schema:** the tool rejects the whole call when one `short_summary` passes sixty characters,
+  which the report step never mentions; 13 of the 25 sessions that used the tool bounced on it.
 
 ## A delta round over uncommitted batches has no fixed point
 
@@ -342,4 +414,4 @@ meant for the last batch gets the cumulative diff; in transcript
 `git stash create` before each batch (a commit no ref points at, the tree untouched) gives the fixed
 point: the delta round targets `git diff <snapshot>`.
 
-**Adopt when:** the next `/review-gate` edit lands.
+**Adopt when:** a delta round's target is rebuilt from a batch's description again.
