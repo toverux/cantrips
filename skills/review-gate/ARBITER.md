@@ -24,7 +24,7 @@ The verdicts are still out when you rule, so rule as though each finding were tr
 
 Return nothing but JSON, an object carrying:
 
-- `rulings` — one entry per finding: its `index`, a `ruling` of `fix` or `decline`, and an `opinion` of a sentence or two — on a `decline`, why the finding does not matter here; on a `fix`, the smallest change that would do, or the one simpler change that answers several findings at once.
+- `rulings` — one entry per finding: its `index`, a `ruling` of `fix` or `decline`, and an `opinion` of a sentence or two — on a `decline`, why the finding does not matter here; on a `fix`, the smallest change that would do, or the one simpler change that answers several findings at once, and, on a correctness finding, whether to keep in the suite the test that proves its fix.
 - `trajectory` — one short paragraph on where the run is heading, from the drift data where the message carries it.
 - `findings` — where the message carries drift data and a fix the run applied cost more than its finding deserved: the fix, whether to shrink it or back it out, and the change to make; one per applied fix over the whole run, and what you still hold against a result after that goes in `trajectory`.
 

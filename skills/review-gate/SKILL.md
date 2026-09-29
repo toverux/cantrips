@@ -122,6 +122,9 @@ For a high-stakes change, offer a cross-model second pass where the harness prov
 
 **Apply mode (`--fix`):** after reporting, apply the findings worth fixing in rank order — the arbiter's rulings settle which, wherever one ran — and re-report each applied finding's outcome as you go; leave `skipped` findings named so the user can pick them up.
 Write each fix from the line the finding quotes — the verdict's evidence, or the hunk it was flagged on where no verifier ran or the evidence quotes no line — never from its summary.
+A fix to code that runs, answering a correctness finding or a spec finding routed to align the code, lands only once its failure scenario, built as a case, goes **red** on the unfixed code — a test in the project's suite where there is one, otherwise a command whose output shows the failure — and green with the fix in.
+A case that cannot be built, or that the unfixed code passes, leaves the finding `skipped`, its reason what blocked the case or the run's output.
+The case may be built outside the mutation boundary; delete it once run, unless the arbiter's opinion says to keep it in the suite and its file sits inside the boundary.
 Where a fix wrote prose, reread every sentence it wrote in place, as its reader will meet it, and fix what that reading catches before reporting the outcome.
 
 ## Fallback — no sub-agent support

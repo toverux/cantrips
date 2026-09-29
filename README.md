@@ -364,13 +364,16 @@ flowchart TD
   name a concrete failure scenario. Verifiers judge each candidate on its own evidence, and refuted
   or unverified candidates never reach a `medium` or `high` report. Findings flow through the
   harness's typed findings tool where one exists; from `medium` up, `--fix` applies the surviving
-  findings that fit inside the scope it reviewed, naming any it had to hand back. On a harness
-  without sub-agents (Codex), the same angles run inline as a single-pass review that says so.
+  findings that fit inside the scope it reviewed, naming any it had to hand back, and lands a fix
+  to running code that answers a correctness finding only once a test or command goes red on the
+  unfixed code. On a harness without sub-agents, the same angles run inline as a single-pass
+  review that says so.
 - **Converge until green** — `--loop` implies `--fix` at any level, `low` and the sub-agent-less
   fallback included, and drives the gate instead of reporting once: fix batch, project checks,
   delta re-review, repeat, until a full-scope certifying pass over the final tree surfaces nothing
   new — that pass is green, with the project's checks back where they started and every finding
-  explicitly dispositioned: fixed, hardened, acknowledged by you, or declined by the arbiter.
+  explicitly dispositioned: fixed, hardened, acknowledged by you, declined by the arbiter, or
+  left unproven by a red run.
   Anything needing you is parked and batched at a round boundary while the loop keeps fixing the
   rest, and guards hand you the wheel when a fix stops taking, when a question comes back twice,
   or when rounds keep surfacing findings nothing earlier saw.

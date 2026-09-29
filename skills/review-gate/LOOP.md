@@ -5,7 +5,7 @@ These rules govern the whole run at every level and on every harness: they leave
 How a finding is judged, shaped and channelled still comes from the section the level would have run; every path writes its fixes under Synthesize and report's apply mode, inside the run's mutation boundary, which a delta round's narrower scope never narrows.
 
 **Green** is a certifying pass over the whole target that surfaces nothing new, with the project's checks back at their baseline.
-Every finding the loop acted on carries one disposition, reported as it lands, through the findings tool where the harness offers one: `fixed` for a fix or a hardening, `no_change_needed` where the tree no longer exhibits it, `skipped` for anything you acknowledged, declined or routed, and for what the arbiter declined.
+Every finding the loop acted on carries one disposition, reported as it lands, through the findings tool where the harness offers one: `fixed` for a fix or a hardening, `no_change_needed` where the tree no longer exhibits it, `skipped` for anything you acknowledged, declined or routed, for a finding left without a case that goes red, and for what the arbiter declined.
 The run keeps a **disposition ledger**: every `skipped` or spec-routed finding and every candidate a verifier or inline triage refuted, each with its one-line reason — the arbiter's opinion, your answer, the refuting evidence.
 
 ## The loop
