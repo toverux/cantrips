@@ -76,7 +76,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 10. Two settled sentences point at the loop config, and a skill takes the one its own use calls for: the verb form where it speaks a storage verb, the store form where it only gates a knowledge-store read.
     The store form states the fallback outright — the store is off — where the verb form sends the reader to [defaults.md](skills/setup-cantrips-loop/defaults.md) for it, so a skill that speaks no verb and takes the verb form buys a load it cannot act on.
     Copy the wording from a skill that already carries the form — `/spec` for the verb form; `/diagnosing-bugs` for the store form, swapping only which store or stores it names as off — as rule 5 asks for its own clause.
-11. Prove a skill edit by probing what it makes an agent produce: hand a sub-agent only the revised file, how it was invoked, and a finished-work scenario, and grade its output against a pass line written beforehand.
+11. Prove a skill edit by probing what it makes an agent produce: hand a sub-agent only the revised file, how it was invoked, and a finished-work scenario, and grade its output against a pass line written beforehand, from a scenario that leaves the behaviour under test for the skill to decide.
     A gate run over skill prose reviews wording, and wording always yields another finding.
 
 ## Dual-manifest and catalog sync
