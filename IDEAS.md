@@ -135,20 +135,6 @@ for Pruning: count an exhaustive claim as you write it, or phrase it so counting
 **Adopt when:** the next edit to `/writing-for-agents`' Pruning section lands, with "Compression
 that falsifies" above — the same defect one step earlier.
 
-## /compound and /commit run long until told otherwise
-
-"Keep edits smart and short" (or a variant) appears in nearly every session that reaches
-`/compound`, usually sent preemptively — before anything was written. Three distinct defects:
-bloat (a solutions doc grown to "four paragraphs and two code blocks" duplicating its own Fix
-section; `/commit` bodies read as "session lab notebooks", traced to the skill's own open-ended
-"anything a future reader needs" with "no upper bound anywhere"); low precision (whole candidate
-sets killed — "kill each", twice, 100% rejected — plus truisms, already-covered items, stale
-claims); and risky wording (a proposed AGENTS.md sentence the user rewrote for fear "an agent will
-bypass the cantrips loop").
-
-**Adopt when:** the next `/compound` or `/commit` edit lands — both need a stated length bound and
-a fixed proposal format.
-
 ## Applied fixes do damage the gate cannot see
 
 A verifier-confirmed finding shipped a visible regression (menu flashing blank, a scrollbar
