@@ -2,7 +2,7 @@
 name: setup-cantrips-loop
 description: Configure this repo's cantrips loop — knowledge stores and storage backend — by writing docs/agents/cantrips-loop.md.
 disable-model-invocation: true
-version: 1.0.0
+version: 1.0.1
 ---
 
 Configure how this repo runs the cantrips loop: which opt-in knowledge stores are enabled, and which backend the six storage verbs translate to.

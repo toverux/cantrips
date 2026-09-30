@@ -126,10 +126,12 @@ What lives where, by default:
 
 ### Specs are point-in-time records
 
-A spec's body **freezes at publication**: work-status lines (pending, in-progress, done) never
-enter it — execution state lives in git and in the backend's own machinery. Afterthoughts — a
-`/prototype` verdict, a decision revised mid-implementation — arrive as **dated annotations**
-through the annotate-spec verb, so the original decision and its revisions stay distinguishable.
+A spec's body **freezes once implementation starts**: work-status lines (pending, in-progress,
+done) never enter it — execution state lives in git and in the backend's own machinery. Until
+then, and only in the session that published it, a correction you ask for rewrites the body, and
+any ticket already cut from it. Afterthoughts — a `/prototype` verdict, a decision revised
+mid-implementation — arrive as **dated annotations** through the annotate-spec verb, so the
+original decision and its revisions stay distinguishable.
 Post-loop drift between spec and code is not an error: code and git are truth, the spec is
 history. And no skill ever closes a spec — closing a feature is your act through the backend's
 native machinery (one click on a tracker; on local markdown, deleting the feature's `.scratch/`
@@ -234,13 +236,18 @@ can still type them).
 - **The intent** — decisions decay in chat logs; a spec survives the session. It records the
   **test seams** you approve up front, so implementation can TDD without relitigating design, and
   its requirements are what the review gate's spec angle later checks the diff against.
-- **The lifecycle** — a spec is a **point-in-time decision record**: body frozen at publication,
-  afterthoughts as dated annotations — see [Pluggable storage](#pluggable-storage).
-- **How it works** — explores the repo, reads the decision memory (`AGENTS.md`, plus ADRs and
-  solutions where those stores are enabled — never past specs), flags any conflict with a
-  standing ADR explicitly instead of silently overriding it, proposes the seams (approved by you
-  before writing), then publishes the spec: problem, solution, user stories, implementation
-  decisions, test seams, out of scope.
+- **The lifecycle** — a spec is a **point-in-time decision record**: body frozen once
+  implementation starts, afterthoughts as dated annotations — see
+  [Pluggable storage](#pluggable-storage).
+- **How it works** — explores the repo and reads the decision memory (`AGENTS.md`, plus ADRs and
+  solutions where those stores are enabled — never past specs). It then stops up to twice, each
+  time on a numbered round of questions with a recommended answer. Before drafting: every
+  standing ADR the design touches — keep, revise or retire, the ones it judges compatible
+  included — together with the proposed seams. After drafting: a sub-agent rereads the draft
+  against what you actually decided and against the code, the agent corrects what needs no call
+  from you, and only what is left comes back as questions. The spec is published once, after
+  that: problem, solution, user stories, implementation decisions, test seams, out of scope. A
+  conversation holding no design decisions gets `/grilling` recommended instead.
 - **Next** — `/tickets` when the work spans sessions, else `/implement` — a fresh context either
   way; the spec _is_ the context.
 

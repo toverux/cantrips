@@ -86,9 +86,10 @@ directive is *match docs to reality, never the reverse*.
 
 ### A spec is a point-in-time record
 
-A spec's body freezes at publication. Work-status lines never enter it, because execution state
-already lives in git and in the backend. Afterthoughts arrive as dated annotations, so the original
-decision and its revisions stay distinguishable.
+A spec's body freezes once implementation starts; until then, the session that published it can
+still rewrite it. Work-status lines never enter it, because execution state already lives in git
+and in the backend. Afterthoughts arrive as dated annotations, so the original decision and its
+revisions stay distinguishable.
 
 The consequence is deliberate: post-loop drift between spec and code is not an error. Code and git
 are truth; the spec is history. `/spec` also never mines past specs, so decisions that implementation
