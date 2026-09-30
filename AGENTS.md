@@ -10,8 +10,9 @@ Everything else here (`docs/`, this file) therefore rides along into an install;
 
 ## There is no build
 
-This repository is content, not code: no dependencies, no package manager, no build, no test suite, no lint step.
-Nothing needs installing to work on it, and nothing gates an edit: there is no command to run before or after one.
+This repository is content, not code: no dependencies, no package manager, no build, no lint step, and no tests but those of the scripts skills ship, such as `skills/review-gate/scripts/findings.test.ts` over the script `/review-gate` reports through.
+`mise run test` runs every such file under `node --test` with node 22.18 or later on PATH and nothing else installed.
+Nothing needs installing to work on it, and nothing gates an edit: the tests are there to run when you touch a script, never a step an edit must pass.
 The one mechanical convention is [.editorconfig](.editorconfig) (LF, UTF-8, two-space indent, trailing newline, 100-column guide).
 What tooling exists is convenience: [mise.toml](mise.toml) wraps the scripts in `scripts/`, `mise run dev:sync-install` mirroring the working tree over the local installs (Claude Code and Codex CLI) so unreleased edits are usable from other projects, and `mise run dev:fork-diff` reporting how far a fork has drifted from its upstream without ever asserting — it defines no expected state and exits zero whatever it finds.
 
@@ -76,7 +77,11 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 10. Two settled sentences point at the loop config, and a skill takes the one its own use calls for: the verb form where it speaks a storage verb, the store form where it only gates a knowledge-store read.
     The store form states the fallback outright — the store is off — where the verb form sends the reader to [defaults.md](skills/setup-cantrips-loop/defaults.md) for it, so a skill that speaks no verb and takes the verb form buys a load it cannot act on.
     Copy the wording from a skill that already carries the form — `/spec` for the verb form; `/diagnosing-bugs` for the store form, swapping only which store or stores it names as off — as rule 5 asks for its own clause.
-11. Prove a skill edit by probing what it makes an agent produce: hand a sub-agent only the revised file, how it was invoked, and a finished-work scenario, and grade its output against a pass line written beforehand, from a scenario that leaves the behaviour under test for the skill to decide.
+11. Prove a skill edit by probing what it makes an agent produce: pose a hypothetical finished-work scenario to a fresh agent holding only the revised skill and how it was invoked, ask for its next response, and grade that against a pass line written beforehand, from a scenario that leaves the behaviour under test for the skill to decide.
+    Keep the probe oblivious: its prompt poses the scenario and asks for the response, with as few cues as simulating it takes — never that it is a test, what changed, or what gets graded — since an agent that knows it is examined deliberates harder than a real run and passes where a real run fails.
+    The probe is oblivious to this project too, so run it through the `claude` CLI rather than as a sub-agent, on Opus at medium effort unless the user names another: `claude -p` from a temp directory outside this repo holding a copy of the skill, with `--setting-sources project` to keep the installed plugin and the user's instructions out (`--bare` would too, but reads no OAuth login), the skill's body inlined in the prompt the way a harness loads it, and whatever the scenario says already happened made true beforehand — `--session-id` pins the session a skill script keys its state on, and `--resume` on it probes a behaviour that spans replies, turn by turn; the prompt opens on the scenario, never on the skill's slash command, which print mode runs.
+    A probe registers none of the skill's frontmatter hooks, since the body is inlined rather than loaded, so what a hook does is proven by the script's tests.
+    Dissect the transcript (`--output-format stream-json --verbose`) as well as the answer: every call, read, resent input and token spent is behaviour the skill caused, and a skill that reaches the right answer the long way still fails.
     A gate run over skill prose reviews wording, and wording always yields another finding.
 
 ## Dual-manifest and catalog sync

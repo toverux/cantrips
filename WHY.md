@@ -112,9 +112,9 @@ Two further properties:
   wrong thing, correctly" — which no code-only review can see. A mismatch is reported neutrally with
   both fixes, because the code may be the side that is right.
 - **Effort is a precision/recall dial**, stated as such: `low` is one inline pass, `medium` favors
-  precision, `high` favors recall and adds a gap-hunting sweep. `--loop` converges until green — fix
-  batch, project checks, delta re-review, then a certifying pass — parking anything that needs you
-  until the round ends.
+  precision, `high` favors recall and adds a gap-hunting sweep. `--loop` converges until green — a
+  certifying pass, then fix batch, project checks, delta re-review — parking anything that needs you
+  and working on, asking again at the end.
 
 ### Auto-fix has a boundary
 
@@ -166,9 +166,9 @@ discipline rather than optimism:
 
 ### No build
 
-No dependencies, no package manager, no build, no lint step, no test suite. The repository is
-Markdown plus a handful of JSON manifests, which means you can read the whole thing before trusting
-it with your codebase.
+No dependencies, no package manager, no build, no lint step. The repository is Markdown, a handful
+of JSON manifests, and a few dependency-free scripts, the one `/review-gate` runs carrying its own
+tests; you can read the whole thing before trusting it with your codebase.
 
 The cost is real and worth naming: every invariant here is honored by hand, and nothing fails when
 one drifts. [AGENTS.md](AGENTS.md) lists them.

@@ -26,6 +26,8 @@ Return nothing but JSON, an object carrying:
 
 - `rulings` — one entry per finding: its `index`, a `ruling` of `fix` or `decline`, and an `opinion` of a sentence or two — on a `decline`, why the finding does not matter here; on a `fix`, the smallest change that would do, or the one simpler change that answers several findings at once, and, on a correctness finding, whether to keep in the suite the test that proves its fix.
 - `trajectory` — one short paragraph on where the run is heading, from the drift data where the message carries it.
+  The user reads it as you wrote it, so name each finding by what it is, never by its index in the message.
+- `recertify` — under `--loop`, `true` where the fixes so far reach further than the delta rounds over them could see, so the whole target wants one more full pass; the run grants one.
 - `findings` — where the message carries drift data and a fix the run applied cost more than its finding deserved: the fix, whether to shrink it or back it out, and the change to make; one per applied fix over the whole run, and what you still hold against a result after that goes in `trajectory`.
 
 ## Each round's message
@@ -33,17 +35,15 @@ Return nothing but JSON, an object carrying:
 - The batch's findings, indexed: the candidates still standing after inline triage, whether or not a verifier takes them, and a `low` delta round's findings, sent, and the rulings awaited, before any of them is applied.
 - Under `--loop`, the drift data — the target's size when the run began and now, and the lines each round's fixes added and removed — and the previous round's verdicts and outcomes, one line per finding.
 
-A gate call that found nothing still sends its message where a batch landed since the last one, since the drift data is how the arbiter learns what that batch cost.
+A gate call that found nothing sends no message: the next one with a finding carries the drift data of every round since.
 
 ## Acting on what comes back
 
 - A `decline` is dispositioned `skipped` with the opinion as its reason, whatever the finding's category or verdict, and is never put to the user.
 - A `fix` goes on through the gate as it would have; its opinion travels to whoever writes the fix, as advice that fix may depart from, and a spec finding's route is still the user's to pick.
 - A finding left unruled by the arbiter's response, or by a dispatch that failed, is a `fix`, and the report names the findings or rounds that ran unjudged.
-- The report carries how many findings the arbiter declined and, under `--loop`, its last `trajectory`.
+- The report carries how many findings the arbiter declined and, under `--loop`, every round's `trajectory`.
 
 ## The arbiter's own findings
 
 One of the arbiter's `findings` skips Verify and joins the queue; its edit is applied, recorded and re-reviewed like any other fix.
-A back-out turns the finding that fix answered to `skipped`, with the arbiter's reason.
-The arbiter gets one finding per applied fix over the whole run: a second against the same fix goes unqueued.

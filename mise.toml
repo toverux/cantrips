@@ -25,3 +25,8 @@ run = "./scripts/sync-install.sh"
 description = "Report how far each forked skill has drifted from the upstream release its source: frontmatter pins. Takes skill names, --tag <tag> and --refresh; reports and never gates."
 shell = "bash -c"
 run = "./scripts/fork-diff.sh"
+
+[tasks.test]
+description = "Run the tests of the scripts shipped inside skills under node --test; they gate nothing."
+shell = "bash -c"
+run = "./scripts/test.sh"

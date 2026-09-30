@@ -180,28 +180,6 @@ welcome one, that skips its own interview.
 **Adopt when:** the next `/setup-cantrips-loop` edit lands — it should be an onboarding
 conversation whose answers are the user's, not the repo's.
 
-## No output format is specified, so every run improvises one
-
-Ledger and report formats swing between extremes across sessions, drawing opposite corrections: a
-parked-decision list too compressed to act on ("Restated all standing decisions in very clear
-plain terms and enough context") in one session, "No long paragraph after each round please, just
-a short ledger" then "No table please for ledgers" in another. Three times the user invoked
-`/wait-what` just to decode a gate report; other catches were density ("you are using way too much
-numbers… Would that actually help an agent?") and unresolved referents ("waiting on its own gate —
-which?").
-
-A survey of 29 gate sessions (10–26 September 2026) adds the loop's own shapes: a progress message
-per finder reporting (transcript `f2253bc7-95bc-4533-beee-726347955eef`; elsewhere the user
-answered one with "No need to announce things like that ;)"), round ledgers as tables in some runs
-and bullets in others, the disposition ledger often never named, and the closing `GREEN:`/`STOP:`
-line paraphrased or translated instead of returned verbatim. The rest of what the survey found is
-no format swing; it is recorded under "Findings are reported through no fixed contract".
-
-That trigger fired in session `33c53966-f425-4648-a8cf-2d5cf0de084b`. A `--loop` close laid out
-its disposition ledger as a table of fourteen skipped findings, each with a paraphrased reason,
-followed by two more in prose. The user's verdict was "that disposition ledger format is
-terrible", and they asked for it to be reworked. LOOP.md can carry the ledger format.
-
 ## Skills that do not load when they should
 
 Three shapes. `/writing-for-agents` does not auto-fire when the agent edits agent-facing markdown —
@@ -288,16 +266,6 @@ arbiter to the user, as before it existed.
 
 **Adopt when:** a run's ledger shows a declined spec finding the user would have wanted to route.
 
-## A one-shot `--fix` spends its report cap on declined findings
-
-Rank is blind to the arbiter's rulings and nothing removes declines before the cap, which sizes one
-fix batch: twelve kept findings with five declined give a report of five declines and three
-fixables, the other four counted as held back and never named. `--loop` is unaffected, since
-`ruled` drops declines before a batch is taken. Capping after the rulings, with declines listed
-outside the cap, would restore the batch size.
-
-**Adopt when:** a one-shot `--fix` report comes back mostly declines.
-
 ## A `/review-gate` level between `low` and `medium`
 
 `low` is one inline pass with no sub-agents and no verifier; `medium` is six finders and a
@@ -305,15 +273,6 @@ verifier per group. Nothing sits between them, so a small change that deserves i
 verification pays for the full fan-out: on some 240 lines of skill prose, each `medium` certifying
 pass cost five finders and five to ten verifiers, and surfaced a dozen novel candidates on text
 that had not changed. A middle level could run one or two finders and verify what they return.
-`high` repeats it under `--loop` (transcript `f2253bc7-95bc-4533-beee-726347955eef`): each
-certifying pass after the first sent eleven finders for nits or reworded declines, three passes for
-three small fixes, while the arbiter twice ruled the run converged. Later certifying passes could
-run a level down, or the arbiter's converged trajectory could end the loop. A user who handed the
-arbiter the end of each slice (transcript `2296fef0-9d0e-4541-bac7-ea15e7dd6158`) met the same: no
-certifying pass came back empty, and the slice ended on the arbiter's word after prose-only deltas.
-The next slice (transcript `f8610ffa-edad-4ede-bf8b-8c6f787e348a`) ended the same way with no
-certifying pass at all, and LOOP.md, which returns no line for such an end, left its closing line
-to be improvised.
 
 ## `/review-gate`'s default target is empty once the work is committed
 
@@ -345,22 +304,14 @@ still hand back anything it could not reach. Weigh this against why the boundary
 outside the reviewed scope is one no finder or verifier looked at. Raised in session
 `33c53966-f425-4648-a8cf-2d5cf0de084b`.
 
-## A fix the arbiter narrows trips `fix_not_taking`
+## The loop parks for the user what the arbiter could rule
 
-The arbiter can rule `fix` and advise fixing one site of a finding while keeping the rest. The
-finding is dispositioned `fixed`, the next certifying pass re-finds the residue kept on purpose,
-and the loop stops on `fix_not_taking` as though the fix had failed. The residue wants its own
-`skipped` disposition, with the arbiter's reason, when the narrowed fix is ruled.
-
-**Adopt when:** a run stops on `fix_not_taking` over residue the arbiter kept on purpose.
-
-## A stopped loop parks for the user what the arbiter could rule
-
-`--loop` stops and waits on every parked item, including those asking only whether a fix is worth
-it — the arbiter's own question. Twice in one run the user answered "ask the arbiter", then
-delegated to it everything parked from then on. A flag, or a first answer, could hand the arbiter
-the parked set, keeping for the user what it cannot rule: spec routes and actions only they can
-perform.
+`--loop` parks for the user every item it cannot resolve, including those asking only whether a fix
+is worth it — the arbiter's own question. Twice in one run the user answered "ask the arbiter", then
+delegated to it everything parked from then on. The loop no longer waits on a parked item, but
+each one still holds the run at `WAITING:` short of green until answered. A flag, or a first
+answer, could hand the arbiter the parked set, keeping for the user what it cannot rule: spec
+routes and actions only they can perform.
 
 **Adopt when:** the user answers a parked item with "ask the arbiter" again.
 
@@ -374,37 +325,36 @@ evidence; the brief should, so a reversal has to name what changed.
 
 **Adopt when:** the arbiter reverses a ruling with no new evidence again.
 
-## The arbiter's trajectory reaches the user only at the close
+## A tripped `/review-gate` stop prints below everything else
 
-Under `--loop`, the arbiter returns a `trajectory` paragraph every round, covering where the run is
-heading, what the drift data says, and which findings it expects to keep declining. LOOP.md's
-per-round progress line carries only counts, and the closing report carries only the last
-trajectory. So the user watching a long run never sees the arbiter's read while they could still
-act on it, for instance by stopping a run that is only polishing settled lines. The progress line
-could carry each round's trajectory, condensed. The user asked for it in session
-`33c53966-f425-4648-a8cf-2d5cf0de084b`.
+Under `--loop` the line that announces a stop closes the agent section, after the warnings and
+above a ledger that ran to 58 KB. An agent that trimmed the section to its first lines applied two
+batches past a tripped `fourth_novel_round` without seeing it (transcript
+`5678f667-f07c-4826-b158-8e10551a2d4f`). The script could print a stop first.
 
-## Findings are reported through no fixed contract
+**Adopt when:** a run works past a stop it did not see again.
 
-The survey that fed "No output format is specified" found `/review-gate`'s reporting unstable
-beneath its format:
+## No `/review-gate` subcommand lists the findings a `same_as` tag matches against
 
-- **Identity:** each run invents its numbering ("N4, P1", "J1–J8", a 0-based list), and the user
-  answers by the findings tool's display line numbers instead ("97: fix it / 125: update the
-  spec", transcript `7bb11b96-6e49-49a9-aac5-0790e2d696b5`).
-- **Channel:** whole `--loop` runs never call the tool (`a3949d17-9865-4626-8956-2ff36980c90a`),
-  while some `low` runs call it and print the list again.
-- **Timing and outcomes:** some runs report only at the close with outcomes preset
-  (`42243455-8e07-4609-8eb3-2d051c106e6d`), others send subsets whose later findings first appear
-  `fixed` (`7db1077b-a9d5-44b3-a99e-eefb69bfcfa1`); `no_change_needed` stands in for "keep it",
-  where LOOP.md says `skipped`, and SKILL.md never defines the three outcomes.
-- **Reasons:** a skip reason has no field, so it is crammed into `summary` or dropped — about 5 of
-  17 carried one in `9d3bd193-e7ba-462d-8fae-402539778689`.
-- **Caps:** a `medium --fix` reported 20 findings against its 8, and a `high` run's declines were
-  cut at the tool's unannounced 32-item limit.
-- **Verdicts:** findings settled inline are reported with none.
-- **Schema:** the tool rejects the whole call when one `short_summary` passes sixty characters,
-  which the report step never mentions; 13 of the 25 sessions that used the tool bounced on it.
+`--loop`'s `fix_not_taking` guard trips only on a candidate tagged `same_as` a finding the run
+holds, and the fixed and queued ones appear nowhere but in the round blocks already pasted:
+`ledger` lists what was skipped, routed or refuted. After a compaction — which the skill itself
+recommends before a continued run — a re-found fixed finding goes untagged and is fixed again under
+a new ID (transcript `5678f667-f07c-4826-b158-8e10551a2d4f`, F259). `ledger` could list fixed and
+queued findings on request; riding them on every gate call would grow each round by the whole run.
+
+**Adopt when:** a compacted run re-fixes a finding under a new ID, or misses a `fix_not_taking`.
+
+## `/simplify` reports in its own format
+
+`/review-gate` reports through a script that prints fixed rows: run-wide `F<n>` IDs, two lines per
+finding, class emojis with a legend, fixed rows struck through. `/simplify` still writes its own
+summary, although its findings come through the same quality lenses and would read the same as
+rows (transcript `5678f667-f07c-4826-b158-8e10551a2d4f`). Adopting the rows means shipping the
+script, or a shared one, with `/simplify`, and its runtime requirement with it.
+
+**Adopt when:** `/simplify`'s report draws the complaints the gate's did — a numbering invented per
+run, a format that swings between runs, or a summary the user asks to have reworked.
 
 ## A delta round over uncommitted batches has no fixed point
 
@@ -415,3 +365,43 @@ meant for the last batch gets the cumulative diff; in transcript
 point: the delta round targets `git diff <snapshot>`.
 
 **Adopt when:** a delta round's target is rebuilt from a batch's description again.
+
+## `/review-gate`'s Stop hooks miss a sandboxed run's hand-off
+
+With Claude Code's sandbox filesystem isolation on, sandboxed commands get their own `$TMPDIR` and
+hooks run outside the sandbox, so the hook looks for the script's hand-off in another temp
+directory and never wakes the agent: each round waits on a user nudge and the agent's `resume`
+(transcript `5678f667-f07c-4826-b158-8e10551a2d4f`). No documented marker tells the script it runs
+sandboxed, so it cannot fall back to printing the step with its block; a state location both sides
+share would.
+
+**Adopt when:** a sandboxed `--loop` run stalls on a hand-off, or Claude Code documents a sandbox
+marker.
+
+## A `--1`/`--one` argument for `/grilling`
+
+`/grilling` asks the whole frontier in each round. A `--1`/`--one` argument would ask one question
+per message instead, the one whose answer reshapes the most of the tree, so each answer lands before
+the next question is framed. The user asked for it at the start of a grilling session (transcript
+`270fcb57-9d96-4487-b800-f522f8cbf6f7`). With one question per message, the frontier and the lock
+still apply, but the "numbers still open" line has nothing to name.
+
+## `/spec` carries a standing ADR forward without asking whether the design retires it
+
+The `/review-gate` reporting spec listed ADR 0004 among its standing decisions, "not revised", so
+`LOOP.md` kept its pseudocode beside a script that now paced the loop. The user had wanted the
+block gone and called it a gap in the spec; reversing it mid-implementation cost a rewrite, a second
+probe and ADR 0006 (transcript `5678f667-f07c-4826-b158-8e10551a2d4f`). A standing decision the new
+design overlaps could be put to the user as a question before the spec folds it in.
+
+**Adopt when:** a spec's standing decision is reversed during implementation again.
+
+## `/spec` publishes a text it never reread
+
+A spec synthesized from a thirteen-question interview went out carrying three decisions the user
+never made, four claims firmer than their evidence and three gaps; all surfaced only when the user
+asked for a reread (transcript `bfdae3ac-9f5d-48e3-9176-e30e165890ab`). The reread then ended on a
+question the user did not see, below an unnumbered list. `/spec` could verify its own text before
+publishing: fix what needs no user call, check against the code what a check settles, and put the
+rest to the user as a numbered list in `/grilling`'s format. Until tickets exist, a correction
+could rewrite the body rather than annotate it.

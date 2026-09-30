@@ -1,6 +1,6 @@
 ---
 date: 2026-09-02
-status: accepted
+status: superseded by 0006
 ---
 
 # Loop control flow as short pseudocode, judgement as prose, an executable model as the oracle

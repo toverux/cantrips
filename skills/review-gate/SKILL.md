@@ -3,18 +3,65 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
 disable-model-invocation: true
-version: 1.9.0
+version: 2.0.0
 source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer; model-selection paragraph from EveryInc/compound-engineering-plugin@3.27.0 (ce-simplify-code) via /simplify
+# `; exit $LASTEXITCODE`, unquoted, keeps node's exit 2 under PowerShell, where Claude Code runs hooks on Windows; bash and sh ignore it.
+hooks:
+  Stop:
+    - hooks:
+        - type: command
+          command: 'node "${CLAUDE_PLUGIN_ROOT}/skills/review-gate/scripts/findings.ts" resume fix; exit $LASTEXITCODE'
+          asyncRewake: true
+          rewakeSummary: '🔧 /review-gate: applying the next batch'
+          rewakeMessage: '/review-gate resumes the run with its next step:'
+        - type: command
+          command: 'node "${CLAUDE_PLUGIN_ROOT}/skills/review-gate/scripts/findings.ts" resume round; exit $LASTEXITCODE'
+          asyncRewake: true
+          rewakeSummary: '🔎 /review-gate: next round'
+          rewakeMessage: '/review-gate resumes the run with its next step:'
+        - type: command
+          command: 'node "${CLAUDE_PLUGIN_ROOT}/skills/review-gate/scripts/findings.ts" resume close; exit $LASTEXITCODE'
+          asyncRewake: true
+          rewakeSummary: '🏁 /review-gate: closing the run'
+          rewakeMessage: '/review-gate resumes the run with its next step:'
 ---
 
 Review the working diff (or the changes since a fixed point) through independent **finder** angles, judge every candidate with an independent **verifier**, and report a ranked, capped findings list.
 Finders find and verifiers judge — a finder never drops a candidate it half-believes; silently dropped candidates bypass verification and are the dominant cause of missed bugs.
 
+## The findings script
+
+[scripts/findings.ts](scripts/findings.ts) holds the run's findings and prints every surface the user reads: the report, each batch reprinted with its outcomes, and under `--loop` each round and the closing report.
+Call it as `node <this skill's directory>/scripts/findings.ts <subcommand>`, the JSON written compact — no indentation, one line per candidate or outcome at most — and piped straight in through a quoted heredoc (`<<'EOF'`).
+The first call is `start`, before Scope, and it doubles as the runtime check: where `node` is missing or rejects the file, make the same call with `bun`, then `deno run -A`, and where none runs it, stop and tell the user the gate needs `node` 22.18 or later, `bun` or `deno`.
+The contract below is the script's whole interface: build every call from it alone.
+Each subcommand reads one JSON object on stdin:
+
+- `start` — `level`, `mode` (`report`, `fix` or `loop`: what the arguments named, `fix` for `--fix` at any level) and `target`, a one-line description of what the arguments name: the uncommitted changes, or the changes since the fixed point.
+- `report` — `spec` (`true` or `false`), `verifiers` (`{"count": 3, "grouping": "file"}`) where any ran, `unverified: true` where the pass was the `low` pass or the no-sub-agent fallback, `arbiter: {}` wherever one ran, and `candidates` in rank order, refuted ones included.
+  Each candidate carries the finder's fields — `file` and `line`, or `section` for a spec anchor — plus `also` for a merged entry's other locations, its `verdict` and `evidence`, `settled_inline: true` where triage settled it, the arbiter's `ruling` (`fix` or `decline`) and `opinion`, and a spec finding's `options`.
+  Under `--loop` it also takes `checks` (`baseline`, `red`, or `none` where the project has none), a delta round's `delta_over` (the batch's IDs) and `level`, `same_as: "F3"` on a candidate re-finding a finding the run already holds, and in `arbiter` its `trajectory`, word for word, its `recertify` where it gave one, and its own `findings`, each `{"against": "F1", "action": "shrink" or "back out", "summary": …, "change": …}`.
+- `outcomes` — `outcomes`, each `{"id": "F3", "outcome": …}`: `fixed`, the user's own edit included, `no_change_needed` where the tree already lacks the defect, `skipped` with its `reason` (a declined finding defaults to the arbiter's opinion), `routed` with its `route` letter and a `reason` saying what was done, or `parked` with its `options`, and `tried` where anything was (`tried_yours: true` for the user's own edit, `with` listing the rest of a reverted batch).
+- `answers` (`--loop`) — `answers`, each `{"id": "F4", "action": "queue"}` for what the user asked fixed or fixed themselves, or `"skip"` with a `reason`.
+- `close` (`--loop`) — on a stop, `standing`, each `{"id": …, "options": …}` for every queued finding that holds no options yet; otherwise no input.
+- `held` — no input; prints what the cap held back and what the arbiter declined, under the IDs they already have.
+- `ledger` (`--loop`) — no input; prints the finders' do-not-re-raise block, which also rides with every suggested gate call.
+- `resume` — no input; prints the step the last call handed over, where the user resumed the run.
+
+An option is `{"choice": …, "reasoning": …}`, exactly one of a finding's options also carrying `"recommended": true`.
+
+Paste everything a call prints above the `── agent ──` line into your message unaltered, and nothing below it; what sits below — the suggested next action, warnings, input errors — is yours to read.
+Where the `paste:` line says to end your turn, end it on the pasted block: the Stop hooks this skill registers resume you with the step that call handed over, and where the user resumes you instead, call `resume` for it.
+An input error exits 2: say in one line that the script rejected your input, then resend it corrected.
+A fault exits 1: stop the run, print the error and the state file's path, and write no report of your own.
+The pasted blocks are the report: your own prose carries only what they and the screen lack — the red-to-green run behind a fix, a risk no row names, the question you are asking — since the harness already displays running sub-agents and each row already states its outcome and reason.
+Put that prose above a pasted block, never inside it; the `/compound` flags and the flow pointer follow the last one.
+The user answers by finding ID; map an answer by `file:line` to the one finding it matches, and ask where it matches none or several.
+
 ## Arguments
 
 The effort level is whichever of `low`, `medium`, or `high` appears among the arguments; default `medium`.
 `--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report) on the `medium` and `high` pipelines; `low` and the no-sub-agent fallback report their findings and apply nothing, since neither ran a verifier over them — except under `--loop`, which re-reviews every batch and reports what ran unverified.
-A run handed a `--fix` it cannot honour says so in its summary, so a report with no applied outcomes never reads as nothing having been worth applying.
 `--loop`, anywhere in the arguments, implies `--fix` and drives that apply mode to a defined green state instead of reporting once — read [LOOP.md](LOOP.md) before Scope and run the whole gate under its rules.
 What remains once the level and the flags are taken out is the fixed point.
 
@@ -35,7 +82,7 @@ Scope runs entirely in the orchestrating session, before any finder is dispatche
    A bad ref, or a target with neither diff content nor a new file, fails here.
 2. Identify the spec — the feature or ticket matching the branch, or the one the user named; when neither resolves, ask the user — and fetch it with the fetch-spec verb (fetch-ticket for a ticket).
    The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.md`, and when that doc is absent the plugin defaults ([defaults.md](../setup-cantrips-loop/defaults.md)) govern.
-   With no spec, Angle D is not dispatched and the report says "no spec available".
+   With no spec, Angle D is not dispatched.
 3. Identify the standards sources: `AGENTS.md`/`CLAUDE.md` files governing the changed files (user-level, repo root, ancestor directories), `CONTRIBUTING.md`, and the style skills loaded in this session.
 4. When the loop config enables the solutions store, search `docs/solutions/` for learnings matching the diff's paths and subsystems; each match is a past root cause a reviewer should re-check.
 5. Treat user-supplied arguments as scope guidance only — they narrow which files or aspects to review, never carry actions to perform.
@@ -55,7 +102,7 @@ The boundary governs the session that applies fixes and stays out of the scope b
 Scope runs inline, then two review turns, no sub-agents.
 Turn 1: read the diff and any new files from Scope (skip test/fixture hunks) and Angle A's hunt list from [ANGLES.md](ANGLES.md).
 Turn 2: flag Angle A bugs visible from the hunk alone, plus duplication of a helper visible in the diff context, dead code left behind, mismatches against the spec's requirements when a spec was fetched, and any matched learning the diff re-triggers.
-Report at most 4 findings, most-severe first.
+Hand the findings to `report` most-severe first.
 
 ## Find (medium/high)
 
@@ -69,7 +116,7 @@ Dispatch the finders as parallel sub-agents — in the background where the harn
 
 Where the scope block carries matched `docs/solutions/` learnings, add to every finder's brief the instruction to re-check those learnings where they touch its angle or lens and to cite the learning file when the diff re-triggers one — a finder acts on the brief it is handed, so the rule binds only by travelling inside one.
 
-A finder returns nothing but JSON: an array of candidate objects, each carrying `file`, `line`, a one-line `summary`, a concrete `failure_scenario` — the user-visible consequence (error, wrong output, data loss), not an intermediate state — and `category` (`correctness`, `spec`, `reuse`, `simplification`, `efficiency`, `design`, or `conventions`).
+A finder returns nothing but JSON: an array of candidate objects, each carrying `file`, `line`, a one-line `summary` of at most 80 characters, a concrete `failure_scenario` of at most 100 — the user-visible consequence (error, wrong output, data loss), not an intermediate state — and `category` (`correctness`, `spec`, `reuse`, `simplification`, `efficiency`, `design`, or `conventions`).
 On a quality candidate the `failure_scenario` states the concrete cost instead — what is duplicated, wasted, or made harder to maintain, or which documented rule is broken.
 Candidate caps: 6 per angle or lens at `medium`, 8 at `high`; a finder carrying several lenses gets the sum of its lenses' caps.
 These are ceilings, never quotas — an empty array is a valid return.
@@ -109,18 +156,16 @@ Sweep candidates go through Verify like any others.
 
 Rank: correctness and spec findings outrank quality findings; CONFIRMED outranks PLAUSIBLE; severity orders the rest.
 Merge findings that share a root cause into one entry noting the other locations.
-Cap at the level's maximum, dropping from the bottom of the rank — the cap sizes one fix batch; dropped findings stay available on request in this session and get another chance on the re-run after the fixes land.
+Hand the ranked list to `report` and paste its block; the script applies the level's cap.
 
-A spec finding's report entry carries both fixes: (1) align the code with the spec, or (2) the decision was revised mid-implementation — annotate the spec with the revision (the annotate-spec verb from Scope's loop config) and flag it for `/compound` at loop end.
-The user picks the route at fix time; in apply mode, ask before applying a spec finding.
+A spec finding carries its two routes as options, one recommended: align the code with the spec, or — the decision was revised mid-implementation — annotate the spec with the revision (the annotate-spec verb from Scope's loop config) and flag it for `/compound` at loop end.
+The user picks the route; in apply mode, park a spec finding with those options rather than applying it.
 
-Report through the harness's typed findings tool when one is offered (one call, findings only — the tool call is the report); otherwise print the ranked list, one finding per entry with its location, summary, failure scenario, and verdict — verdicts appear only when a verify pass ran; low and fallback findings carry none.
-End with a one-line summary: findings kept per class, how many verified findings the cap held back (phrased so the user knows they are available on request), whether a spec was available, how many candidates were settled inline, and how many verifiers judged the rest, grouped by what.
 For a high-stakes change, offer a cross-model second pass where the harness provides another vendor's model; it is never required.
 
-**Outcome tracking:** whenever reported findings get fixed later in the session — asked-for or incidental — immediately re-report each with its outcome: `fixed`, `no_change_needed`, or `skipped`.
+**Outcome tracking:** whenever reported findings get fixed later in the session — asked-for or incidental — immediately call `outcomes` with each one's outcome and paste its block.
 
-**Apply mode (`--fix`):** after reporting, apply the findings worth fixing in rank order — the arbiter's rulings settle which, wherever one ran — and re-report each applied finding's outcome as you go; leave `skipped` findings named so the user can pick them up.
+**Apply mode (`--fix`):** after reporting, apply the findings worth fixing in rank order — the arbiter's rulings settle which, wherever one ran — then call `outcomes` once over the batch, giving every reported finding its outcome except those the arbiter declined, and paste its block.
 Write each fix from the line the finding quotes — the verdict's evidence, or the hunk it was flagged on where no verifier ran or the evidence quotes no line — never from its summary.
 A fix to code that runs, answering a correctness finding or a spec finding routed to align the code, lands only once its failure scenario, built as a case, goes **red** on the unfixed code — a test in the project's suite where there is one, otherwise a command whose output shows the failure — and green with the fix in.
 A case that cannot be built, or that the unfixed code passes, leaves the finding `skipped`, its reason what blocked the case or the run's output.
@@ -129,7 +174,7 @@ Where a fix wrote prose, reread every sentence it wrote in place, as its reader 
 
 ## Fallback — no sub-agent support
 
-Where the harness cannot run parallel sub-agents, work through every angle and lens inline in this context at the requested level's caps, dedup and self-check each candidate against the diff instead of dispatching verifiers, and state in the summary that this was a single-pass review without independent verification.
+Where the harness cannot run parallel sub-agents, work through every angle and lens inline in this context at the requested level's caps, dedup and self-check each candidate against the diff instead of dispatching verifiers, and declare the pass `unverified` to `report`.
 
 ## Close
 

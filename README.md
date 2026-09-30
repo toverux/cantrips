@@ -362,28 +362,42 @@ flowchart TD
   6 correctness + 5 quality finders reviewing for **recall**, then a gap-hunting sweep (≤15).
   Finders run as parallel sub-agents, each briefed on a single angle or lens; every candidate must
   name a concrete failure scenario. Verifiers judge each candidate on its own evidence, and refuted
-  or unverified candidates never reach a `medium` or `high` report. Findings flow through the
-  harness's typed findings tool where one exists; from `medium` up, `--fix` applies the surviving
-  findings that fit inside the scope it reviewed, naming any it had to hand back, and lands a fix
-  to running code that answers a correctness finding only once a test or command goes red on the
-  unfixed code. On a harness without sub-agents, the same angles run inline as a single-pass
-  review that says so.
+  or unverified candidates never reach a `medium` or `high` report. From `medium` up, `--fix`
+  applies the surviving findings that fit inside the scope it reviewed, naming any it had to hand
+  back, and lands a fix to running code that answers a correctness finding only once a test or
+  command goes red on the unfixed code. On a harness without sub-agents, the same angles run inline
+  as a single-pass review that says so.
+- **One report format** — a small script shipped with the skill holds the run's findings and prints
+  every report, so each run reads the same. Every finding gets an ID like `F3` that you answer by,
+  and two short lines: what is wrong, and the failure it causes. After a `--fix` batch the rows
+  print again, fixed ones struck through and the rest with why they stay open. On Claude Code, with
+  `node` running the script, a report followed by more work ends the agent's turn, so you read it
+  before the work starts, and a Stop hook the skill registers resumes the run on its own; under
+  Claude Code's sandbox with filesystem isolation, the hook cannot see the run, so you resume each
+  step yourself. The script needs `node` 22.18 or later, `bun`, or `deno`; without one, the gate
+  refuses to run and says so. Its state lives in the system temp directory, readable only by you, so
+  your tree stays clean.
 - **Converge until green** — `--loop` implies `--fix` at any level, `low` and the sub-agent-less
-  fallback included, and drives the gate instead of reporting once: fix batch, project checks,
-  delta re-review, repeat, until a full-scope certifying pass over the final tree surfaces nothing
-  new — that pass is green, with the project's checks back where they started and every finding
-  explicitly dispositioned: fixed, hardened, acknowledged by you, declined by the arbiter, or
-  left unproven by a red run.
-  Anything needing you is parked and batched at a round boundary while the loop keeps fixing the
-  rest, and guards hand you the wheel when a fix stops taking, when a question comes back twice,
-  or when rounds keep surfacing findings nothing earlier saw.
+  fallback included, and drives the gate instead of reporting once: one full-scope certifying
+  pass, then fix batch, project checks, delta re-review, repeat, until nothing is left to fix or
+  re-review — the arbiter may ask for one more full pass, once. That is green, with the project's
+  checks back where they started and every finding explicitly dispositioned: fixed, needing no
+  change, skipped with its reason, routed to the spec, or declined by the arbiter.
+  Anything needing you is printed in full the moment it is parked, with lettered options and a
+  recommendation, and the loop keeps fixing the rest; answer whenever you like (`F4: A, F13: B`)
+  and the answer folds in at the next round. Each round prints one header line with the arbiter's
+  read of where the run is heading, and the run ends on `GREEN:`, on `WAITING:` when only your
+  answers stand between it and green, or on `STOP:` when a guard hands you the wheel: a fix stops
+  taking, a question comes back twice, or rounds keep surfacing findings nothing earlier saw and
+  leave work standing. Whatever ended it, everything still waiting on you is printed again, and
+  answering picks the same run back up.
 - **Held proportionate** — wherever `--fix` or `--loop` applies fixes after a verify pass, an
   **arbiter** rules beside the verifiers: one sub-agent on the harness's most capable model, the
   long-term maintainer guarding YAGNI and KISS, deciding whether each finding is worth fixing
-  _here_. Its ruling binds — a declined finding is skipped with its reason, listed in the report
-  for you to overrule, and never asked about — and under `--loop` it stays alive across rounds,
-  watches how much the fixes have grown the target, and may have an overbuilt fix shrunk or backed
-  out. A fifty-line script stays a fifty-line script.
+  _here_. Its ruling binds — a declined finding is skipped with its reason, counted in the report
+  and listed when you ask, for you to overrule, and never asked about — and under `--loop` it
+  stays alive across rounds, watches how much the fixes have grown the target, and may have an
+  overbuilt fix shrunk or backed out. A fifty-line script stays a fifty-line script.
 - **Next** — fix what's worth fixing, re-run after substantial fixes, then `/commit`. Findings
   that exposed a durable gotcha are flagged as `/compound` material for commit's opening scan.
 
@@ -618,8 +632,9 @@ codex plugin add cantrips@cantrips
 
 ## Development
 
-There is nothing to install and nothing to build — this repository is Markdown plus a handful of
-JSON manifests. Clone it and edit.
+There is nothing to install and nothing to build — this repository is Markdown, a handful of JSON
+manifests, and a few dependency-free scripts; after touching the one `/review-gate` runs, run its
+tests with `mise run test`. Clone it and edit.
 
 See [AGENTS.md](AGENTS.md) for the layout, the authoring standard, and the release process
 (release-please). Deferred ideas live in [IDEAS.md](IDEAS.md), and cantrips runs its own loop on
