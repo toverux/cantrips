@@ -386,22 +386,13 @@ the next question is framed. The user asked for it at the start of a grilling se
 `270fcb57-9d96-4487-b800-f522f8cbf6f7`). With one question per message, the frontier and the lock
 still apply, but the "numbers still open" line has nothing to name.
 
-## `/spec` carries a standing ADR forward without asking whether the design retires it
+## `/implement` cannot keep a spec's commit boundaries when the agent may not commit
 
-The `/review-gate` reporting spec listed ADR 0004 among its standing decisions, "not revised", so
-`LOOP.md` kept its pseudocode beside a script that now paced the loop. The user had wanted the
-block gone and called it a gap in the spec; reversing it mid-implementation cost a rewrite, a second
-probe and ADR 0006 (transcript `5678f667-f07c-4826-b158-8e10551a2d4f`). A standing decision the new
-design overlaps could be put to the user as a question before the spec folds it in.
+A spec prescribing four ordered commits was implemented in a repo whose rules forbid the agent to
+commit, so the stages piled into one working tree (transcript
+`f5731cf6-33e6-412c-b15e-1d7846bcbc64`). The workaround was a tree snapshot per stage through a
+throwaway index (`GIT_INDEX_FILE=<tmp> git read-tree HEAD`, `git add -A`, `git write-tree`), which
+touches neither the real index nor any ref. `/implement` could record one such tree per prescribed
+commit and `/commit` replay them in order.
 
-**Adopt when:** a spec's standing decision is reversed during implementation again.
-
-## `/spec` publishes a text it never reread
-
-A spec synthesized from a thirteen-question interview went out carrying three decisions the user
-never made, four claims firmer than their evidence and three gaps; all surfaced only when the user
-asked for a reread (transcript `bfdae3ac-9f5d-48e3-9176-e30e165890ab`). The reread then ended on a
-question the user did not see, below an unnumbered list. `/spec` could verify its own text before
-publishing: fix what needs no user call, check against the code what a check settles, and put the
-rest to the user as a numbered list in `/grilling`'s format. Until tickets exist, a correction
-could rewrite the body rather than annotate it.
+**Adopt when:** a second spec prescribes more than one commit.
