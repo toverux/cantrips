@@ -344,16 +344,6 @@ script, or a shared one, with `/simplify`, and its runtime requirement with it.
 **Adopt when:** `/simplify`'s report draws the complaints the gate's did — a numbering invented per
 run, a format that swings between runs, or a summary the user asks to have reworked.
 
-## A delta round over uncommitted batches has no fixed point
-
-Under `--loop` every batch stays uncommitted, so `git diff HEAD` holds all of them and a delta round
-meant for the last batch gets the cumulative diff; in transcript
-`2296fef0-9d0e-4541-bac7-ea15e7dd6158` one round's target was rebuilt from the batch's description.
-`git stash create` before each batch (a commit no ref points at, the tree untouched) gives the fixed
-point: the delta round targets `git diff <snapshot>`.
-
-**Adopt when:** a delta round's target is rebuilt from a batch's description again.
-
 ## `/review-gate`'s Stop hooks miss a sandboxed run's hand-off
 
 With Claude Code's sandbox filesystem isolation on, sandboxed commands get their own `$TMPDIR` and
@@ -366,21 +356,32 @@ share would.
 **Adopt when:** a sandboxed `--loop` run stalls on a hand-off, or Claude Code documents a sandbox
 marker.
 
-## Nothing in `/review-gate`'s apply mode forbids applying before `report`
+## A Stop hook for `/review-gate` on Codex CLI
 
-Round 2 of a `--loop` run applied its whole batch before calling `report`, so the findings and their
-outcomes reached the user in the same turn and left no window to object to a fix or redirect a ruling
-(transcript `723b78a4-40ad-4691-b3db-a62baa50c2eb`). Every guardrail sits downstream of the slip:
-`report` prints `paste: ... then end your turn` and a Stop hook resumes the agent with the apply
-step, which forbids applying after `report` and before the paste, but nothing checks whether the tree
-already changed. Synthesize and report's "after reporting, apply the findings worth fixing" reads as
-a recipe's running order rather than a gate with a reason, and apply mode's own red-case rule pulls
-the other way, since building a failure scenario as a case is writing code. Naming the reason, that
-the report is what puts the findings in front of the user before the tree changes, and saying plainly
-that nothing is applied before `report` returns, would close it. `report` could also refuse a round
-whose working tree moved since the previous call.
+On Codex CLI the gate's order rests on the agent sending a round's findings as a message before its
+first edit, in one turn: Codex reads no hooks from a skill's frontmatter, so nothing ends the turn
+on the block as Claude Code's Stop hooks do. A Codex plugin can bundle hooks in `hooks/hooks.json`,
+and a `Stop` hook answering `decision: "block"` makes Codex continue with a new prompt, which would
+give Codex the same split; bundled hooks stay skipped until the user reviews and trusts them
+([research](docs/research/codex-mid-turn-messages.md#what-this-means-for-review-gate)).
 
-**Adopt when:** a `--loop` round's outcomes land in the same turn as its findings again.
+**Adopt when:** a Codex run lands a round's findings and outcomes together, or shortens the
+findings block it was meant to send mid-turn.
+
+## `/review-gate`'s snapshots fault under Codex CLI's default sandbox
+
+A run that applies fixes snapshots the working tree into the repository's own object store. Codex's
+`workspace-write` sandbox mounts `.git` read-only, so the write fails (`error: unable to create
+temporary file: Read-only file system`, reproduced with `codex sandbox` on 0.159.3) and every
+`--fix` or `--loop` run faults at `start` unless the user approves each script call to run outside
+the sandbox (transcript `eabd43f5-ae03-42c3-95f2-96aea400f144`). The temp directory stays writable
+there, so the fix is a fallback: where the repository's store refuses the write, put the objects in
+a side directory beside the script's state, reached through `GIT_OBJECT_DIRECTORY` with the
+repository's store as its alternate, and prefix the handed diff with
+`GIT_ALTERNATE_OBJECT_DIRECTORIES=<side>`. That costs the plain `git diff` on Codex only, and
+reverses the ruling that kept a side object directory out of the snapshot's design.
+
+**Adopt when:** a Codex user runs `/review-gate --fix` or `--loop` under the default sandbox.
 
 ## A `--1`/`--one` argument for `/grilling`
 

@@ -1,5 +1,6 @@
 // CLI tests for findings.ts, through the command line the agent calls. Run: mise run test.
-// Each test spawns the current runtime on the script with TMPDIR pointed at a fresh directory.
+// Each test spawns the current runtime on the script with TMPDIR pointed at a fresh directory, inside a throwaway
+// git repository of its own, so no test writes into this checkout's object store.
 
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -16,6 +17,9 @@ const DELIMITER = '── agent ──';
 const HANDOFF =
   'paste: everything above the delimiter into your message, unaltered, then end your turn: the gate resumes you with the next step';
 
+const MOVED = '⚠️ The working tree changed before this report: its fixes may already be applied.';
+const MOVED_AGENT = 'moved: the working tree changed since the tree this round reviewed; say above the block what moved it';
+
 interface Output {
   status: number | null;
   user: string;
@@ -27,12 +31,30 @@ interface Output {
 
 function sandbox(env: Record<string, string | undefined> = { CLAUDE_CODE_SESSION_ID: 'test-session' }) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'findings-test-'));
-  const base: Record<string, string> = {};
+  // The user's git configuration stays out, so a signing key or an excludes file of theirs changes no test, and so
+  // does the caller's git environment, so a run from a git hook stays inside its own repository.
+  const base: Record<string, string> = { GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null', XDG_CONFIG_HOME: tmp };
   for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined && !/^(CLAUDE_CODE_SESSION_ID|CODEX_THREAD_ID|CODEX_SESSION_ID)$/.test(key)) {
+    if (value !== undefined && !/^(GIT_.*|XDG_CONFIG_HOME|CLAUDE_CODE_SESSION_ID|CODEX_THREAD_ID|CODEX_SESSION_ID)$/.test(key)) {
       base[key] = value;
     }
   }
+  const repo = path.join(tmp, 'repo');
+  fs.mkdirSync(repo);
+  const git = (...args: string[]) => {
+    const run = spawnSync('git', args, { cwd: repo, env: base, encoding: 'utf8' });
+    assert.equal(run.status, 0, `git ${args.join(' ')}: ${run.stderr}`);
+    return run.stdout.trim();
+  };
+  const write = (name: string, content: string) => {
+    fs.mkdirSync(path.dirname(path.join(repo, name)), { recursive: true });
+    fs.writeFileSync(path.join(repo, name), content);
+  };
+  git('init', '--quiet', '--initial-branch=main');
+  write('src/a.ts', 'export const a = 1;\n');
+  git('add', '-A');
+  git('-c', 'user.name=test', '-c', 'user.email=test@example.com', 'commit', '--quiet', '-m', 'initial');
+  const hash = createHash('sha256').update(fs.realpathSync(repo)).digest('hex').slice(0, 12);
   const dir = path.join(tmp, `cantrips-${process.getuid?.() ?? ''}`, 'review-gate');
   const pending = () => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((n) => n.endsWith('.pending')) : []);
   // A hand-off's step is read as the Stop hook would deliver it; the file stays for the script to collect or drop.
@@ -40,6 +62,7 @@ function sandbox(env: Record<string, string | undefined> = { CLAUDE_CODE_SESSION
     const run = spawnSync(process.execPath, [SCRIPT, command], {
       input: input === undefined ? '' : typeof input === 'string' ? input : JSON.stringify(input),
       env: { ...base, ...env, TMPDIR: tmp } as Record<string, string>,
+      cwd: repo,
       encoding: 'utf8',
     });
     const [user, shown = ''] = run.stdout.split(`${DELIMITER}\n`);
@@ -53,7 +76,7 @@ function sandbox(env: Record<string, string | undefined> = { CLAUDE_CODE_SESSION
   };
   // The Stop hook's call, as the harness makes it: the hook input on stdin, its session in the environment, and
   // a working directory that is not the project's.
-  const hook = (kind: string, input: unknown = { session_id: env.CLAUDE_CODE_SESSION_ID, cwd: process.cwd() }) => {
+  const hook = (kind: string, input: unknown = { session_id: env.CLAUDE_CODE_SESSION_ID, cwd: repo }) => {
     const session = (input as { session_id?: unknown } | null)?.session_id;
     const run = spawnSync(process.execPath, [SCRIPT, 'resume', kind], {
       input: typeof input === 'string' ? input : JSON.stringify(input),
@@ -63,7 +86,7 @@ function sandbox(env: Record<string, string | undefined> = { CLAUDE_CODE_SESSION
     });
     return { status: run.status, stdout: run.stdout, stderr: run.stderr };
   };
-  return { dir, call, hook, pending, cleanup: () => fs.rmSync(tmp, { recursive: true, force: true }) };
+  return { dir, repo, hash, git, write, call, hook, pending, cleanup: () => fs.rmSync(tmp, { recursive: true, force: true }) };
 }
 
 function withSandbox(name: string, body: (s: ReturnType<typeof sandbox>) => void, env?: Record<string, string>) {
@@ -76,11 +99,6 @@ function withSandbox(name: string, body: (s: ReturnType<typeof sandbox>) => void
     }
   });
 }
-
-const worktreeHash = createHash('sha256')
-  .update(spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).stdout.trim())
-  .digest('hex')
-  .slice(0, 12);
 
 function bug(n: number, extra: Record<string, unknown> = {}) {
   return {
@@ -142,7 +160,7 @@ withSandbox('start keys the state file on the session and worktree, in a private
   assert.equal(out.status, 0);
   assert.equal(out.user, '');
   assert.doesNotMatch(out.agent, /^paste:/m);
-  const file = path.join(s.dir, `test-session-${worktreeHash}.json`);
+  const file = path.join(s.dir, `test-session-${s.hash}.json`);
   assert.match(out.agent, new RegExp(`^state: ${file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'm'));
   assert.ok(fs.existsSync(file));
   assert.equal(fs.statSync(s.dir).mode & 0o777, 0o700);
@@ -168,7 +186,7 @@ withSandbox(
   'without a session variable the worktree hash alone names the state file',
   (s) => {
     s.call('start', { level: 'low', mode: 'report', target: 't' });
-    assert.deepEqual(fs.readdirSync(s.dir), [`${worktreeHash}.json`]);
+    assert.deepEqual(fs.readdirSync(s.dir), [`${s.hash}.json`]);
   },
   {},
 );
@@ -177,7 +195,7 @@ withSandbox(
   'under Codex the thread id keys the state file',
   (s) => {
     s.call('start', { level: 'low', mode: 'report', target: 't' });
-    assert.deepEqual(fs.readdirSync(s.dir), [`thread-1-${worktreeHash}.json`]);
+    assert.deepEqual(fs.readdirSync(s.dir), [`thread-1-${s.hash}.json`]);
   },
   { CODEX_THREAD_ID: 'thread-1', CODEX_SESSION_ID: 'root-1' },
 );
@@ -211,13 +229,12 @@ withSandbox('report renders rows, the legend of used emojis, declines and the fo
   const out = s.call('report', {
     spec: true,
     verifiers: { count: 6, grouping: 'file' },
-    arbiter: {},
-    candidates: [
+    ...judged([
       { ...LRU, ruling: 'fix', opinion: 'one line' },
       { ...RETRIES, ruling: 'fix', opinion: 'use ??' },
       { ...REUSE, ruling: 'decline', opinion: '`utils/retry.ts` takes no abort signal' },
       { ...bug(9), verdict: 'refuted', evidence: 'guarded at `f9.ts:3`' },
-    ],
+    ]),
   });
   assert.equal(out.status, 0);
   assert.equal(
@@ -252,8 +269,7 @@ withSandbox('report renders rows, the legend of used emojis, declines and the fo
   const declined = s.call('report', {
     spec: true,
     verifiers: { count: 1, grouping: 'file' },
-    arbiter: {},
-    candidates: [{ ...REUSE, ruling: 'decline', opinion: 'no' }],
+    ...judged([{ ...REUSE, ruling: 'decline', opinion: 'no' }]),
   });
   assert.match(declined.agent, /^next: close with the flow pointer$/m);
 });
@@ -316,8 +332,7 @@ withSandbox('inline --fix applies the findings the session ruled fix, still unve
   s.call('start', { level: 'inline', mode: 'fix', target: 't' });
   const out = s.call('report', {
     spec: false,
-    arbiter: {},
-    candidates: [fix(1), bug(2, { ruling: 'decline', opinion: 'rare' }), { ...SPEC, ruling: 'fix', opinion: 'ok', options: ROUTES }],
+    ...judged([fix(1), bug(2, { ruling: 'decline', opinion: 'rare' }), { ...SPEC, ruling: 'fix', opinion: 'ok', options: ROUTES }]),
   });
   assert.match(out.user, /^- \*\*F1\*\* 🐛🤔 /m);
   assert.match(out.user, /Kept 1 correctness, 1 spec · single pass, unverified · no spec available · ⚖️ 1 declined \(ask for it\)$/);
@@ -333,12 +348,99 @@ for (const level of ['inline', 'low', 'medium']) {
     const out = s.call('report', {
       spec: true,
       verifiers: { count: 2, grouping: 'file' },
-      arbiter: {},
-      candidates: [{ ...LRU, ruling: 'fix', opinion: 'ok' }, RETRIES],
+      ...judged([{ ...LRU, ruling: 'fix', opinion: 'ok' }, RETRIES]),
     });
     assert.match(out.user, / · ⚖️ unjudged: F2$/);
   });
 }
+
+withSandbox('a ruling reaches the candidate carrying its index, its opinion as given', (s) => {
+  s.call('start', { level: 'medium', mode: 'fix', target: 't' });
+  const out = s.call('report', {
+    spec: true,
+    verifiers: { count: 2, grouping: 'file' },
+    arbiter: {
+      rulings: [
+        { index: 2, ruling: 'decline', opinion: '`utils/retry.ts` takes no abort signal' },
+        { index: 1, ruling: 'fix', opinion: 'one line' },
+      ],
+    },
+    candidates: [
+      { ...LRU, index: 1 },
+      { ...REUSE, index: 2 },
+    ],
+  });
+  assert.equal(out.status, 0);
+  assert.match(out.user, /Kept 1 correctness · 1 settled inline, 2 verifiers \(by file\) · ⚖️ 1 declined \(ask for it\)$/);
+  assert.doesNotMatch(out.user, /unjudged/);
+  assert.match(out.agent, /^next: apply F1 in ID order$/m);
+  assert.match(s.call('held').user, /^ {2}⚖️ declined: `utils\/retry\.ts` takes no abort signal$/m);
+});
+
+withSandbox('a candidate whose index has no ruling, or that has no index, prints as unjudged and is queued as a fix', (s) => {
+  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  const out = s.call('report', {
+    ...VERIFIED,
+    arbiter: { rulings: [{ index: 1, ruling: 'fix', opinion: 'ok' }] },
+    candidates: [{ ...bug(1), index: 1 }, { ...bug(2), index: 2 }, bug(3)],
+  });
+  assert.match(out.user, /^\*\*R1\*\* .* · ⚖️ unjudged: F2, F3$/m);
+  assert.match(out.agent, /^next: apply F1–F3$/m);
+});
+
+withSandbox('an index ruled twice is rejected by name', (s) => {
+  s.call('start', { level: 'medium', mode: 'fix', target: 't' });
+  const out = s.call('report', {
+    spec: true,
+    verifiers: { count: 1, grouping: 'file' },
+    arbiter: {
+      rulings: [
+        { index: 1, ruling: 'fix', opinion: 'ok' },
+        { index: 2, ruling: 'fix', opinion: 'ok' },
+        { index: 2, ruling: 'decline', opinion: 'rare' },
+      ],
+    },
+    candidates: [{ ...bug(1), index: 1 }, { ...bug(2), index: 2 }],
+  });
+  assert.equal(out.status, 2);
+  assert.match(out.agent, /^input error: input\.arbiter\.rulings\[2\]\.index: 2 is ruled twice$/m);
+});
+
+withSandbox("a merged entry takes its indices' one ruling, the first index's opinion shown, and is rejected where they differ", (s) => {
+  s.call('start', { level: 'medium', mode: 'fix', target: 't' });
+  const rulings = [
+    { index: 1, ruling: 'fix', opinion: 'ok' },
+    { index: 2, ruling: 'decline', opinion: 'the second opinion' },
+    { index: 3, ruling: 'decline', opinion: 'the third opinion' },
+  ];
+  const report = (index: number[]) =>
+    s.call('report', { spec: true, verifiers: { count: 1, grouping: 'file' }, arbiter: { rulings }, candidates: [{ ...REUSE, index }] });
+  const differing = report([1, 3]);
+  assert.equal(differing.status, 2);
+  assert.match(
+    differing.agent,
+    /^input error: input\.candidates\[0\]\.index: the arbiter's rulings on 1, 3 differ: resend its findings as separate entries$/m,
+  );
+  // An index the arbiter left unruled is a fix, so it differs from a decline too.
+  assert.equal(report([2, 4]).status, 2);
+  const agreeing = report([3, 2]);
+  assert.equal(agreeing.status, 0);
+  assert.match(agreeing.user, /⚖️ 1 declined \(ask for it\)$/);
+  assert.match(s.call('held').user, /^ {2}⚖️ declined: the third opinion$/m);
+});
+
+withSandbox('a merged entry holding an index the arbiter left unruled is unjudged where the rest are fixes', (s) => {
+  s.call('start', { level: 'medium', mode: 'fix', target: 't' });
+  const out = s.call('report', {
+    spec: true,
+    verifiers: { count: 1, grouping: 'file' },
+    arbiter: { rulings: [{ index: 1, ruling: 'fix', opinion: 'ok' }] },
+    candidates: [{ ...REUSE, index: [1, 2] }],
+  });
+  assert.equal(out.status, 0);
+  assert.match(out.user, / · ⚖️ unjudged: F1$/);
+  assert.match(out.agent, /^next: apply F1 in ID order$/m);
+});
 
 for (const level of ['inline', 'low']) {
   withSandbox(`${level} caps the report at 4`, (s) => {
@@ -383,8 +485,7 @@ withSandbox('under --fix a spec finding is parked for its route rather than aske
   const out = s.call('report', {
     spec: true,
     verifiers: { count: 1, grouping: 'section' },
-    arbiter: {},
-    candidates: [{ ...SPEC, ruling: 'fix', opinion: 'ok', options: ROUTES }],
+    ...judged([{ ...SPEC, ruling: 'fix', opinion: 'ok', options: ROUTES }]),
   });
   assert.doesNotMatch(out.user, /Options/);
   assert.match(out.agent, /^next: park F1 with the two routes as options/m);
@@ -413,15 +514,14 @@ withSandbox('outcomes reprints the batch: gone rows struck, open rows with their
   s.call('report', {
     spec: true,
     verifiers: { count: 4, grouping: 'file' },
-    arbiter: {},
-    candidates: [
+    ...judged([
       { ...LRU, ruling: 'fix', opinion: 'ok' },
       { ...RETRIES, ruling: 'fix', opinion: 'ok' },
       { ...SPEC, ruling: 'fix', opinion: 'ok' },
       { ...REUSE, ruling: 'decline', opinion: 'no abort signal there' },
       fix(5),
       fix(6),
-    ],
+    ]),
   });
   const out = s.call('outcomes', {
     outcomes: [
@@ -470,7 +570,7 @@ withSandbox('outcomes reprints the batch: gone rows struck, open rows with their
 
 withSandbox('outcomes under --fix keeps waiting on a finding an earlier call parked', (s) => {
   s.call('start', { level: 'medium', mode: 'fix', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), fix(2)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
   s.call('outcomes', { outcomes: [1, 2].map((n) => ({ id: `F${n}`, outcome: 'parked', options: OPTIONS })) });
   const out = s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
   assert.match(out.agent, /^next: wait for the user's answers on F2, /m);
@@ -482,8 +582,7 @@ withSandbox('outcomes under --fix names the findings still without one', (s) => 
   s.call('report', {
     spec: true,
     verifiers: { count: 1, grouping: 'file' },
-    arbiter: {},
-    candidates: [1, 2, 3].map((n) => fix(n)),
+    ...judged([1, 2, 3].map((n) => fix(n))),
   });
   const partial = s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
   assert.match(partial.agent, /^no outcome yet: F2, F3$/m);
@@ -517,10 +616,29 @@ function fix(n: number, extra: Record<string, unknown> = {}) {
   return bug(n, { ruling: 'fix', opinion: 'ok', ...extra });
 }
 
+// A report's candidates and arbiter object as the agent builds them: a ruling noted here on its candidate travels
+// in arbiter.rulings, under the index the candidate was sent to the arbiter with.
+function judged(candidates: Record<string, unknown>[], arbiter: Record<string, unknown> = {}) {
+  const rulings: unknown[] = [];
+  const indexed = candidates.map(({ ruling, opinion, ...candidate }, i) => {
+    if (ruling) rulings.push({ index: i + 1, ruling, opinion });
+    return { ...candidate, index: i + 1 };
+  });
+  return { arbiter: { ...arbiter, rulings }, candidates: indexed };
+}
+
+// The diff a `next:` line hands a delta round, as the two trees it names and what running it prints.
+function handedDiff(s: ReturnType<typeof sandbox>, out: Output) {
+  const [, from, to] = /^then: a delta round over `git diff ([0-9a-f]{40}) ([0-9a-f]{40})` /m.exec(out.agent) ?? [];
+  assert.ok(from && to, `no diff handed in: ${out.agent}`);
+  return { from, to, text: s.git('diff', from, to) };
+}
+
 // A --loop run, at medium unless named, whose first certifying pass queued F1..Fn and applied F1 as fixed.
 function loopWithFix(s: ReturnType<typeof sandbox>, n = 1, level = 'medium') {
   s.call('start', { level, mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: Array.from({ length: n }, (_, i) => fix(i + 1)) });
+  s.call('report', { ...VERIFIED, ...judged(Array.from({ length: n }, (_, i) => fix(i + 1))) });
+  s.write('src/a.ts', 'export const a = 2;\n');
   return s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
 }
 
@@ -529,13 +647,12 @@ withSandbox('a --loop report prints the round block: header, trajectory, and row
   const out = s.call('report', {
     ...VERIFIED,
     verifiers: { count: 3, grouping: 'file' },
-    arbiter: { trajectory: 'early: nothing settled yet' },
-    candidates: [
+    ...judged([
       { ...LRU, ruling: 'fix', opinion: 'one line' },
       { ...RETRIES, ruling: 'fix', opinion: 'use ??' },
       { ...REUSE, ruling: 'decline', opinion: 'no abort signal there' },
       { ...bug(9), verdict: 'refuted', evidence: 'guarded at `f9.ts:3`' },
-    ],
+    ], { trajectory: 'early: nothing settled yet' }),
   });
   assert.equal(out.status, 0);
   assert.equal(
@@ -561,8 +678,9 @@ withSandbox('the loop queues everything found, sizes each batch by the cap, and 
   assert.equal((first.user.match(/^- \*\*F/gm) ?? []).length, 6);
   assert.match(first.user, /^\*\*R1\*\* 🔎 certifying · inline · 6 found · 6 new · no checks · ⚖️ unjudged: F1–F6$/m);
   assert.match(first.agent, /^next: apply F1–F4$/m);
+  s.write('src/a.ts', 'export const a = 2;\n');
   const outcome = s.call('outcomes', { outcomes: [1, 2, 3, 4].map((id) => ({ id, outcome: 'fixed' })) });
-  assert.match(outcome.agent, /^next: run the checks, settling a red batch as LOOP\.md says, then a delta round over the batch at the level it earns, at most inline; call report with delta_over \["F1","F2","F3","F4"\] and that level and, where it has a candidate, the arbiter's reply$/m);
+  assert.match(outcome.agent, /^then: a delta round over `git diff [0-9a-f]{40} [0-9a-f]{40}` at the level it earns, at most inline; call report with delta_over \["F1","F2","F3","F4"\] and that level and, where it has a candidate, the arbiter's reply$/m);
   const delta = s.call('report', { spec: true, checks: 'none', level: 'inline', delta_over: ['F1', 'F2', 'F3', 'F4'], candidates: [bug(7)] });
   assert.match(delta.user, /^\*\*R2\*\* 🔬 delta over F1–F4 · inline · 1 found · 1 new · no checks · ⚖️ unjudged: F7$/m);
   assert.match(delta.user, /^- \*\*F7\*\* /m);
@@ -571,7 +689,7 @@ withSandbox('the loop queues everything found, sizes each batch by the cap, and 
 
 withSandbox('a routed finding joins the delta round, since its route may have changed the code', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), { ...SPEC, ruling: 'fix', opinion: 'ok', options: ROUTES }] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), { ...SPEC, ruling: 'fix', opinion: 'ok', options: ROUTES }]) });
   const out = s.call('outcomes', {
     outcomes: [
       { id: 'F1', outcome: 'fixed' },
@@ -631,8 +749,7 @@ withSandbox('a re-find of a skipped, parked or queued finding is not new', (s) =
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
   s.call('report', {
     ...VERIFIED,
-    arbiter: {},
-    candidates: [fix(1), fix(2), bug(3, { ruling: 'decline', opinion: 'rare' }), fix(4)],
+    ...judged([fix(1), fix(2), bug(3, { ruling: 'decline', opinion: 'rare' }), fix(4)]),
   });
   s.call('outcomes', {
     outcomes: [
@@ -661,8 +778,7 @@ withSandbox('fix_not_taking stops on a certifying pass that brings back a fixed 
   s.call('report', { ...VERIFIED, delta_over: ['F1', 'F2'], arbiter: {}, candidates: [] });
   const out = s.call('report', {
     ...VERIFIED,
-    arbiter: {},
-    candidates: [{ ...bug(1), same_as: 'F1' }, fix(8)],
+    ...judged([{ ...bug(1), same_as: 'F1' }, fix(8)]),
   });
   assert.match(out.agent, /^next: call close with `standing` options for F1, F3; the run stops on fix_not_taking — F1$/m);
   const missing = s.call('close', {});
@@ -682,7 +798,7 @@ withSandbox('fix_not_taking stops on a certifying pass that brings back a fixed 
 
 withSandbox('asked_twice stops when an answered finding is parked again, never on silence', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), fix(2)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
   s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', options: OPTIONS }] });
   const unanswered = s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', options: OPTIONS }] });
   assert.doesNotMatch(unanswered.agent, /asked_twice/);
@@ -693,7 +809,7 @@ withSandbox('asked_twice stops when an answered finding is parked again, never o
 
 withSandbox('a stop asks options only for the queued findings that hold none', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), fix(2), fix(3)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2), fix(3)]) });
   for (const id of ['F2', 'F1']) {
     s.call('outcomes', { outcomes: [{ id, outcome: 'parked', options: OPTIONS }] });
     s.call('answers', { answers: [{ id, action: 'queue' }] });
@@ -705,7 +821,7 @@ withSandbox('a stop asks options only for the queued findings that hold none', (
 
 withSandbox('an answered finding in a reverted batch trips asked_twice through the item it parks under', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), fix(2)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
   s.call('outcomes', { outcomes: [{ id: 'F2', outcome: 'parked', options: OPTIONS }] });
   s.call('answers', { answers: [{ id: 'F2', action: 'queue' }] });
   const out = s.call('outcomes', {
@@ -716,10 +832,10 @@ withSandbox('an answered finding in a reverted batch trips asked_twice through t
 
 // A certifying pass, and a delta round over one finding it first records as fixed.
 function rounds(s: ReturnType<typeof sandbox>) {
-  const certifying = (candidates: unknown[]) => s.call('report', { ...VERIFIED, arbiter: {}, candidates });
-  const delta = (id: number, candidates: unknown[]) => {
+  const certifying = (candidates: Record<string, unknown>[]) => s.call('report', { ...VERIFIED, ...judged(candidates) });
+  const delta = (id: number, candidates: Record<string, unknown>[]) => {
     s.call('outcomes', { outcomes: [{ id, outcome: 'fixed' }] });
-    return s.call('report', { ...VERIFIED, delta_over: [id], arbiter: {}, candidates });
+    return s.call('report', { ...VERIFIED, delta_over: [id], ...judged(candidates) });
   };
   return { certifying, delta };
 }
@@ -782,7 +898,8 @@ withSandbox('an answer during a stopping certifying pass leaves its batch to lan
 
 withSandbox('a parked item prints in full when found and the loop keeps working', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), { ...RETRIES, ruling: 'fix', opinion: 'ok' }, fix(3)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), { ...RETRIES, ruling: 'fix', opinion: 'ok' }, fix(3)]) });
+  s.write('src/a.ts', 'export const a = 2;\n');
   const out = s.call('outcomes', {
     outcomes: [
       { id: 'F1', outcome: 'fixed' },
@@ -805,12 +922,12 @@ withSandbox('a parked item prints in full when found and the loop keeps working'
     ].join('\n'),
   );
   assert.match(out.agent, /^parked: F2; keep working/m);
-  assert.match(out.agent, /^next: run the checks, settling a red batch as LOOP\.md says, then a delta round over the batch .* delta_over \["F1","F3"\] /m);
+  assert.match(out.agent, /^next: run the checks, .*\nthen: a delta round over .* delta_over \["F1","F3"\] /m);
 });
 
 withSandbox('a reverted batch parks as one item under the finding it answered', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), fix(2), fix(3)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2), fix(3)]) });
   const out = s.call('outcomes', {
     outcomes: [{ id: 'F1', outcome: 'parked', with: ['F2', 'F3'], tried: 'reverted the batch; `f1.test.ts` stays red', options: OPTIONS }],
   });
@@ -823,7 +940,7 @@ withSandbox('a reverted batch parks as one item under the finding it answered', 
 
 withSandbox('a reverted batch lists only the rest of it, and its holder settled another way re-queues the rest', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), fix(2)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
   const self = s.call('outcomes', {
     outcomes: [{ id: 'F1', outcome: 'parked', with: ['F1', 'F2'], tried: 'reverted the batch', options: OPTIONS }],
   });
@@ -848,7 +965,7 @@ withSandbox('a reverted batch lists only the rest of it, and its holder settled 
 
 withSandbox('a red certifying pass is never clean: the red is settled before the run closes', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
   s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', tried: '`suite` stays red', options: OPTIONS }] });
   const red = s.call('report', { ...VERIFIED, checks: 'red', arbiter: {}, candidates: [] });
   assert.match(red.agent, /^next: settle the red checks as LOOP\.md says\nthen: call outcomes over any edit repaired or backed out in settling it; where none was, rerun the checks and call report with delta_over \[\] and no candidates$/m);
@@ -859,13 +976,13 @@ withSandbox('a red certifying pass is never clean: the red is settled before the
   assert.match(rerun.user, /^\*\*R3\*\* 🔬 delta over nothing · /);
   assert.match(rerun.agent, /^next: call close$/m);
   assert.match(s.call('close').user, /^`GREEN: /);
-  const queued = s.call('report', { ...VERIFIED, checks: 'red', arbiter: {}, candidates: [fix(2)] });
+  const queued = s.call('report', { ...VERIFIED, checks: 'red', ...judged([fix(2)]) });
   assert.match(queued.agent, /^next: settle the red checks as LOOP\.md says\nnext: apply F2$/m);
 });
 
 withSandbox('answers re-queue or skip mid-run, and reject a finding that is not waiting', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), fix(2), fix(3)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2), fix(3)]) });
   s.call('outcomes', {
     outcomes: [
       { id: 'F1', outcome: 'parked', options: OPTIONS },
@@ -891,12 +1008,11 @@ withSandbox('close reaches WAITING with parked items open, and answering resumes
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
   s.call('report', {
     ...VERIFIED,
-    arbiter: {},
-    candidates: [
+    ...judged([
       { ...LRU, ruling: 'fix', opinion: 'ok' },
       { ...RETRIES, ruling: 'fix', opinion: 'ok' },
       { ...REUSE, ruling: 'decline', opinion: 'no abort signal there' },
-    ],
+    ]),
   });
   s.call('outcomes', {
     outcomes: [
@@ -946,7 +1062,7 @@ withSandbox('close reaches WAITING with parked items open, and answering resumes
 
 withSandbox('a decline the user overruled rows at the close and leaves held', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [bug(1, { ruling: 'decline', opinion: 'rare' })] });
+  s.call('report', { ...VERIFIED, ...judged([bug(1, { ruling: 'decline', opinion: 'rare' })]) });
   s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'routed', route: 'A', reason: 'fixed at your request' }] });
   assert.equal(s.call('held').user, 'Nothing was held back or declined.');
   s.call('report', { ...VERIFIED, delta_over: ['F1'], arbiter: {}, candidates: [] });
@@ -959,12 +1075,12 @@ withSandbox('a decline the user overruled rows at the close and leaves held', (s
 
 withSandbox('answering after WAITING keeps the stop counts; after a STOP they start fresh', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), fix(2)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
   s.call('outcomes', { outcomes: [{ id: 'F2', outcome: 'parked', options: OPTIONS }] });
   let last = 1;
   const novel = () => {
     s.call('outcomes', { outcomes: [{ id: `F${last}`, outcome: 'fixed' }] });
-    const id = s.call('report', { ...VERIFIED, delta_over: [`F${last}`], arbiter: {}, candidates: [fix(last + 10)] });
+    const id = s.call('report', { ...VERIFIED, delta_over: [`F${last}`], ...judged([fix(last + 10)]) });
     last = Number(/\*\*F(\d+)\*\*/.exec(id.user)?.[1]);
     return id;
   };
@@ -998,11 +1114,11 @@ withSandbox('a --loop start over a stopped run continues it; over any other run 
   assert.match(continued.agent, /^continuing the stopped run from R3, its stop counts fresh$/m);
   assert.match(continued.agent, /^still parked: F1, F2$/m);
   assert.match(s.call('close').agent, /^input error: no ending reached: a certifying pass is due$/m);
-  const round = s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(9)] });
+  const round = s.call('report', { ...VERIFIED, ...judged([fix(9)]) });
   assert.match(round.user, /^\*\*R3\*\* 🔎 certifying · high · /m);
   assert.match(round.user, /^- \*\*F3\*\* /m);
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  const fresh = s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(9)] });
+  const fresh = s.call('report', { ...VERIFIED, ...judged([fix(9)]) });
   assert.match(fresh.user, /^\*\*R1\*\* .*\n\n- \*\*F1\*\* /);
 });
 
@@ -1011,12 +1127,11 @@ withSandbox('ledger prints the finder-brief block for the agent only', (s) => {
   assert.equal(s.call('ledger').agent, 'ledger: empty, nothing skipped or refuted yet');
   s.call('report', {
     ...VERIFIED,
-    arbiter: {},
-    candidates: [
+    ...judged([
       { ...REUSE, ruling: 'decline', opinion: 'no abort signal there' },
       { ...bug(9), verdict: 'refuted', evidence: 'guarded at `f9.ts:3`' },
       fix(1),
-    ],
+    ]),
   });
   const out = s.call('ledger');
   assert.equal(out.user, '');
@@ -1109,7 +1224,7 @@ withSandbox('the arbiter answers a routed fix like an applied one', (s) => {
 
 withSandbox('answers names the overrule route for a finding the arbiter declined', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [bug(1, { ruling: 'decline', opinion: 'not worth it' })] });
+  s.call('report', { ...VERIFIED, ...judged([bug(1, { ruling: 'decline', opinion: 'not worth it' })]) });
   const out = s.call('answers', { answers: [{ id: 'F1', action: 'queue' }] });
   assert.equal(out.status, 2);
   assert.match(
@@ -1122,6 +1237,7 @@ withSandbox("at every level, a delta round with a candidate is reported with the
   assert.match(loopWithFix(s).agent, /; call report with delta_over \["F1"\] and that level and, where it has a candidate, the arbiter's reply$/m);
   s.call('start', { level: 'inline', mode: 'loop', target: 't' });
   s.call('report', { spec: false, checks: 'baseline', candidates: [bug(1)] });
+  s.write('src/a.ts', 'export const a = 3;\n');
   assert.match(s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] }).agent, /; call report with delta_over \["F1"\] and that level and, where it has a candidate, the arbiter's reply$/m);
   const closing = s.call('report', { spec: false, checks: 'baseline', delta_over: ['F1'], candidates: [] });
   assert.match(closing.agent, /^next: call close$/m);
@@ -1133,8 +1249,7 @@ withSandbox('a certifying re-find the arbiter declines leaves the fix standing a
   s.call('report', { ...VERIFIED, delta_over: ['F1'], arbiter: {}, candidates: [] });
   const out = s.call('report', {
     ...VERIFIED,
-    arbiter: {},
-    candidates: [{ ...bug(1), same_as: 'F1', ruling: 'decline', opinion: 'the fix stands; the re-find is a nit' }],
+    ...judged([{ ...bug(1), same_as: 'F1', ruling: 'decline', opinion: 'the fix stands; the re-find is a nit' }]),
   });
   assert.doesNotMatch(out.agent, /fix_not_taking/);
   assert.match(out.agent, /^next: call close$/m);
@@ -1202,13 +1317,14 @@ withSandbox('an edit repaired in settling a red is recorded first, and blocks th
   assert.match(s.call('close').agent, /^input error: no ending reached: F1 fixed but not yet re-reviewed$/m);
 });
 
-withSandbox('a fix the delta round did not name stays to be re-reviewed', (s) => {
+withSandbox("a delta round that leaves out a fix its diff holds is rejected, since the handed diff spans every fix on the record", (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), fix(2)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
   s.call('outcomes', { outcomes: [1, 2].map((n) => ({ id: `F${n}`, outcome: 'fixed' })) });
   const partial = s.call('report', { ...VERIFIED, delta_over: ['F1'], candidates: [] });
-  assert.match(partial.agent, /; call report with delta_over \["F2"\] /m);
-  assert.match(s.call('close').agent, /^input error: no ending reached: F2 fixed but not yet re-reviewed$/m);
+  assert.equal(partial.status, 2);
+  assert.match(partial.agent, /^input error: input\.delta_over: the round's diff holds F2 too: name every fix it covers$/m);
+  assert.match(s.call('report', { ...VERIFIED, delta_over: ['F1', 'F2'], candidates: [] }).agent, /^next: call close$/m);
 });
 
 withSandbox('a round whose candidates were all refuted, with no arbiter reply, carries no arbiter count', (s) => {
@@ -1220,16 +1336,16 @@ withSandbox('a round whose candidates were all refuted, with no arbiter reply, c
 withSandbox('the run certifies once, and the arbiter may ask for one more pass, once, a stop notwithstanding', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
   assert.match(s.call('close').agent, /^input error: no ending reached: a certifying pass is due$/m);
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
   s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
-  const asked = s.call('report', { ...VERIFIED, delta_over: ['F1'], arbiter: { recertify: true }, candidates: [fix(2)] });
+  const asked = s.call('report', { ...VERIFIED, delta_over: ['F1'], ...judged([fix(2)], { recertify: true }) });
   assert.match(asked.user, /^\*\*R2\*\* 🔬 delta over F1 · medium · 1 found · 1 new · ⚖️ 0 declined · ⚖️ asks a certifying pass · /);
   s.call('outcomes', { outcomes: [{ id: 'F2', outcome: 'fixed' }] });
   // A round with no candidate wakes no arbiter, so its block carries none.
   const delta = s.call('report', { ...VERIFIED, delta_over: ['F2'], candidates: [] });
   assert.doesNotMatch(delta.user, /⚖️/);
   assert.match(delta.agent, /^next: a certifying pass over the whole target at medium, then call report$/m);
-  const certified = s.call('report', { ...VERIFIED, arbiter: { recertify: true }, candidates: [fix(3)] });
+  const certified = s.call('report', { ...VERIFIED, ...judged([fix(3)], { recertify: true }) });
   assert.match(certified.agent, /^not granted: the arbiter's one extra certifying pass is spent$/m);
   s.call('outcomes', { outcomes: [{ id: 'F3', outcome: 'parked', options: OPTIONS }] });
   s.call('answers', { answers: [{ id: 'F3', action: 'queue' }] });
@@ -1244,7 +1360,7 @@ withSandbox('the run certifies once, and the arbiter may ask for one more pass, 
 
 withSandbox('a fix answered in after a GREEN close continues the run into a delta round', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { spec: false, checks: 'baseline', arbiter: {}, candidates: [bug(1, { ruling: 'decline', opinion: 'no' })] });
+  s.call('report', { spec: false, checks: 'baseline', ...judged([bug(1, { ruling: 'decline', opinion: 'no' })]) });
   assert.match(s.call('close').user, /GREEN/);
   s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', options: OPTIONS }] });
   assert.match(s.call('answers', { answers: [{ id: 'F1', action: 'queue' }] }).agent, /^next: apply F1$/m);
@@ -1255,7 +1371,7 @@ withSandbox('a fix answered in after a GREEN close continues the run into a delt
 
 withSandbox('a stop tripped after a GREEN close is announced, and the run it continues re-reviews its fixes', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { spec: false, checks: 'baseline', arbiter: {}, candidates: [bug(1, { ruling: 'decline', opinion: 'no' })] });
+  s.call('report', { spec: false, checks: 'baseline', ...judged([bug(1, { ruling: 'decline', opinion: 'no' })]) });
   assert.match(s.call('close').user, /GREEN/);
   s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', options: OPTIONS }] });
   s.call('answers', { answers: [{ id: 'F1', action: 'queue' }] });
@@ -1268,7 +1384,7 @@ withSandbox('a stop tripped after a GREEN close is announced, and the run it con
 
 withSandbox('a fix recorded after a STOP hands nothing over and points at what continues the run', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { ...VERIFIED, arbiter: {}, candidates: [fix(1), fix(2)] });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
   s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', options: OPTIONS }] });
   s.call('answers', { answers: [{ id: 'F1', action: 'queue' }] });
   s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', tried: 'the fix broke `f1.test.ts`' }] });
@@ -1278,24 +1394,21 @@ withSandbox('a fix recorded after a STOP hands nothing over and points at what c
   assert.match(out.shown, /^next: the run stopped; answers or a --loop start continues it$/m);
 });
 
-for (const [where, env] of [
-  ['a harness without the Stop hook', { CODEX_THREAD_ID: 'codex-thread' }],
-  [
-    'a runtime other than node, which runs the Stop hook,',
-    { CLAUDE_CODE_SESSION_ID: 'test-session', NODE_OPTIONS: '--import=data:text/javascript,process.versions.bun=String(1)' },
-  ],
-] as const) {
-  withSandbox(
-    `${where} keeps the block and its step in one output`,
-    (s) => {
-      s.call('start', { level: 'medium', mode: 'fix', target: 't' });
-      const out = s.call('report', { spec: false, candidates: [bug(1)] });
-      assert.equal(out.handoff, undefined);
-      assert.match(out.shown, /^paste: everything above the delimiter into your message, unaltered\nnext: apply F1 in ID order$/m);
-    },
-    env,
-  );
-}
+withSandbox(
+  'a harness without the Stop hook keeps the block and its step in one output, the block to be sent before a step that edits',
+  (s) => {
+    s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+    const out = s.call('report', { spec: false, checks: 'baseline', candidates: [bug(1)] });
+    assert.equal(out.handoff, undefined);
+    assert.match(
+      out.shown,
+      /^paste: everything above the delimiter into a message of its own, unaltered, and send it before the first edit\nnext: apply F1$/m,
+    );
+    const round = s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
+    assert.match(round.shown, /^paste: everything above the delimiter into your message, unaltered\nnext: run the checks, /m);
+  },
+  { CODEX_THREAD_ID: 'codex-thread' },
+);
 
 withSandbox('a later call drops the hand-off its turn end never collected', (s) => {
   s.call('start', { level: 'medium', mode: 'fix', target: 't' });
@@ -1341,12 +1454,188 @@ test('each hand-off kind has a Stop hook in the frontmatter, run by node alone a
 
 withSandbox("the Stop hook never wakes the agent on a bad input, a missing run or another session's hand-off", (s) => {
   assert.equal(s.hook('fix', 'not json').status, 1);
-  assert.equal(s.hook('fix', { session_id: 'other', cwd: process.cwd() }).status, 0);
+  assert.equal(s.hook('fix', { session_id: 'other', cwd: s.repo }).status, 0);
   assert.equal(s.hook('sideways').status, 1);
   s.call('start', { level: 'medium', mode: 'fix', target: 't' });
   s.call('report', { spec: false, candidates: [bug(1)] });
-  assert.deepEqual(s.hook('fix', { session_id: 'other', cwd: process.cwd() }), { status: 0, stdout: '', stderr: '' });
+  assert.deepEqual(s.hook('fix', { session_id: 'other', cwd: s.repo }), { status: 0, stdout: '', stderr: '' });
   assert.equal(s.pending().length, 1);
+});
+
+// ── the tree a round reviewed ──────────────────────────────────────────────────────────────────
+
+for (const mode of ['fix', 'loop']) {
+  withSandbox(`a ${mode} report over a tree that changed since its round was handed over says so at its top, and still hands its step over`, (s) => {
+    s.call('start', { level: 'medium', mode, target: 't' });
+    s.write('src/a.ts', 'export const a = 2;\n');
+    const out = s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
+    assert.equal(out.status, 0);
+    assert.equal(out.user.split('\n')[0], MOVED);
+    assert.equal(out.user.split('\n')[1], '');
+    assert.equal(out.shown, `${HANDOFF}\n${MOVED_AGENT}`);
+    assert.equal(out.handoff, 'fix');
+    assert.match(out.agent, /^next: apply F1/m);
+  });
+}
+
+withSandbox('a report over an unchanged tree, or one edited and restored, says nothing of the tree', (s) => {
+  for (const edit of [() => {}, () => s.write('src/a.ts', 'export const a = 2;\n')]) {
+    s.write('src/a.ts', 'export const a = 3;\n');
+    s.call('start', { level: 'medium', mode: 'fix', target: 't' });
+    edit();
+    s.write('src/a.ts', 'export const a = 3;\n');
+    const out = s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
+    assert.doesNotMatch(out.user, /working tree/);
+    assert.equal(out.shown, HANDOFF);
+  }
+});
+
+withSandbox('a newly created untracked file counts as a change, an ignored one does not', (s) => {
+  s.write('.gitignore', 'dist/\n');
+  s.call('start', { level: 'medium', mode: 'fix', target: 't' });
+  s.write('dist/out.js', 'built\n');
+  assert.doesNotMatch(s.call('report', { ...VERIFIED, ...judged([fix(1)]) }).user, /working tree/);
+  s.call('start', { level: 'medium', mode: 'fix', target: 't' });
+  s.write('src/new.ts', 'export const b = 1;\n');
+  assert.equal(s.call('report', { ...VERIFIED, ...judged([fix(1)]) }).user.split('\n')[0], MOVED);
+});
+
+withSandbox('an edit made in the second the index was written, its size unchanged, still counts as a change', (s) => {
+  // git trusts a file whose stat data matches its index entry unless the index is no younger than the file, so a
+  // copy of the index has to keep the index's own timestamp. The file and the index are given that one second.
+  const second = Math.floor(Date.now() / 1000) - 3600;
+  const edit = (content: string) => {
+    s.write('src/a.ts', content);
+    fs.utimesSync(path.join(s.repo, 'src/a.ts'), second, second);
+  };
+  s.git('config', 'core.trustctime', 'false');
+  edit('export const a = 2;\n');
+  s.git('add', '--all');
+  fs.utimesSync(path.join(s.repo, '.git/index'), second, second);
+  s.call('start', { level: 'medium', mode: 'fix', target: 't' });
+  edit('export const a = 3;\n');
+  assert.equal(s.call('report', { ...VERIFIED, ...judged([fix(1)]) }).user.split('\n')[0], MOVED);
+});
+
+withSandbox('a report-only run says nothing of the tree, whatever it did', (s) => {
+  s.call('start', { level: 'medium', mode: 'report', target: 't' });
+  s.write('src/a.ts', 'export const a = 2;\n');
+  s.write('src/new.ts', 'export const b = 1;\n');
+  const out = s.call('report', { spec: true, verifiers: { count: 1, grouping: 'file' }, candidates: [bug(1)] });
+  assert.doesNotMatch(out.user, /working tree/);
+  assert.doesNotMatch(out.agent, /^moved:/m);
+});
+
+withSandbox("a run's calls leave the index, the refs and the stash as they were", (s) => {
+  s.write('src/a.ts', 'export const a = 2;\n');
+  s.git('stash');
+  s.write('src/staged.ts', 'staged\n');
+  s.git('add', 'src/staged.ts');
+  s.write('src/staged.ts', 'staged, then edited\n');
+  s.write('src/untracked.ts', 'untracked\n');
+  const git = () => [s.git('ls-files', '--stage'), s.git('status', '--porcelain'), s.git('for-each-ref'), s.git('stash', 'list')];
+  const before = git();
+  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
+  s.write('src/a.ts', 'export const a = 4;\n');
+  s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }, { id: 'F2', outcome: 'parked', options: OPTIONS }] });
+  s.call('answers', { answers: [{ id: 'F2', action: 'skip', reason: 'no' }] });
+  s.git('checkout', 'src/a.ts');
+  assert.deepEqual(git(), before);
+});
+
+withSandbox('a rejected report records no tree: resent corrected after the tree changed, it still says so', (s) => {
+  s.call('start', { level: 'medium', mode: 'fix', target: 't' });
+  s.write('src/a.ts', 'export const a = 2;\n');
+  assert.equal(s.call('report', { ...VERIFIED, candidates: [{ ...bug(1), category: 'style' }] }).status, 2);
+  assert.equal(s.call('report', { ...VERIFIED, ...judged([fix(1)]) }).user.split('\n')[0], MOVED);
+});
+
+withSandbox("a delta round is handed a `git diff` of its batch's edits alone, a created file included, each starting where the last ended", (s) => {
+  // Feature work the run reviews but never wrote, uncommitted like the batches.
+  s.write('src/a.ts', 'export const a = 2;\n');
+  s.write('src/feature.ts', 'export const feature = 1;\n');
+  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
+  s.write('src/a.ts', 'export const a = 3;\n');
+  s.write('src/created.ts', 'export const created = 1;\n');
+  const first = handedDiff(s, s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] }));
+  assert.match(first.text, /^-export const a = 2;\n\+export const a = 3;$/m);
+  assert.match(first.text, /^\+export const created = 1;$/m);
+  assert.doesNotMatch(first.text, /feature/);
+  const delta = s.call('report', { ...VERIFIED, delta_over: ['F1'], ...judged([fix(2)]) });
+  assert.doesNotMatch(delta.user, /working tree/);
+  s.write('src/a.ts', 'export const a = 4;\n');
+  const second = handedDiff(s, s.call('outcomes', { outcomes: [{ id: 'F2', outcome: 'fixed' }] }));
+  assert.equal(second.from, first.to);
+  assert.match(second.text, /^-export const a = 3;\n\+export const a = 4;$/m);
+  assert.doesNotMatch(second.text, /created/);
+});
+
+withSandbox("edits made before a report fall inside the next delta round's diff", (s) => {
+  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.write('src/a.ts', 'export const a = 2;\n');
+  assert.equal(s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) }).user.split('\n')[0], MOVED);
+  s.write('src/created.ts', 'export const created = 1;\n');
+  const diff = handedDiff(s, s.call('outcomes', { outcomes: [1, 2].map((id) => ({ id, outcome: 'fixed' })) }));
+  assert.match(diff.text, /^-export const a = 1;\n\+export const a = 2;$/m);
+  assert.match(diff.text, /^\+export const created = 1;$/m);
+});
+
+withSandbox("an answers call between a round's hand-over and its report hides no change", (s) => {
+  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
+  s.write('src/a.ts', 'export const a = 2;\n');
+  const handed = handedDiff(s, s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }, { id: 'F2', outcome: 'parked', options: OPTIONS }] }));
+  s.write('src/a.ts', 'export const a = 3;\n');
+  const answered = handedDiff(s, s.call('answers', { answers: [{ id: 'F2', action: 'skip', reason: 'no' }] }));
+  assert.deepEqual([answered.from, answered.to], [handed.from, handed.to]);
+  const delta = s.call('report', { ...VERIFIED, delta_over: ['F1'], ...judged([fix(3)]) });
+  assert.equal(delta.user.split('\n')[0], MOVED);
+  s.write('src/a.ts', 'export const a = 4;\n');
+  const next = handedDiff(s, s.call('outcomes', { outcomes: [{ id: 'F3', outcome: 'fixed' }] }));
+  assert.equal(next.from, handed.to);
+  assert.match(next.text, /^-export const a = 2;\n\+export const a = 4;$/m);
+});
+
+withSandbox('an outcomes call after a red batch was settled hands the delta round a diff holding the settling edits', (s) => {
+  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
+  s.write('src/a.ts', 'export const a = 2;\n');
+  const batch = s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
+  assert.match(
+    batch.agent,
+    /^next: run the checks, settling a red batch as LOOP\.md says and then calling outcomes over any edit repaired or backed out, which hands the round a fresh diff$/m,
+  );
+  s.write('src/a.ts', 'export const a = 3;\n');
+  const settled = handedDiff(s, s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] }));
+  assert.equal(settled.from, handedDiff(s, batch).from);
+  assert.match(settled.text, /^-export const a = 1;\n\+export const a = 3;$/m);
+  const delta = s.call('report', { ...VERIFIED, delta_over: ['F1'], candidates: [] });
+  assert.doesNotMatch(delta.user, /working tree/);
+});
+
+withSandbox('a batch that changed nothing the tree shows is handed no diff, and its round is reported with no candidates', (s) => {
+  s.write('.gitignore', '.scratch/\n');
+  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
+  s.write('.scratch/spec.md', 'annotated\n');
+  const out = s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
+  assert.doesNotMatch(out.agent, /git diff/);
+  assert.match(out.agent, /^then: the batch changed nothing the tree shows; call report with delta_over \["F1"\] and no candidates$/m);
+  assert.match(s.call('report', { ...VERIFIED, delta_over: ['F1'], candidates: [] }).agent, /^next: call close$/m);
+});
+
+withSandbox('a red round settled with no edit is reported against the tree at the red report, and starts no diff there', (s) => {
+  const round = handedDiff(s, loopWithFix(s));
+  s.write('src/a.ts', 'export const a = 3;\n');
+  const red = s.call('report', { ...VERIFIED, checks: 'red', delta_over: ['F1'], candidates: [] });
+  assert.equal(red.user.split('\n')[0], MOVED);
+  assert.doesNotMatch(s.call('report', { ...VERIFIED, delta_over: [], candidates: [] }).user, /working tree/);
+  // No round has reviewed the edit made before the red report, so the next diff starts where the red round's ended.
+  const next = handedDiff(s, s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] }));
+  assert.equal(next.from, round.to);
+  assert.match(next.text, /^-export const a = 2;\n\+export const a = 3;$/m);
 });
 
 // ── failures ───────────────────────────────────────────────────────────────────────────────────
@@ -1382,6 +1671,7 @@ withSandbox('input errors exit 2 and name the field or ID below the delimiter', 
 withSandbox('a stdin held open with nothing written reads as no input', (s) => {
   const run = spawnSync('sh', ['-c', 'sleep 1 | "$0" "$1" close', process.execPath, SCRIPT], {
     env: { ...process.env, CLAUDE_CODE_SESSION_ID: 'test-session', TMPDIR: path.dirname(path.dirname(s.dir)) },
+    cwd: s.repo,
     encoding: 'utf8',
   });
   assert.equal(run.status, 2);

@@ -33,13 +33,13 @@ Finders find and verifiers judge — a finder never drops a candidate it half-be
 
 [scripts/findings.ts](scripts/findings.ts) holds the run's findings and prints every surface the user reads: the report, each batch reprinted with its outcomes, and under `--loop` each round and the closing report.
 Call it as `node <this skill's directory>/scripts/findings.ts <subcommand>`, the JSON written compact — no indentation, one line per candidate or outcome at most — and piped straight in through a quoted heredoc (`<<'EOF'`).
-The first call is `start`, before Scope, and it doubles as the runtime check: where `node` is missing or rejects the file, make the same call with `bun`, then `deno run -A`, and where none runs it, stop and tell the user the gate needs `node` 22.18 or later, `bun` or `deno`.
+The first call is `start`, before Scope, and it doubles as the runtime check: where `node` is missing or rejects the file, stop and tell the user the gate needs `node` 22.18 or later.
 The contract below is the script's whole interface: build every call from it alone.
 Each subcommand reads one JSON object on stdin:
 
 - `start` — `level`, `mode` (`report`, `fix` or `loop`: what the arguments named, `fix` for `--fix` at any level) and `target`, a one-line description of what the arguments name: the uncommitted changes, or the changes since the fixed point.
-- `report` — `spec` (`true` or `false`), `verifiers` (`{"count": 3, "grouping": "file"}`) where any ran, `arbiter: {}` wherever one ran, and `candidates` in rank order, refuted ones included.
-  Each candidate carries the finder's fields — `file` and `line`, or `section` for a spec anchor — plus `also` for a merged entry's other locations, its `verdict` and `evidence`, `settled_inline: true` where triage settled it, the arbiter's `ruling` (`fix` or `decline`) and `opinion`, and a spec finding's `options`.
+- `report` — `spec` (`true` or `false`), `verifiers` (`{"count": 3, "grouping": "file"}`) where any ran, `arbiter` wherever one ran — `{"rulings": […]}`, the `rulings` arrays of this gate call's replies as returned, put end to end — and `candidates` in rank order, refuted ones included.
+  Each candidate carries the finder's fields — `file` and `line`, or `section` for a spec anchor — plus `also` for a merged entry's other locations, its `verdict` and `evidence`, `settled_inline: true` where triage settled it, the `index` it was sent to the arbiter under — an array of every index a merged entry holds — which the script joins its ruling by, and a spec finding's `options`.
   Under `--loop` it also takes `checks` (`baseline`, `red`, or `none` where the project has none), a delta round's `delta_over` (the batch's IDs) and `level`, `same_as: "F3"` on a candidate re-finding a finding the run already holds, and in `arbiter` its `trajectory`, word for word, its `recertify` where it gave one, and its own `findings`, each `{"against": "F1", "action": "shrink" or "back out", "summary": …, "change": …}`.
 - `outcomes` — `outcomes`, each `{"id": "F3", "outcome": …}`: `fixed`, the user's own edit included, `no_change_needed` where the tree already lacks the defect, `skipped` with its `reason` (a declined finding defaults to the arbiter's opinion), `routed` with its `route` letter and a `reason` saying what was done, or `parked` with its `options`, and `tried` where anything was (`tried_yours: true` for the user's own edit, `with` listing the rest of a reverted batch).
 - `answers` (`--loop`) — `answers`, each `{"id": "F4", "action": "queue"}` for what the user asked fixed or fixed themselves, or `"skip"` with a `reason`.
@@ -143,6 +143,7 @@ A verifier returns nothing but JSON: an array of verdict objects, each carrying 
 - **REFUTED** — factually wrong or guarded elsewhere; the evidence quotes the proving line.
 
 Where this run applies fixes — `--fix` or `--loop` — read [ARBITER.md](ARBITER.md) and dispatch the **arbiter** over every candidate still standing after inline triage, at the same time as the verifiers and whether or not any was needed: it rules which findings are worth fixing here, and its ruling binds.
+A candidate that turns up once Verify has begun — a finder returning late — gets its verdict, by inline triage or a verifier, and, where the arbiter runs, goes to it as a follow-up message, both before `report`.
 
 A spec candidate is judged on whether the mismatch is real, never on whether it was deliberate: cite deliberateness evidence (session transcript, commit messages) in the verdict's evidence to inform the user, and let the finding stand — the user routes it at fix time.
 
@@ -169,7 +170,9 @@ For a high-stakes change, offer a cross-model second pass where the harness prov
 
 **Outcome tracking:** whenever reported findings get fixed later in the session — asked-for or incidental — immediately call `outcomes` with each one's outcome and paste its block.
 
-**Apply mode (`--fix`):** after reporting, apply the findings worth fixing in rank order — the arbiter's rulings settle which — then call `outcomes` once over the batch, giving every reported finding its outcome except those the arbiter declined, and paste its block.
+**Apply mode (`--fix`):** every fix waits on `report`, which is what puts a round's findings in front of the user before the tree changes, so they can interrupt a fix they object to.
+Write nothing a round's findings call for until that round's `report` has returned and its pasted block has reached the user — the red case below included; under `--loop`, settling the previous batch's red checks is no such write.
+Then apply the findings worth fixing in rank order — the arbiter's rulings settle which — and call `outcomes` once over the batch, giving every reported finding its outcome except those the arbiter declined, and paste its block.
 Write each fix from the line the finding quotes — the verdict's evidence, or the hunk it was flagged on where no verifier ran or the evidence quotes no line — never from its summary.
 A fix to code that runs, answering a correctness finding or a spec finding routed to align the code, lands only once its failure scenario, built as a case, goes **red** on the unfixed code — a test in the project's suite where there is one, otherwise a command whose output shows the failure — and green with the fix in.
 A case that cannot be built, or that the unfixed code passes, leaves the finding `skipped`, its reason what blocked the case or the run's output.

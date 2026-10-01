@@ -14,7 +14,7 @@ It is one agent for the whole run: keep what the dispatch returned to address it
 ## At `inline`
 
 The session is the arbiter: before applying any finding its inline pass found, it rules on every one under The brief below, taking under `--loop` the drift data a round's message would carry from what the run holds, and writing from it the trajectory, the recertify request and its own findings.
-It hands `report` its rulings and the `arbiter` object a dispatched arbiter's reply would fill, and Acting on what comes back and The arbiter's own findings govern them unchanged.
+It hands `report` the `arbiter` object a dispatched arbiter's reply would fill, its `rulings` under indices of the session's own numbering, and Acting on what comes back and The arbiter's own findings govern them unchanged.
 The author ruling on its own diff is a bias `inline` accepts.
 
 ## The brief
@@ -38,6 +38,7 @@ Return nothing but JSON, an object carrying:
 ## Each round's message
 
 - The batch's findings, indexed: the candidates still standing after inline triage, whether or not a verifier takes them, sent, and the rulings awaited, before any of them is applied.
+  Within one gate call, a follow-up message numbers its findings on from the last index already sent, so no two share an index.
 - Under `--loop`, the drift data — the target's size when the run began and now, and the lines each round's fixes added and removed — and the previous round's verdicts and outcomes, one line per finding.
 
 A gate call that found nothing sends no message: the next one with a finding carries the drift data of every round since.

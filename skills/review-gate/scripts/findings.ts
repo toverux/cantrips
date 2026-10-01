@@ -1,6 +1,6 @@
 // /review-gate's findings ledger: holds every finding's lifecycle for one run and renders every surface
 // the user reads. The agent declares its judgements as JSON on stdin, in the contract SKILL.md states.
-// Runs as-is under node >= 22.18, bun, or deno (`deno run -A`): strippable TypeScript, no dependencies.
+// Runs as-is under node >= 22.18: strippable TypeScript, no dependencies.
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -25,6 +25,9 @@ const CHECKS = ['baseline', 'red', 'none'];
 const ACTIONS = ['shrink', 'back out'];
 // The kinds of step a hand-off resumes, one Stop hook each in SKILL.md's frontmatter, which labels it.
 const HANDOFFS = ['fix', 'round', 'close'];
+// The gate's own word that a round's fixes may have landed before its findings were shown, and the agent's cue.
+const MOVED = '⚠️ The working tree changed before this report: its fixes may already be applied.';
+const MOVED_AGENT = 'moved: the working tree changed since the tree this round reviewed; say above the block what moved it';
 const LEGEND: [string, string][] = [
   ['🐛', 'correctness'],
   ['📜', 'spec'],
@@ -71,6 +74,11 @@ interface Finding {
   with?: number[]; // a reverted batch parked as one item under this finding
 }
 
+interface Ruling {
+  ruling: 'fix' | 'decline';
+  opinion: string;
+}
+
 interface Refuted {
   location: string;
   summary: string;
@@ -104,6 +112,9 @@ interface State {
   target: string;
   findings: Finding[];
   refuted: Refuted[];
+  // A run applying fixes only: working-tree snapshots, as tree IDs
+  base?: string; // the tree the last reported gate call reviewed
+  handed?: string; // the tree handed to the gate call in flight
   // --loop only
   queue: number[];
   rounds: Round[];
@@ -195,6 +206,39 @@ function location(o: Json, where: string): string {
   return `${file}:${line}`;
 }
 
+// The arbiter's rulings as its replies gave them, keyed by the index each finding was sent under.
+function arbiterRulings(arbiter: Json): Map<number, Ruling> {
+  const rulings = new Map<number, Ruling>();
+  list(arbiter, 'rulings', 'input.arbiter').forEach((raw, i) => {
+    const where = `input.arbiter.rulings[${i}]`;
+    const o = object(raw, where);
+    const { index } = o;
+    if (typeof index !== 'number' || !Number.isInteger(index)) throw new InputError(`${where}.index: expected an integer`);
+    if (rulings.has(index)) throw new InputError(`${where}.index: ${index} is ruled twice`);
+    rulings.set(index, {
+      ruling: choice(o, 'ruling', ['fix', 'decline'], where) as Ruling['ruling'],
+      opinion: text(o, 'opinion', where) as string,
+    });
+  });
+  return rulings;
+}
+
+// A candidate takes the ruling its index was given, and a merged entry the one ruling all of its indices share.
+// An index the arbiter left unruled counts as a fix, and its entry stays unjudged.
+function rulingOf(c: Json, rulings: Map<number, Ruling>, where: string): Partial<Ruling> {
+  const indices: unknown[] = c.index === undefined ? [] : Array.isArray(c.index) ? c.index : [c.index];
+  if (!indices.every((index): index is number => Number.isInteger(index))) {
+    throw new InputError(`${where}.index: expected an integer, or an array of them on a merged entry`);
+  }
+  const given = indices.map((index) => rulings.get(index));
+  if (new Set(given.map((ruling) => ruling?.ruling ?? 'fix')).size > 1) {
+    throw new InputError(
+      `${where}.index: the arbiter's rulings on ${indices.join(', ')} differ: resend its findings as separate entries`,
+    );
+  }
+  return given.includes(undefined) ? {} : (given[0] ?? {});
+}
+
 // ── state ──────────────────────────────────────────────────────────────────────────────────────
 
 // Per user, since the temp directory may be shared and the state directory is private.
@@ -222,13 +266,14 @@ function envSession(): string | undefined {
   return process.env.CLAUDE_CODE_SESSION_ID || process.env.CODEX_THREAD_ID || process.env.CODEX_SESSION_ID;
 }
 
+function git(args: string[], env = process.env): string {
+  return execFileSync('git', args, { encoding: 'utf8', env, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+}
+
 function statePath(session = envSession()): string {
   let toplevel: string;
   try {
-    toplevel = execFileSync('git', ['rev-parse', '--show-toplevel'], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
+    toplevel = git(['rev-parse', '--show-toplevel']);
   } catch {
     toplevel = process.cwd();
   }
@@ -253,6 +298,27 @@ function save(file: string, state: State): void {
   const temp = `${file}.${process.pid}.tmp`;
   fs.writeFileSync(temp, `${JSON.stringify(state, null, 1)}\n`, { mode: 0o600 });
   fs.renameSync(temp, file);
+}
+
+// The working tree as a tree object, whose ID is its fingerprint: tracked changes and untracked files, ignored ones
+// left out. It is written through a throwaway copy of the index into the repository's own object store with no ref
+// on it, so the index, the refs and the stash stay as they were, and git's own housekeeping prunes it.
+function snapshot(file: string): string {
+  const index = `${file}.${process.pid}.index`;
+  try {
+    const real = path.resolve(git(['rev-parse', '--git-path', 'index']));
+    if (fs.existsSync(real)) {
+      // git rereads a file no older than its index rather than trust its stat data, so the copy keeps the index's age.
+      const { atime, mtime } = fs.statSync(real);
+      fs.copyFileSync(real, index);
+      fs.utimesSync(index, atime, mtime);
+    }
+    const env = { ...process.env, GIT_INDEX_FILE: index };
+    git(['add', '--all'], env);
+    return git(['write-tree'], env);
+  } finally {
+    fs.rmSync(index, { force: true });
+  }
 }
 
 function prune(): void {
@@ -391,6 +457,8 @@ interface Result {
   // A block followed by more work ends its turn, where an agent relays a block reliably: the agent lines
   // wait for the Stop hook, which resumes the agent with them.
   handoff?: Handoff;
+  // What the agent needs while it writes the message holding the block, so it never waits for the hook.
+  beside?: string[];
 }
 
 function start(file: string, input: Json): Result {
@@ -407,7 +475,7 @@ function start(file: string, input: Json): Result {
   if (previous?.mode === 'loop' && previous.stop) {
     // A --loop start over a stopped run continues it, IDs and ledgers kept, stop counts fresh.
     resume(previous);
-    Object.assign(previous, { level, target, due: true });
+    Object.assign(previous, { level, target, due: true, handed: snapshot(file) });
     save(file, previous);
     const open = openParked(previous);
     const agent = [`state: ${file}`, `continuing the stopped run from R${previous.rounds.length + 1}, its stop counts fresh`];
@@ -420,6 +488,7 @@ function start(file: string, input: Json): Result {
     target,
     findings: [],
     refuted: [],
+    handed: mode === 'report' ? undefined : snapshot(file),
     queue: [],
     rounds: [],
     epoch: 0,
@@ -468,6 +537,7 @@ function report(file: string, input: Json): Result {
   const unverified = level === 'inline';
   const arbiter = input.arbiter === undefined ? undefined : object(input.arbiter, 'input.arbiter');
   const judged = arbiter !== undefined;
+  const rulings = arbiterRulings(arbiter ?? {});
   const verifiers = input.verifiers === undefined ? undefined : object(input.verifiers, 'input.verifiers');
   const verifierCount = verifiers ? (verifiers.count ?? 0) : 0;
   if (typeof verifierCount !== 'number' || !Number.isInteger(verifierCount) || verifierCount < 0) {
@@ -481,6 +551,9 @@ function report(file: string, input: Json): Result {
     loop && input.delta_over !== undefined
       ? list(input, 'delta_over', 'input').map((raw, i) => findingId(state, raw, `input.delta_over[${i}]`).id)
       : null;
+  // The diff a delta round is handed spans every fix since the last gate call, so the round covers them all.
+  const unnamed = deltaOver ? pendingRecord(state).filter((f) => !deltaOver.includes(f.id)) : [];
+  if (unnamed.length) throw new InputError(`input.delta_over: the round's diff holds ${ids(unnamed)} too: name every fix it covers`);
 
   const fresh: Finding[] = [];
   const refound: Finding[] = [];
@@ -501,7 +574,7 @@ function report(file: string, input: Json): Result {
       state.refuted.push({ location: loc, summary, reason });
       return;
     }
-    const ruling = choice(c, 'ruling', ['fix', 'decline'], where, false) as Finding['ruling'];
+    const { ruling, opinion } = rulingOf(c, rulings, where);
     if (c.same_as !== undefined) {
       if (!loop) throw new InputError(`${where}.same_as: only a --loop run tags re-finds`);
       const earlier = findingId(state, c.same_as, `${where}.same_as`);
@@ -528,7 +601,7 @@ function report(file: string, input: Json): Result {
       verdict: (verdict ?? (unverified ? null : 'confirmed')) as Finding['verdict'],
       evidence: text(c, 'evidence', where, false),
       ruling,
-      opinion: text(c, 'opinion', where, ruling !== undefined),
+      opinion,
       options: options(c, where),
     };
     if (ruling === 'decline') {
@@ -554,6 +627,15 @@ function report(file: string, input: Json): Result {
   const declined = fresh.filter((f) => f.ruling === 'decline');
   // Every run applying fixes has an arbiter, so a finding it left unruled is named unjudged.
   const unjudged = state.mode !== 'report' ? fresh.filter((f) => !f.ruling) : [];
+  // A report-only run takes no snapshot and holds none, so nothing of its tree ever reads as changed.
+  const tree = state.mode === 'report' ? undefined : snapshot(file);
+  const moved = tree !== (state.handed ?? state.base);
+  const flag = (result: Result): Result =>
+    moved ? { ...result, user: `${MOVED}\n\n${result.user}`, beside: [MOVED_AGENT] } : result;
+  // The gate call in flight is reported, so its tree is where the next delta round's diff starts; a round over
+  // nothing reviewed no tree, and leaves that start where it was.
+  if (state.handed && deltaOver?.length !== 0) state.base = state.handed;
+  state.handed = undefined;
   if (loop) {
     const round: Round = {
       n: state.rounds.length + 1,
@@ -573,7 +655,7 @@ function report(file: string, input: Json): Result {
     if (arbiter?.recertify !== undefined && typeof arbiter.recertify !== 'boolean') {
       throw new InputError('input.arbiter.recertify: expected true or false');
     }
-    return loopRound(file, state, round, fresh, own, refound, agent, arbiter?.recertify === true);
+    return flag(loopRound(file, state, tree as string, round, fresh, own, refound, agent, arbiter?.recertify === true));
   }
 
   // The report rows what the run acts on; its declines are a footer count, listed by held on request.
@@ -611,7 +693,7 @@ function report(file: string, input: Json): Result {
   }
   if (held.length) agent.push(`held back: ${ids(held)}; call held when the user asks for them`);
   if (declined.length) agent.push(`declined by the arbiter: ${ids(declined)}; call held when the user asks for them`);
-  return { user, agent, handoff: state.mode === 'fix' && shown.length ? 'fix' : undefined };
+  return flag({ user, agent, handoff: state.mode === 'fix' && shown.length ? 'fix' : undefined });
 }
 
 function parkRoutes(spec: Finding[]): string {
@@ -657,6 +739,7 @@ function arbiterFindings(state: State, arbiter: Json, agent: string[]): Finding[
 function loopRound(
   file: string,
   state: State,
+  tree: string,
   round: Round,
   fresh: Finding[],
   own: Finding[],
@@ -695,10 +778,9 @@ function loopRound(
   // The arbiter may ask for one more certifying pass where delta rounds cannot vouch for the whole; the run grants one.
   if (asked && state.recertified) agent.push("not granted: the arbiter's one extra certifying pass is spent");
   if (asked && !state.recertified) state.due = state.recertified = round.recertify = true;
-  // A delta round re-reviews only the fixes it names; the rest stay on the record for the next one.
-  state.record = state.record.filter((id) => round.delta_over && !round.delta_over.includes(id));
+  state.record = [];
   state.rounds.push(round);
-  const step = next(state, !certifying);
+  const step = next(state, !certifying, () => tree);
   save(file, state);
 
   const back = retry.filter((f) => !f.came_back);
@@ -725,7 +807,10 @@ function roundBlock(state: State, round: Round, rows: Finding[]): string {
 
 // The loop's order, which LOOP.md leaves to these lines: certify the whole target once, apply the next batch, run a
 // delta round over what it fixed, and close once nothing is left of either; a stop ends the run once its round ends.
-function next(state: State, roundEnd: boolean): Step {
+// A gate call handed over reviews the tree `tree` yields, the caller's snapshot, taken only where a gate call comes
+// next, and a delta round the diff that leads to it from the tree the last gate call reviewed, so consecutive diffs
+// join end to end and every edit falls inside one.
+function next(state: State, roundEnd: boolean, tree: () => string): Step {
   const record = pendingRecord(state);
   // The novelty stop bounds a run that keeps finding work: one whose round ends with nothing left has converged,
   // and the stop lapses, which the caller saves.
@@ -744,8 +829,14 @@ function next(state: State, roundEnd: boolean): Step {
   let handoff: Handoff | undefined;
   if (record.length) {
     handoff = 'round';
+    state.handed = tree();
+    const over = `call report with delta_over ${JSON.stringify(record.map((f) => `F${f.id}`))}`;
     out.push(
-      `next: run the checks, settling a red batch as LOOP.md says, then a delta round over the batch at the level it earns, at most ${state.level}; call report with delta_over ${JSON.stringify(record.map((f) => `F${f.id}`))} and that level and, where it has a candidate, the arbiter's reply`,
+      'next: run the checks, settling a red batch as LOOP.md says and then calling outcomes over any edit repaired or backed out, which hands the round a fresh diff',
+      // A batch whose edits no snapshot sees, an ignored file's say, would be handed a diff that prints nothing.
+      state.base === state.handed
+        ? `then: the batch changed nothing the tree shows; ${over} and no candidates`
+        : `then: a delta round over \`git diff ${state.base} ${state.handed}\` at the level it earns, at most ${state.level}; ${over} and that level and, where it has a candidate, the arbiter's reply`,
       ...ledgerLines(state),
     );
   } else if (state.queue.length) {
@@ -756,12 +847,14 @@ function next(state: State, roundEnd: boolean): Step {
     out.push('next: call close');
   } else if (red && !state.due) {
     // An edit made in settling the red joins the record through outcomes; a red settled without one needs only a
-    // round to record that it is gone.
+    // round to record that it is gone, its report compared with the tree as it stands here.
+    state.handed = tree();
     out.push(
       'then: call outcomes over any edit repaired or backed out in settling it; where none was, rerun the checks and call report with delta_over [] and no candidates',
     );
   } else {
     handoff = 'round';
+    state.handed = tree();
     out.push(`next: a certifying pass over the whole target at ${state.level}, then call report`, ...ledgerLines(state));
   }
   if (red) handoff = 'fix';
@@ -899,7 +992,7 @@ function outcomes(file: string, input: Json): Result {
     state.queue = state.queue.filter((id) => !gone.has(id));
     state.record = [...new Set([...state.record, ...record.map((f) => f.id)])];
   }
-  const step = loop && !state.stopped ? next(state, roundEnded(state)) : undefined;
+  const step = loop && !state.stopped ? next(state, roundEnded(state), () => snapshot(file)) : undefined;
   save(file, state);
 
   const rows = batch.sort((a, b) => a.id - b.id).map(outcomeRow).join('\n');
@@ -965,7 +1058,8 @@ function answers(file: string, input: Json): Result {
     }
     f.with = undefined;
   });
-  const step = next(state, roundEnded(state));
+  // A gate call already in flight keeps the tree it was handed, so an edit made since still shows at its report.
+  const step = next(state, roundEnded(state), () => state.handed ?? snapshot(file));
   save(file, state);
   return { user: '', agent: step.lines };
 }
@@ -1087,25 +1181,31 @@ function readInput(): Json {
   return object(parsed, 'input');
 }
 
-function emit(user: string, agent: string[]): void {
+const PASTE = 'paste: everything above the delimiter into your message, unaltered';
+
+function emit(user: string, agent: string[], paste = PASTE): void {
   const top = user ? `${user}\n\n` : '';
   // The cue sits where the agent reads on, since the next lines pull it past the block it owes the user.
-  const lines = user ? ['paste: everything above the delimiter into your message, unaltered', ...agent] : agent;
+  const lines = user ? [paste, ...agent] : agent;
   process.stdout.write(`${top}${DELIMITER}\n${lines.join('\n')}${lines.length ? '\n' : ''}`);
 }
 
 // An agent holds a block back until its turn ends, so a block followed by more work is the turn's last act,
 // its agent lines left for the Stop hook to resume the agent with; a later call supersedes one never collected.
-// Only Claude Code runs the skill's Stop hooks, and only node runs them, so elsewhere the block and its step
-// stay in one output.
+// Only Claude Code runs the skill's Stop hooks, so elsewhere the block and its step stay in one output, and a
+// step that edits waits for the block to be sent.
 function handOver(file: string, result: Result): void {
   for (const kind of HANDOFFS) fs.rmSync(handoffPath(file, kind), { force: true });
-  const hooked = process.env.CLAUDE_CODE_SESSION_ID && !process.versions.bun && !process.versions.deno;
-  if (!result.handoff || !hooked) return emit(result.user, result.agent);
-  fs.writeFileSync(handoffPath(file, result.handoff), `${result.agent.join('\n')}\n`, { mode: 0o600 });
-  process.stdout.write(
-    `${result.user}\n\n${DELIMITER}\npaste: everything above the delimiter into your message, unaltered, then end your turn: the gate resumes you with the next step\n`,
-  );
+  const beside = result.beside ?? [];
+  if (result.handoff && process.env.CLAUDE_CODE_SESSION_ID) {
+    fs.writeFileSync(handoffPath(file, result.handoff), `${result.agent.join('\n')}\n`, { mode: 0o600 });
+    return emit(result.user, beside, `${PASTE}, then end your turn: the gate resumes you with the next step`);
+  }
+  const paste =
+    result.handoff === 'fix'
+      ? 'paste: everything above the delimiter into a message of its own, unaltered, and send it before the first edit'
+      : PASTE;
+  emit(result.user, [...beside, ...result.agent], paste);
 }
 
 // The agent's own call, where the user resumed the run in place of the Stop hook.

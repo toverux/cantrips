@@ -377,16 +377,20 @@ flowchart TD
 - **One report format** — a small script shipped with the skill holds the run's findings and prints
   every report, so each run reads the same. Every finding gets an ID like `F3` that you answer by,
   and two short lines: what is wrong, and the failure it causes. After a `--fix` batch the rows
-  print again, fixed ones struck through and the rest with why they stay open. On Claude Code, with
-  `node` running the script, a report followed by more work ends the agent's turn, so you read it
-  before the work starts, and a Stop hook the skill registers resumes the run on its own; under
-  Claude Code's sandbox with filesystem isolation, the hook cannot see the run, so you resume each
-  step yourself. The script needs `node` 22.18 or later, `bun`, or `deno`; without one, the gate
+  print again, fixed ones struck through and the rest with why they stay open. A round's findings
+  reach you before any of its fixes is written, so you can interrupt one you object to. On Claude
+  Code a report followed by more work ends the agent's turn, and a Stop hook the skill registers
+  resumes the run on its own; under Claude Code's sandbox with filesystem isolation, the hook cannot
+  see the run, so you resume each step yourself. On Codex CLI the agent sends the report as a
+  message before its first edit. Where the working tree changed before a report all the same, the
+  report says so on its first line. The script needs `node` 22.18 or later; without it, the gate
   refuses to run and says so. Its state lives in the system temp directory, readable only by you, so
-  your tree stays clean.
+  your tree stays clean; a run that applies fixes also writes snapshots of the working tree into the
+  repository's object store, with no ref on them, and git prunes them on its own.
 - **Converge until green** — `--loop` implies `--fix` at any level and drives the gate instead of
   reporting once: one full-scope certifying pass, then fix batch, project checks, delta re-review
-  (never below `low` unless you invoked `inline`), repeat, until nothing is left to fix or re-review
+  of exactly what changed since the last review (never below `low` unless you invoked `inline`),
+  repeat, until nothing is left to fix or re-review
   — the arbiter may ask for one more full pass, once. That is green, with the project's checks back
   where they started and every finding explicitly dispositioned: fixed, needing no change, skipped
   with its reason, routed to the spec, or declined by the arbiter.
