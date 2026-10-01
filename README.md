@@ -619,6 +619,15 @@ codex plugin add cantrips@cantrips
 
 > The repository is both the source and the only plugin in it, hence `cantrips@cantrips`.
 
+> [!TIP]
+> Codex runs three sub-agents at a time by default, so `/review-gate`'s six to eleven finders run in
+> waves. Raise the cap in `~/.codex/config.toml` to have them run at once:
+>
+> ```toml
+> [agents]
+> max_threads = 12
+> ```
+
 > [!IMPORTANT]
 > **Migrating from the upstreams?** Cantrips _replaces_ the Matt Pocock skills and the
 > Compound Engineering plugin it forks (renamed: `to-spec` → `/spec`, `ce-commit` → `/commit`,

@@ -205,19 +205,6 @@ skills point at, reconciling the two wordings on the way.
 **Adopt when:** the next edit touching `/commit` or `/handoff` lands, or a secret reaches a gate
 dispatch.
 
-## /review-gate loses an angle silently when one dispatch fails mid-run
-
-It has no fallback for a failed dispatch, so a finder or verifier dispatch that fails mid-run costs
-an angle or lens and the report still reads as a complete pass; the closing summary reports
-findings per class and whether a spec was available, no other per-angle coverage. `/simplify`
-closed the same hole with a per-fixer inline fallback; the gate has no counterpart. Codex makes
-the failure predictable: its default surface runs three children at once and fails the next spawn
-with `AgentLimitReached`
-([research](docs/research/harness-subagent-capabilities.md#2-parallel-fan-out)), where `medium`
-dispatches six finders.
-
-**Adopt when:** a gate dispatch fails mid-run.
-
 ## /setup-cantrips-loop sets up model-tier preferences
 
 Skills that tier a dispatch name the tier abstractly — mid-tier for `/simplify`'s fixers and the
