@@ -131,7 +131,9 @@ open spawned-agent threads, excluding the primary", and "when unset, Codex choos
 to count the parent
 ([config/mod.rs `resolve_multi_agent_v2_config` @0.159.3](https://github.com/openai/codex/blob/rust-v0.159.3/codex-rs/core/src/config/mod.rs#L2752-L2765)).
 _Observed:_ the 2026-09-19 session's developer message read "There are 4 available concurrency
-slots".
+slots". On 2026-10-01 a V2 session (`gpt-6-astra`, 0.155.1) asked to dispatch six and then four
+sub-agents at once read that count and dispatched in waves within it: no spawn failed, and its
+closing account named the cap (transcript `3e8a956e-4134-433e-946d-d660bb286646`).
 
 ## 3. Background (non-blocking) dispatch
 
