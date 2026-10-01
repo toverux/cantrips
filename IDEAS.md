@@ -364,6 +364,22 @@ share would.
 **Adopt when:** a sandboxed `--loop` run stalls on a hand-off, or Claude Code documents a sandbox
 marker.
 
+## Nothing in `/review-gate`'s apply mode forbids applying before `report`
+
+Round 2 of a `--loop` run applied its whole batch before calling `report`, so the findings and their
+outcomes reached the user in the same turn and left no window to object to a fix or redirect a ruling
+(transcript `723b78a4-40ad-4691-b3db-a62baa50c2eb`). Every guardrail sits downstream of the slip:
+`report` prints `paste: ... then end your turn` and a Stop hook resumes the agent with the apply
+step, which forbids applying after `report` and before the paste, but nothing checks whether the tree
+already changed. Synthesize and report's "after reporting, apply the findings worth fixing" reads as
+a recipe's running order rather than a gate with a reason, and apply mode's own red-case rule pulls
+the other way, since building a failure scenario as a case is writing code. Naming the reason, that
+the report is what puts the findings in front of the user before the tree changes, and saying plainly
+that nothing is applied before `report` returns, would close it. `report` could also refuse a round
+whose working tree moved since the previous call.
+
+**Adopt when:** a `--loop` round's outcomes land in the same turn as its findings again.
+
 ## A `--1`/`--one` argument for `/grilling`
 
 `/grilling` asks the whole frontier in each round. A `--1`/`--one` argument would ask one question
