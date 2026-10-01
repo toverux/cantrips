@@ -1,6 +1,6 @@
 # Correctness angles
 
-Each correctness finder receives the scope block plus one angle brief below, and reviews ONLY through that angle.
+Each correctness finder receives the scope block plus one angle brief below, and reviews ONLY through that angle; `low`'s one finder carries A–D and takes them one at a time.
 The quality lenses live in [QUALITY-LENSES.md](QUALITY-LENSES.md).
 
 ## Angle A — line-by-line diff scan

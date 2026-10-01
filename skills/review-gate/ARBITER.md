@@ -2,7 +2,7 @@
 
 The run's guard against over-engineering: one independent sub-agent that rules whether each finding is worth fixing here, where a verifier rules only whether it is true.
 Its ruling binds.
-These rules govern every run that applies fixes after a verify pass — `--fix` and `--loop`, at `medium` and `high` — and reach a `low` delta round inside such a loop; a `low` run dispatches no arbiter and runs the gate as written.
+These rules govern every run that applies fixes — `--fix` and `--loop` — at every level: dispatched at `low`, `medium` and `high`, and run by the session itself at `inline`, under At `inline` below.
 
 ## Dispatch
 
@@ -10,6 +10,12 @@ Dispatch the arbiter once the first round's candidates are deduplicated and tria
 It is one agent for the whole run: keep what the dispatch returned to address it by, send every later batch — a `high` sweep's candidates, each further round under `--loop` — as a follow-up message to that same agent, and close it when the run ends, where the harness has a close step.
 
 **Model selection.** Use the platform's most capable model for the arbiter when the current harness exposes a known override. In Codex, apply this tier only when the active dispatch primitive exposes an explicit model or custom-agent selector; task wording alone does not select a different model. Otherwise omit the override and inherit the parent model -- a working pass on the parent model beats a broken dispatch.
+
+## At `inline`
+
+The session is the arbiter: before applying any finding its inline pass found, it rules on every one under The brief below, taking under `--loop` the drift data a round's message would carry from what the run holds, and writing from it the trajectory, the recertify request and its own findings.
+It hands `report` its rulings and the `arbiter` object a dispatched arbiter's reply would fill, and Acting on what comes back and The arbiter's own findings govern them unchanged.
+The author ruling on its own diff is a bias `inline` accepts.
 
 ## The brief
 
@@ -31,7 +37,7 @@ Return nothing but JSON, an object carrying:
 
 ## Each round's message
 
-- The batch's findings, indexed: the candidates still standing after inline triage, whether or not a verifier takes them, and a `low` delta round's findings, sent, and the rulings awaited, before any of them is applied.
+- The batch's findings, indexed: the candidates still standing after inline triage, whether or not a verifier takes them, sent, and the rulings awaited, before any of them is applied.
 - Under `--loop`, the drift data — the target's size when the run began and now, and the lines each round's fixes added and removed — and the previous round's verdicts and outcomes, one line per finding.
 
 A gate call that found nothing sends no message: the next one with a finding carries the drift data of every round since.

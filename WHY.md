@@ -100,7 +100,7 @@ additions of its own.
 A single reviewer reading a diff top to bottom misses bugs for two reasons — attention dilutes across
 concerns, and the finder of a candidate bug is a poor judge of it. So finders each hold exactly one
 concern, and an independent verifier judges every candidate, returning CONFIRMED, PLAUSIBLE or
-REFUTED with evidence. Refuted and unverified candidates never reach a `medium` or `high` report.
+REFUTED with evidence. Refuted and unverified candidates never reach a report above `inline`.
 A finder that silently drops a bug it half-believes is the failure this structure exists to prevent.
 
 Two further properties:
@@ -108,10 +108,10 @@ Two further properties:
 - **A spec-conformance angle** compares the diff against the spec's requirements, catching "built the
   wrong thing, correctly" — which no code-only review can see. A mismatch is reported neutrally with
   both fixes, because the code may be the side that is right.
-- **Effort is a precision/recall dial**, stated as such: `low` is one inline pass, `medium` favors
-  precision, `high` favors recall and adds a gap-hunting sweep. `--loop` converges until green — a
-  certifying pass, then fix batch, project checks, delta re-review — parking anything that needs you
-  and working on, asking again at the end.
+- **Effort is a precision/recall dial**, stated as such: `inline` is one inline pass, `low` one
+  finder and one verifier, `medium` favors precision, `high` favors recall and adds a gap-hunting
+  sweep. `--loop` converges until green — a certifying pass, then fix batch, project checks, delta
+  re-review — parking anything that needs you and working on, asking again at the end.
 
 ### Auto-fix has a boundary
 

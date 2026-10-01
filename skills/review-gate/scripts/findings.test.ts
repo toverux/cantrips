@@ -183,7 +183,7 @@ withSandbox(
 );
 
 withSandbox('start replaces the previous run, IDs and held findings included', (s) => {
-  s.call('start', { level: 'low', mode: 'report', target: 't' });
+  s.call('start', { level: 'inline', mode: 'report', target: 't' });
   s.call('report', { spec: true, candidates: [1, 2, 3, 4, 5, 6].map((n) => bug(n)) });
   s.call('start', { level: 'medium', mode: 'report', target: 't' });
   const out = s.call('report', { spec: true, verifiers: { count: 1, grouping: 'file' }, candidates: [bug(7)] });
@@ -291,28 +291,63 @@ withSandbox('the cap holds back findings under IDs held prints unchanged', (s) =
   assert.match(s.call('held').user, /^- \*\*F9\*\* ~~🐛 `src\/f9\.ts:9`: bug 9~~\n- \*\*F10\*\* 🐛 /m);
 });
 
-withSandbox('an unverified pass says so once, marks every finding plausible, and does not honour --fix', (s) => {
-  s.call('start', { level: 'low', mode: 'fix', target: 't' });
+withSandbox('an inline pass says so once and marks every finding plausible', (s) => {
+  s.call('start', { level: 'inline', mode: 'report', target: 't' });
   const out = s.call('report', { spec: false, candidates: [{ ...RETRIES, verdict: 'confirmed' }, { ...SPEC, options: ROUTES }] });
   assert.match(out.user, /^- \*\*F1\*\* 🐛🤔 `src\/jobs/m);
   assert.match(out.user, /^- \*\*F2\*\* 📜🤔 /m);
   assert.match(out.user, /^ {4}- A, recommended: key the limit per API key\./m);
-  assert.match(out.user, /Kept 1 correctness, 1 spec · single pass, unverified · no spec available · `--fix` not applied, since no verifier ran$/);
+  assert.match(out.user, /Kept 1 correctness, 1 spec · single pass, unverified · no spec available$/);
   assert.match(out.agent, /^next: nothing to apply/m);
   const fixed = s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
   assert.match(fixed.agent, /^next: close with the flow pointer$/m);
 });
 
-withSandbox('findings the arbiter left unruled are named unjudged', (s) => {
-  s.call('start', { level: 'medium', mode: 'fix', target: 't' });
-  const out = s.call('report', {
-    spec: true,
-    verifiers: { count: 2, grouping: 'file' },
-    arbiter: {},
-    candidates: [{ ...LRU, ruling: 'fix', opinion: 'ok' }, RETRIES],
-  });
-  assert.match(out.user, / · ⚖️ unjudged: F2$/);
+withSandbox('a low pass is verified: a candidate needs a verdict, and the footer counts the verifier', (s) => {
+  s.call('start', { level: 'low', mode: 'report', target: 't' });
+  const unjudged = s.call('report', { spec: true, candidates: [{ ...LRU, verdict: undefined }] });
+  assert.equal(unjudged.status, 2);
+  assert.match(unjudged.agent, /input\.candidates\[0\]\.verdict: missing/);
+  const low = s.call('report', { spec: true, verifiers: { count: 1, grouping: 'file' }, candidates: [LRU] });
+  assert.match(low.user, /Kept 1 correctness · 1 verifier \(by file\)$/);
 });
+
+withSandbox('inline --fix applies the findings the session ruled fix, still unverified', (s) => {
+  s.call('start', { level: 'inline', mode: 'fix', target: 't' });
+  const out = s.call('report', {
+    spec: false,
+    arbiter: {},
+    candidates: [fix(1), bug(2, { ruling: 'decline', opinion: 'rare' }), { ...SPEC, ruling: 'fix', opinion: 'ok', options: ROUTES }],
+  });
+  assert.match(out.user, /^- \*\*F1\*\* 🐛🤔 /m);
+  assert.match(out.user, /Kept 1 correctness, 1 spec · single pass, unverified · no spec available · ⚖️ 1 declined \(ask for it\)$/);
+  assert.equal(out.handoff, 'fix');
+  assert.match(out.agent, /^next: apply F1 in ID order$/m);
+  assert.match(out.agent, /^next: park F3 with the two routes as options/m);
+  assert.match(out.agent, /^then: call outcomes over F1, F3$/m);
+});
+
+for (const level of ['inline', 'low', 'medium']) {
+  withSandbox(`at ${level}, findings the arbiter left unruled in a run applying fixes are named unjudged`, (s) => {
+    s.call('start', { level, mode: 'fix', target: 't' });
+    const out = s.call('report', {
+      spec: true,
+      verifiers: { count: 2, grouping: 'file' },
+      arbiter: {},
+      candidates: [{ ...LRU, ruling: 'fix', opinion: 'ok' }, RETRIES],
+    });
+    assert.match(out.user, / · ⚖️ unjudged: F2$/);
+  });
+}
+
+for (const level of ['inline', 'low']) {
+  withSandbox(`${level} caps the report at 4`, (s) => {
+    s.call('start', { level, mode: 'report', target: 't' });
+    const out = s.call('report', { spec: true, verifiers: { count: 1, grouping: 'file' }, candidates: [1, 2, 3, 4, 5, 6].map((n) => bug(n)) });
+    assert.equal((out.user.match(/^- \*\*F/gm) ?? []).length, 4);
+    assert.match(out.user, / · F5, F6 held back \(ask for them\) · /);
+  });
+}
 
 withSandbox('a low delta round inside a medium loop is judged, so a missing arbiter shows', (s) => {
   loopWithFix(s);
@@ -482,9 +517,9 @@ function fix(n: number, extra: Record<string, unknown> = {}) {
   return bug(n, { ruling: 'fix', opinion: 'ok', ...extra });
 }
 
-// A --loop run at medium whose first certifying pass queued F1..Fn and applied F1 as fixed.
-function loopWithFix(s: ReturnType<typeof sandbox>, n = 1) {
-  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+// A --loop run, at medium unless named, whose first certifying pass queued F1..Fn and applied F1 as fixed.
+function loopWithFix(s: ReturnType<typeof sandbox>, n = 1, level = 'medium') {
+  s.call('start', { level, mode: 'loop', target: 't' });
   s.call('report', { ...VERIFIED, arbiter: {}, candidates: Array.from({ length: n }, (_, i) => fix(i + 1)) });
   return s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
 }
@@ -521,15 +556,15 @@ withSandbox('a --loop report prints the round block: header, trajectory, and row
 });
 
 withSandbox('the loop queues everything found, sizes each batch by the cap, and continues IDs across rounds', (s) => {
-  s.call('start', { level: 'low', mode: 'loop', target: 't' });
+  s.call('start', { level: 'inline', mode: 'loop', target: 't' });
   const first = s.call('report', { spec: true, checks: 'none', candidates: [1, 2, 3, 4, 5, 6].map((n) => bug(n)) });
   assert.equal((first.user.match(/^- \*\*F/gm) ?? []).length, 6);
-  assert.match(first.user, /^\*\*R1\*\* 🔎 certifying · low · 6 found · 6 new · no checks$/m);
+  assert.match(first.user, /^\*\*R1\*\* 🔎 certifying · inline · 6 found · 6 new · no checks · ⚖️ unjudged: F1–F6$/m);
   assert.match(first.agent, /^next: apply F1–F4$/m);
   const outcome = s.call('outcomes', { outcomes: [1, 2, 3, 4].map((id) => ({ id, outcome: 'fixed' })) });
-  assert.match(outcome.agent, /^next: run the checks, settling a red batch as LOOP\.md says, then a delta round over the batch at the level it earns, at most low; call report with delta_over \["F1","F2","F3","F4"\] and that level$/m);
-  const delta = s.call('report', { spec: true, checks: 'none', delta_over: ['F1', 'F2', 'F3', 'F4'], candidates: [bug(7)] });
-  assert.match(delta.user, /^\*\*R2\*\* 🔬 delta over F1–F4 · low · 1 found · 1 new · no checks$/m);
+  assert.match(outcome.agent, /^next: run the checks, settling a red batch as LOOP\.md says, then a delta round over the batch at the level it earns, at most inline; call report with delta_over \["F1","F2","F3","F4"\] and that level and, where it has a candidate, the arbiter's reply$/m);
+  const delta = s.call('report', { spec: true, checks: 'none', level: 'inline', delta_over: ['F1', 'F2', 'F3', 'F4'], candidates: [bug(7)] });
+  assert.match(delta.user, /^\*\*R2\*\* 🔬 delta over F1–F4 · inline · 1 found · 1 new · no checks · ⚖️ unjudged: F7$/m);
   assert.match(delta.user, /^- \*\*F7\*\* /m);
   assert.match(delta.agent, /^next: apply F5–F7$/m);
 });
@@ -547,7 +582,7 @@ withSandbox('a routed finding joins the delta round, since its route may have ch
 });
 
 withSandbox('settling a red batch in a later call keeps the delta round over the rest of it', (s) => {
-  s.call('start', { level: 'low', mode: 'loop', target: 't' });
+  s.call('start', { level: 'inline', mode: 'loop', target: 't' });
   s.call('report', { spec: true, checks: 'none', candidates: [1, 2, 3, 4, 5].map((n) => bug(n)) });
   s.call('outcomes', { outcomes: [1, 2, 3, 4].map((id) => ({ id, outcome: 'fixed' })) });
   const parked = s.call('outcomes', { outcomes: [{ id: 'F2', outcome: 'parked', tried: 'backed out', options: OPTIONS }] });
@@ -568,6 +603,15 @@ withSandbox('a delta round at a level above the invoked one counts at the invoke
   const lower = s.call('report', { ...VERIFIED, level: 'low', arbiter: {}, candidates: [] });
   assert.equal(lower.status, 2);
   assert.match(lower.agent, /^input error: input\.level: a certifying pass runs at the invoked level, medium$/m);
+});
+
+withSandbox('a run invoked above inline rejects an inline gate call', (s) => {
+  for (const level of ['low', 'medium']) {
+    loopWithFix(s, 1, level);
+    const out = s.call('report', { ...VERIFIED, level: 'inline', delta_over: ['F1'], arbiter: {}, candidates: [] });
+    assert.equal(out.status, 2);
+    assert.match(out.agent, new RegExp(`^input error: input\\.level: a run invoked at ${level} runs every gate call at low or above$`, 'm'));
+  }
 });
 
 withSandbox('a finding that comes back is queued for one retry, then parked', (s) => {
@@ -871,7 +915,7 @@ withSandbox('close reaches WAITING with parked items open, and answering resumes
     waiting.user,
     [
       '`WAITING: nothing left to fix or re-review, checks at baseline; 1 parked — F2`\\',
-      'Checks at baseline · R2 ran unverified · ⚖️ 1 declined (ask for it)\\',
+      'Checks at baseline · ⚖️ 1 declined (ask for it)\\',
       '🧾 1 certifying pass, 1 delta round · fixed 1 correctness · 1 settled inline',
       '',
       '🐛 correctness · 🤔 unconfirmed · ⚖️ arbiter',
@@ -1074,11 +1118,14 @@ withSandbox('answers names the overrule route for a finding the arbiter declined
   );
 });
 
-withSandbox("above low, a delta round with a candidate is reported with the arbiter's reply", (s) => {
+withSandbox("at every level, a delta round with a candidate is reported with the arbiter's reply", (s) => {
   assert.match(loopWithFix(s).agent, /; call report with delta_over \["F1"\] and that level and, where it has a candidate, the arbiter's reply$/m);
-  s.call('start', { level: 'low', mode: 'loop', target: 't' });
+  s.call('start', { level: 'inline', mode: 'loop', target: 't' });
   s.call('report', { spec: false, checks: 'baseline', candidates: [bug(1)] });
-  assert.match(s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] }).agent, /; call report with delta_over \["F1"\] and that level$/m);
+  assert.match(s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] }).agent, /; call report with delta_over \["F1"\] and that level and, where it has a candidate, the arbiter's reply$/m);
+  const closing = s.call('report', { spec: false, checks: 'baseline', delta_over: ['F1'], candidates: [] });
+  assert.match(closing.agent, /^next: call close$/m);
+  assert.match(s.call('close').user, /^Checks at baseline · every pass ran unverified · ⚖️ R1 ran unjudged\\$/m);
 });
 
 withSandbox('a certifying re-find the arbiter declines leaves the fix standing and is recorded as declined', (s) => {
@@ -1318,7 +1365,7 @@ withSandbox('input errors exit 2 and name the field or ID below the delimiter', 
     ['report', { spec: true, candidates: [{ ...LRU, failure_scenario: undefined }] }, /\.failure_scenario: missing/],
     ['report', { spec: true, candidates: [{ ...SPEC, options: [ROUTES[1], ROUTES[1]] }] }, /options: mark exactly one recommended/],
     ['outcomes', { outcomes: [{ id: 'F99', outcome: 'fixed' }] }, /input\.outcomes\[0\]\.id: unknown finding "F99"/],
-    ['start', { level: 'max', mode: 'fix', target: 't' }, /input\.level: "max" is not one of low, medium, high/],
+    ['start', { level: 'max', mode: 'fix', target: 't' }, /input\.level: "max" is not one of inline, low, medium, high/],
   ];
   for (const [command, input, message] of cases) {
     const out = s.call(command, input);

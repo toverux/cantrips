@@ -225,8 +225,8 @@ frontmatter rather than in prose. Weigh the costs first:
   which load only from the user's or project's own config
   ([research](docs/research/harness-subagent-capabilities.md#4-model-and-named-agent-selection-per-dispatch)).
   Codex would keep the pasted briefs, so every role lives twice.
-- **Paths that still inline the brief.** `low` runs the brief inline, and AGENTS.md rule 4 makes
-  every path carry what it needs.
+- **Paths that still inline the brief.** `inline` runs the brief inline, and AGENTS.md rule 4
+  makes every path carry what it needs.
 
 ## The arbiter can decline a spec finding without the user hearing of it
 
@@ -239,16 +239,6 @@ criterion for which of code and spec is wrong. A carve-out would send spec findi
 arbiter to the user, as before it existed.
 
 **Adopt when:** a run's ledger shows a declined spec finding the user would have wanted to route.
-
-## `/review-gate`'s `low` renamed `inline`, with a lighter dispatched `low` in its place
-
-`low` is one inline pass with no sub-agents and no verifier; `medium` is six finders and a
-verifier per group. Nothing sits between them, so a small change that deserves independent
-verification pays for the full fan-out: on some 240 lines of skill prose, each `medium` certifying
-pass cost five finders and five to ten verifiers, and surfaced a dozen novel candidates on text
-that had not changed. The inline pass would take the name `inline`, and `low` become the missing
-level: a single-agent finder and verifier. Open: whether one agent does both or each role gets its
-own. It changes what `low` means, so it ships as a breaking change.
 
 ## `/review-gate`'s default target is empty once the work is committed
 

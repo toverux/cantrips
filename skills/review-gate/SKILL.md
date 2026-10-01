@@ -1,7 +1,7 @@
 ---
 name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
-argument-hint: '[low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
+argument-hint: '[inline|low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
 disable-model-invocation: true
 version: 2.0.0
 source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer; model-selection paragraph from EveryInc/compound-engineering-plugin@3.27.0 (ce-simplify-code) via /simplify
@@ -60,14 +60,15 @@ The user answers by finding ID; map an answer by `file:line` to the one finding 
 
 ## Arguments
 
-The effort level is whichever of `low`, `medium`, or `high` appears among the arguments; default `medium`.
-`--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report) on the `medium` and `high` pipelines; `low` reports its findings and applies nothing, since no verifier ran over them — except under `--loop`, which re-reviews every batch and reports what ran unverified.
+The effort level is whichever of `inline`, `low`, `medium`, or `high` appears among the arguments; default `medium`.
+`--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report).
 `--loop`, anywhere in the arguments, implies `--fix` and drives that apply mode to a defined green state instead of reporting once — read [LOOP.md](LOOP.md) before Scope and run the whole gate under its rules.
 What remains once the level and the flags are taken out is the fixed point.
 
 | Level    | Pipeline                                                    | Bias                                                          | Findings cap |
 | -------- | ----------------------------------------------------------- | ------------------------------------------------------------- | ------------ |
-| `low`    | 1 inline diff pass, no sub-agents                           | precision, hunk-only                                          | ≤4           |
+| `inline` | 1 inline diff pass, no sub-agents                           | precision, hunk-only                                          | ≤4           |
+| `low`    | 1 finder → 1 verifier                                       | **precision**, as `medium`                                    | ≤4           |
 | `medium` | 4 correctness + 2 quality finders → verify                  | **precision** — every finding one a maintainer would act on   | ≤8           |
 | `high`   | 6 correctness + 5 quality finders → verify → sweep → verify | **recall** — a missed bug ships; err on the side of surfacing | ≤15          |
 
@@ -97,20 +98,22 @@ Creating or deleting a file inside that reach is a fix like any other.
 Judging a finding may read anywhere; a fix that cannot stay inside the reach, whatever angle or lens found it, is handed back rather than applied — never a reason to widen the scope — and reported among the run's skipped findings, so the user learns which fix is waiting on a scope only they can widen.
 The boundary governs the session that applies fixes and stays out of the scope block: a carrier told to withhold a fix withholds the candidate instead.
 
-## Level low — inline pass
+## Level inline — inline pass
 
 Scope runs inline, then two review turns, no sub-agents.
 Turn 1: read the diff and any new files from Scope (skip test/fixture hunks) and Angle A's hunt list from [ANGLES.md](ANGLES.md).
 Turn 2: flag Angle A bugs visible from the hunk alone, plus duplication of a helper visible in the diff context, dead code left behind, mismatches against the spec's requirements when a spec was fetched, and any matched learning the diff re-triggers.
+Where the run applies fixes, first rule on the findings as [ARBITER.md](ARBITER.md)'s At `inline` section says.
 Hand the findings to `report` most-severe first.
 
-## Find (medium/high)
+## Find (low/medium/high)
 
 Dispatch the finders as parallel sub-agents — in the background (Claude Code: do not use `run_in_background: false`), so the session stays responsive while they run — each fed the scope block and its brief(s):
 
 - **Correctness finders** — one angle brief each from [ANGLES.md](ANGLES.md): A–D at `medium`, A–F at `high` (minus Angle D when Scope found no spec).
 - **Quality finders** — one lens brief per lens carried, from [QUALITY-LENSES.md](QUALITY-LENSES.md), each lens pasted into the prompt with the restraints printed under it and the governing rules from that file's preamble.
   At `medium`, two finders: one carrying the mechanical lenses (Reuse, Simplification, Efficiency), one the judgement lenses (Design, Conventions); at `high`, one finder per lens.
+- **The `low` finder** — one finder carrying Angles A–D (minus Angle D when Scope found no spec) and all five lenses, pasted as the quality finders' are; its brief tells it to pick the angles and lenses the diff's shape calls for, and to hunt through one picked angle or lens at a time, capped at 8 candidates in total.
 
 **Model selection.** Use the platform's balanced mid-tier model for the `medium` mechanical-lens finder when the current harness exposes a known override. In Claude Code this is the Sonnet class. In Codex, apply this tier only when the active dispatch primitive exposes an explicit model or custom-agent selector; task wording alone does not select a different model. Otherwise omit the override and inherit the parent model -- a working pass on the parent model beats a broken dispatch.
 
@@ -131,6 +134,7 @@ Settle inline the candidates this session can decide from evidence it already ho
 Never settle REFUTED inline on code this session itself wrote — an author refuting a bug report about their own code is the bias this pipeline routes around; dispatch it.
 
 Group the remaining candidates by what one read covers — usually a file for code, a section for prose — keeping each group small enough that every candidate in it gets its own look.
+At `low`, the remaining candidates form one group, whatever files they sit in.
 Run **one verifier per group** — an independent sub-agent given the scope block, the relevant files, the group's candidates, and the instruction to judge each candidate on its own evidence, never weighing it against another in its group, dispatched in the background like the finders (Claude Code: do not use `run_in_background: false`).
 A verifier returns nothing but JSON: an array of verdict objects, each carrying `index` (the candidate it judges), `verdict`, and `evidence` (the quoted line that proves or refutes):
 
@@ -165,7 +169,7 @@ For a high-stakes change, offer a cross-model second pass where the harness prov
 
 **Outcome tracking:** whenever reported findings get fixed later in the session — asked-for or incidental — immediately call `outcomes` with each one's outcome and paste its block.
 
-**Apply mode (`--fix`):** after reporting, apply the findings worth fixing in rank order — the arbiter's rulings settle which, wherever one ran — then call `outcomes` once over the batch, giving every reported finding its outcome except those the arbiter declined, and paste its block.
+**Apply mode (`--fix`):** after reporting, apply the findings worth fixing in rank order — the arbiter's rulings settle which — then call `outcomes` once over the batch, giving every reported finding its outcome except those the arbiter declined, and paste its block.
 Write each fix from the line the finding quotes — the verdict's evidence, or the hunk it was flagged on where no verifier ran or the evidence quotes no line — never from its summary.
 A fix to code that runs, answering a correctness finding or a spec finding routed to align the code, lands only once its failure scenario, built as a case, goes **red** on the unfixed code — a test in the project's suite where there is one, otherwise a command whose output shows the failure — and green with the fix in.
 A case that cannot be built, or that the unfixed code passes, leaves the finding `skipped`, its reason what blocked the case or the run's output.

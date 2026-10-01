@@ -364,15 +364,16 @@ flowchart TD
 
 <sup>\* `high` effort only.</sup>
 
-- **How it works** — three effort levels: `low` is one inline diff pass (≤4 findings); `medium`
+- **How it works** — four effort levels: `inline` is one diff pass by the session itself, no
+  sub-agents and no verifier (≤4 findings); `low` dispatches one finder carrying `medium`'s angles
+  and every lens, hunting those the diff calls for one at a time, then one verifier (≤4); `medium`
   dispatches 4 correctness + 2 quality finders reviewing for **precision** (≤8); `high` dispatches
   6 correctness + 5 quality finders reviewing for **recall**, then a gap-hunting sweep (≤15).
-  Finders run as parallel sub-agents, each briefed on a single angle or lens; every candidate must
-  name a concrete failure scenario. Verifiers judge each candidate on its own evidence, and refuted
-  or unverified candidates never reach a `medium` or `high` report. From `medium` up, `--fix`
-  applies the surviving findings that fit inside the scope it reviewed, naming any it had to hand
-  back, and lands a fix to running code that answers a correctness finding only once a test or
-  command goes red on the unfixed code.
+  Finders run as parallel sub-agents; every candidate must name a concrete failure scenario.
+  Verifiers judge each candidate on its own evidence, and refuted or unverified candidates never
+  reach a report above `inline`. At every level, `--fix` applies the surviving findings that fit
+  inside the scope it reviewed, naming any it had to hand back, and lands a fix to running code
+  that answers a correctness finding only once a test or command goes red on the unfixed code.
 - **One report format** — a small script shipped with the skill holds the run's findings and prints
   every report, so each run reads the same. Every finding gets an ID like `F3` that you answer by,
   and two short lines: what is wrong, and the failure it causes. After a `--fix` batch the rows
@@ -383,12 +384,12 @@ flowchart TD
   step yourself. The script needs `node` 22.18 or later, `bun`, or `deno`; without one, the gate
   refuses to run and says so. Its state lives in the system temp directory, readable only by you, so
   your tree stays clean.
-- **Converge until green** — `--loop` implies `--fix` at any level, `low` included, and drives the
-  gate instead of reporting once: one full-scope certifying pass, then fix batch, project checks,
-  delta re-review, repeat, until nothing is left to fix or re-review — the arbiter may ask for one
-  more full pass, once. That is green, with the project's checks back where they started and every
-  finding explicitly dispositioned: fixed, needing no change, skipped with its reason, routed to
-  the spec, or declined by the arbiter.
+- **Converge until green** — `--loop` implies `--fix` at any level and drives the gate instead of
+  reporting once: one full-scope certifying pass, then fix batch, project checks, delta re-review
+  (never below `low` unless you invoked `inline`), repeat, until nothing is left to fix or re-review
+  — the arbiter may ask for one more full pass, once. That is green, with the project's checks back
+  where they started and every finding explicitly dispositioned: fixed, needing no change, skipped
+  with its reason, routed to the spec, or declined by the arbiter.
   Anything needing you is printed in full the moment it is parked, with lettered options and a
   recommendation, and the loop keeps fixing the rest; answer whenever you like (`F4: A, F13: B`)
   and the answer folds in at the next round. Each round prints one header line with the arbiter's
@@ -397,9 +398,9 @@ flowchart TD
   taking, a question comes back twice, or rounds keep surfacing findings nothing earlier saw and
   leave work standing. Whatever ended it, everything still waiting on you is printed again, and
   answering picks the same run back up.
-- **Held proportionate** — wherever `--fix` or `--loop` applies fixes after a verify pass, an
-  **arbiter** rules beside the verifiers: one sub-agent on the harness's most capable model, the
-  long-term maintainer guarding YAGNI and KISS, deciding whether each finding is worth fixing
+- **Held proportionate** — wherever `--fix` or `--loop` applies fixes, an **arbiter** rules beside
+  the verifiers: one sub-agent on the harness's most capable model (the session itself at `inline`),
+  the long-term maintainer guarding YAGNI and KISS, deciding whether each finding is worth fixing
   _here_. Its ruling binds — a declined finding is skipped with its reason, counted in the report
   and listed when you ask, for you to overrule, and never asked about — and under `--loop` it
   stays alive across rounds, watches how much the fixes have grown the target, and may have an

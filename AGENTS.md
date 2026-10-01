@@ -57,7 +57,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
    Author each closing from [flow-pointers.md](skills/writing-for-agents/flow-pointers.md): every closing carries its format clause word for word, and a closing that can point into `/simplify` or `/review-gate` carries its compact hint the same way, the copies staying identical across skills as rule 5 asks for its own clause.
    The format rides in the closing because an agent closing a skill skips a read whose target holds only presentation.
    An agent cannot observe its own context level, so the compact hint is unconditional and addressed to the user, who can.
-4. A sibling reference file that declares what it extends or replaces must cover every path the parent skill can take — the `low` inline pass included, since it reaches none of the sections a main-path declaration names.
+4. A sibling reference file that declares what it extends or replaces must cover every path the parent skill can take — the `inline` pass included, since it reaches none of the sections a main-path declaration names.
    A declaration that names only the main path leaves the other paths running the parent's own rules, which is how a mode degrades silently at one level while reading correct at the others.
    The inverse costs as much: a brief written for a dispatched carrier holds lines addressed to one, so a fallback that runs the pass inline names what travels rather than reusing the whole prompt.
    `/simplify`'s fixer brief says "Edit nothing yourself" — right for a fixer, and in the parent context it forbids the fixes the next step tells that same context to apply.

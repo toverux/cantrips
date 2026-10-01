@@ -1,7 +1,7 @@
 ---
 name: diagnosing-bugs
 description: Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
-version: 1.4.0
+version: 1.4.1
 source: mattpocock/skills@1.2.3 (diagnosing-bugs)
 ---
 
@@ -148,7 +148,7 @@ Required before declaring done:
 
 Bug fixed → close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash), a **chain** rendered whole and in order, all in this session:
 
-- `/review-gate [--fix | --loop]` (user-invoked) the fix — suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise; pair `--fix` with a `medium` or `high` suggestion to apply the findings once, or `--loop` with any level to converge the gate to green.
+- `/review-gate [--fix | --loop]` (user-invoked) the fix — suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise; pair any level with `--fix` to apply the findings once, or with `--loop` to converge the gate to green.
 - `/commit` (user-invoked), stating the winning hypothesis in the commit message — its opening `/compound` scan is where the root cause, the gotchas, and what didn't work become a durable learning, a `docs/solutions/` entry where that store is enabled.
 
 Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.

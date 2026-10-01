@@ -10,12 +10,12 @@ import * as path from 'node:path';
 import process from 'node:process';
 
 const DELIMITER = '── agent ──';
-const CAPS = { low: 4, medium: 8, high: 15 };
+const CAPS = { inline: 4, low: 4, medium: 8, high: 15 };
 const LIMITS = { summary: 80, failure_scenario: 100 };
 // The ledger rides every gate call, and a finder omits on the gist of a reason, so an entry keeps this much of it.
 const LEDGER_REASON = 200;
 const PRUNE_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
-const LEVELS = ['low', 'medium', 'high'];
+const LEVELS = ['inline', 'low', 'medium', 'high'];
 const MODES = ['report', 'fix', 'loop'];
 const QUALITY = ['reuse', 'simplification', 'efficiency', 'design', 'conventions'];
 const CATEGORIES = ['correctness', 'spec', ...QUALITY];
@@ -34,7 +34,7 @@ const LEGEND: [string, string][] = [
   ['⏭️', 'skipped'],
 ];
 
-type Level = 'low' | 'medium' | 'high';
+type Level = 'inline' | 'low' | 'medium' | 'high';
 type Mode = 'report' | 'fix' | 'loop';
 type Handoff = 'fix' | 'round' | 'close';
 
@@ -89,7 +89,6 @@ interface Round {
   unjudged: number[];
   checks: string;
   trajectory?: string;
-  unverified: boolean;
   settled_inline: number;
   spec: boolean;
 }
@@ -458,12 +457,15 @@ function report(file: string, input: Json): Result {
     if (input.delta_over === undefined && LEVELS.indexOf(level) < LEVELS.indexOf(state.level)) {
       throw new InputError(`input.level: a certifying pass runs at the invoked level, ${state.level}`);
     }
+    if (level === 'inline' && state.level !== 'inline') {
+      throw new InputError(`input.level: a run invoked at ${state.level} runs every gate call at low or above`);
+    }
     if (LEVELS.indexOf(level) > LEVELS.indexOf(state.level)) {
       agent.push(`warning: a gate call runs at most at the invoked level, so this one counts as ${state.level}`);
       level = state.level;
     }
   }
-  const unverified = level === 'low';
+  const unverified = level === 'inline';
   const arbiter = input.arbiter === undefined ? undefined : object(input.arbiter, 'input.arbiter');
   const judged = arbiter !== undefined;
   const verifiers = input.verifiers === undefined ? undefined : object(input.verifiers, 'input.verifiers');
@@ -550,9 +552,8 @@ function report(file: string, input: Json): Result {
   agent.push(...warnings(kept));
 
   const declined = fresh.filter((f) => f.ruling === 'decline');
-  // A round with nothing to rule wakes no arbiter; one with findings and no ruling names them unjudged.
-  const due = judged || arbiterDue(state);
-  const unjudged = due ? fresh.filter((f) => !f.ruling) : [];
+  // Every run applying fixes has an arbiter, so a finding it left unruled is named unjudged.
+  const unjudged = state.mode !== 'report' ? fresh.filter((f) => !f.ruling) : [];
   if (loop) {
     const round: Round = {
       n: state.rounds.length + 1,
@@ -566,7 +567,6 @@ function report(file: string, input: Json): Result {
       unjudged: unjudged.map((f) => f.id),
       checks,
       trajectory: arbiter ? text(arbiter, 'trajectory', 'input.arbiter', false) : undefined,
-      unverified,
       settled_inline: settledInline,
       spec: input.spec as boolean,
     };
@@ -595,11 +595,6 @@ function report(file: string, input: Json): Result {
   if (!input.spec) footer.push('no spec available');
   if (declined.length) footer.push(`⚖️ ${declined.length} declined (ask for ${declined.length === 1 ? 'it' : 'them'})`);
   if (unjudged.length) footer.push(`⚖️ unjudged: ${ids(unjudged)}`);
-  if (state.mode === 'fix' && unverified) {
-    // A --fix run that can apply nothing goes on as a report-only run.
-    footer.push('`--fix` not applied, since no verifier ran');
-    state.mode = 'report';
-  }
 
   const body = shown.map((f) => reportRow(state, f)).join('\n');
   const user = withLegend([body, footer.join(' · ')].filter(Boolean).join('\n\n'));
@@ -617,10 +612,6 @@ function report(file: string, input: Json): Result {
   if (held.length) agent.push(`held back: ${ids(held)}; call held when the user asks for them`);
   if (declined.length) agent.push(`declined by the arbiter: ${ids(declined)}; call held when the user asks for them`);
   return { user, agent, handoff: state.mode === 'fix' && shown.length ? 'fix' : undefined };
-}
-
-function arbiterDue(state: State): boolean {
-  return state.mode !== 'report' && state.level !== 'low';
 }
 
 function parkRoutes(spec: Finding[]): string {
@@ -754,7 +745,7 @@ function next(state: State, roundEnd: boolean): Step {
   if (record.length) {
     handoff = 'round';
     out.push(
-      `next: run the checks, settling a red batch as LOOP.md says, then a delta round over the batch at the level it earns, at most ${state.level}; call report with delta_over ${JSON.stringify(record.map((f) => `F${f.id}`))} and that level${arbiterDue(state) ? " and, where it has a candidate, the arbiter's reply" : ''}`,
+      `next: run the checks, settling a red batch as LOOP.md says, then a delta round over the batch at the level it earns, at most ${state.level}; call report with delta_over ${JSON.stringify(record.map((f) => `F${f.id}`))} and that level and, where it has a candidate, the arbiter's reply`,
       ...ledgerLines(state),
     );
   } else if (state.queue.length) {
@@ -1024,7 +1015,7 @@ function closingReport(state: State, line: string): string {
   const qualifier = [
     checks === 'none' ? 'The project has no checks' : checks === 'red' ? 'Checks red' : 'Checks at baseline',
   ];
-  const unverified = rounds.filter((r) => r.unverified).map((r) => r.n);
+  const unverified = rounds.filter((r) => r.level === 'inline').map((r) => r.n);
   if (unverified.length) {
     qualifier.push(unverified.length === rounds.length ? 'every pass ran unverified' : `${ids(unverified, 'R')} ran unverified`);
   }
