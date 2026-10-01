@@ -38,7 +38,7 @@ The contract below is the script's whole interface: build every call from it alo
 Each subcommand reads one JSON object on stdin:
 
 - `start` — `level`, `mode` (`report`, `fix` or `loop`: what the arguments named, `fix` for `--fix` at any level) and `target`, a one-line description of what the arguments name: the uncommitted changes, or the changes since the fixed point.
-- `report` — `spec` (`true` or `false`), `verifiers` (`{"count": 3, "grouping": "file"}`) where any ran, `unverified: true` where the pass was the `low` pass or the no-sub-agent fallback, `arbiter: {}` wherever one ran, and `candidates` in rank order, refuted ones included.
+- `report` — `spec` (`true` or `false`), `verifiers` (`{"count": 3, "grouping": "file"}`) where any ran, `arbiter: {}` wherever one ran, and `candidates` in rank order, refuted ones included.
   Each candidate carries the finder's fields — `file` and `line`, or `section` for a spec anchor — plus `also` for a merged entry's other locations, its `verdict` and `evidence`, `settled_inline: true` where triage settled it, the arbiter's `ruling` (`fix` or `decline`) and `opinion`, and a spec finding's `options`.
   Under `--loop` it also takes `checks` (`baseline`, `red`, or `none` where the project has none), a delta round's `delta_over` (the batch's IDs) and `level`, `same_as: "F3"` on a candidate re-finding a finding the run already holds, and in `arbiter` its `trajectory`, word for word, its `recertify` where it gave one, and its own `findings`, each `{"against": "F1", "action": "shrink" or "back out", "summary": …, "change": …}`.
 - `outcomes` — `outcomes`, each `{"id": "F3", "outcome": …}`: `fixed`, the user's own edit included, `no_change_needed` where the tree already lacks the defect, `skipped` with its `reason` (a declined finding defaults to the arbiter's opinion), `routed` with its `route` letter and a `reason` saying what was done, or `parked` with its `options`, and `tried` where anything was (`tried_yours: true` for the user's own edit, `with` listing the rest of a reverted batch).
@@ -61,7 +61,7 @@ The user answers by finding ID; map an answer by `file:line` to the one finding 
 ## Arguments
 
 The effort level is whichever of `low`, `medium`, or `high` appears among the arguments; default `medium`.
-`--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report) on the `medium` and `high` pipelines; `low` and the no-sub-agent fallback report their findings and apply nothing, since neither ran a verifier over them — except under `--loop`, which re-reviews every batch and reports what ran unverified.
+`--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report) on the `medium` and `high` pipelines; `low` reports its findings and applies nothing, since no verifier ran over them — except under `--loop`, which re-reviews every batch and reports what ran unverified.
 `--loop`, anywhere in the arguments, implies `--fix` and drives that apply mode to a defined green state instead of reporting once — read [LOOP.md](LOOP.md) before Scope and run the whole gate under its rules.
 What remains once the level and the flags are taken out is the fixed point.
 
@@ -106,7 +106,7 @@ Hand the findings to `report` most-severe first.
 
 ## Find (medium/high)
 
-Dispatch the finders as parallel sub-agents — in the background where the harness supports it (Claude Code: do not use `run_in_background: false`), so the session stays responsive while they run — each fed the scope block and its brief(s):
+Dispatch the finders as parallel sub-agents — in the background (Claude Code: do not use `run_in_background: false`), so the session stays responsive while they run — each fed the scope block and its brief(s):
 
 - **Correctness finders** — one angle brief each from [ANGLES.md](ANGLES.md): A–D at `medium`, A–F at `high` (minus Angle D when Scope found no spec).
 - **Quality finders** — one lens brief per lens carried, from [QUALITY-LENSES.md](QUALITY-LENSES.md), each lens pasted into the prompt with the restraints printed under it and the governing rules from that file's preamble.
@@ -171,10 +171,6 @@ A fix to code that runs, answering a correctness finding or a spec finding route
 A case that cannot be built, or that the unfixed code passes, leaves the finding `skipped`, its reason what blocked the case or the run's output.
 The case may be built outside the mutation boundary; delete it once run, unless the arbiter's opinion says to keep it in the suite and its file sits inside the boundary.
 Where a fix wrote prose, reread every sentence it wrote in place, as its reader will meet it, and fix what that reading catches before reporting the outcome.
-
-## Fallback — no sub-agent support
-
-Where the harness cannot run parallel sub-agents, work through every angle and lens inline in this context at the requested level's caps, dedup and self-check each candidate against the diff instead of dispatching verifiers, and declare the pass `unverified` to `report`.
 
 ## Close
 

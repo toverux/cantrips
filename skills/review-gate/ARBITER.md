@@ -2,13 +2,12 @@
 
 The run's guard against over-engineering: one independent sub-agent that rules whether each finding is worth fixing here, where a verifier rules only whether it is true.
 Its ruling binds.
-These rules govern every run that applies fixes after a verify pass — `--fix` and `--loop`, at `medium` and `high` — and reach a `low` delta round inside such a loop; a `low` run and the no-sub-agent fallback dispatch no arbiter and run the gate as written.
+These rules govern every run that applies fixes after a verify pass — `--fix` and `--loop`, at `medium` and `high` — and reach a `low` delta round inside such a loop; a `low` run dispatches no arbiter and runs the gate as written.
 
 ## Dispatch
 
 Dispatch the arbiter once the first round's candidates are deduplicated and triaged, at the same time as any verifiers, in the background (Claude Code: do not use `run_in_background: false`), fed the scope block, the fetched spec where there is one, the brief below, and the round's message.
 It is one agent for the whole run: keep what the dispatch returned to address it by, send every later batch — a `high` sweep's candidates, each further round under `--loop` — as a follow-up message to that same agent, and close it when the run ends, where the harness has a close step.
-Where the harness cannot message a sub-agent it spawned, dispatch a fresh arbiter per batch and add the ledger to its message: every earlier ruling with its opinion, and every trajectory opinion.
 
 **Model selection.** Use the platform's most capable model for the arbiter when the current harness exposes a known override. In Codex, apply this tier only when the active dispatch primitive exposes an explicit model or custom-agent selector; task wording alone does not select a different model. Otherwise omit the override and inherit the parent model -- a working pass on the parent model beats a broken dispatch.
 

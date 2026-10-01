@@ -51,10 +51,6 @@ Claude Code and Codex CLI, from the same `skills/` directory, with dual plugin m
 per-skill `agents/openai.yaml` sidecar. The sidecar is load-bearing: Codex ignores
 `disable-model-invocation`, so without it a deliberate gate would auto-fire there.
 
-Degradation is designed rather than accidental. Where Codex has no sub-agents, `/review-gate` runs
-the same angles inline as a single-pass review **and says so in its report** — a mode that silently
-degrades on one harness while reading correct on the other is worse than one that announces itself.
-
 ### Storage is a set of verbs, not a path
 
 No skill hard-codes where a spec or a ticket lives. They speak six verbs — publish, fetch and

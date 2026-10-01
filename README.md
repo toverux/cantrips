@@ -372,8 +372,7 @@ flowchart TD
   or unverified candidates never reach a `medium` or `high` report. From `medium` up, `--fix`
   applies the surviving findings that fit inside the scope it reviewed, naming any it had to hand
   back, and lands a fix to running code that answers a correctness finding only once a test or
-  command goes red on the unfixed code. On a harness without sub-agents, the same angles run inline
-  as a single-pass review that says so.
+  command goes red on the unfixed code.
 - **One report format** — a small script shipped with the skill holds the run's findings and prints
   every report, so each run reads the same. Every finding gets an ID like `F3` that you answer by,
   and two short lines: what is wrong, and the failure it causes. After a `--fix` batch the rows
@@ -384,12 +383,12 @@ flowchart TD
   step yourself. The script needs `node` 22.18 or later, `bun`, or `deno`; without one, the gate
   refuses to run and says so. Its state lives in the system temp directory, readable only by you, so
   your tree stays clean.
-- **Converge until green** — `--loop` implies `--fix` at any level, `low` and the sub-agent-less
-  fallback included, and drives the gate instead of reporting once: one full-scope certifying
-  pass, then fix batch, project checks, delta re-review, repeat, until nothing is left to fix or
-  re-review — the arbiter may ask for one more full pass, once. That is green, with the project's
-  checks back where they started and every finding explicitly dispositioned: fixed, needing no
-  change, skipped with its reason, routed to the spec, or declined by the arbiter.
+- **Converge until green** — `--loop` implies `--fix` at any level, `low` included, and drives the
+  gate instead of reporting once: one full-scope certifying pass, then fix batch, project checks,
+  delta re-review, repeat, until nothing is left to fix or re-review — the arbiter may ask for one
+  more full pass, once. That is green, with the project's checks back where they started and every
+  finding explicitly dispositioned: fixed, needing no change, skipped with its reason, routed to
+  the spec, or declined by the arbiter.
   Anything needing you is printed in full the moment it is parked, with lettered options and a
   recommendation, and the loop keeps fixing the rest; answer whenever you like (`F4: A, F13: B`)
   and the answer folds in at the next round. Each round prints one header line with the arbiter's

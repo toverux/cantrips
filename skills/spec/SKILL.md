@@ -36,7 +36,7 @@ Number on from the conversation's last question where an interview preceded, so 
 4. Draft the spec into a file, using the template below.
    Where the loop config translates the publish-spec verb to a file path, write the draft straight to that path; on any other backend, write it to the OS temp directory.
 
-5. Have a sub-agent **reread** the draft: a fresh dispatch, in the background where the harness supports it (Claude Code: do not use `run_in_background: false`).
+5. Have a sub-agent **reread** the draft: a fresh dispatch, in the background (Claude Code: do not use `run_in_background: false`).
    Give it the draft's path, the brief below, and, pasted verbatim, everything a decision can trace to: each question put to the user as it was asked — options and recommendation included — with the user's answer, step 3's round among them, and every exploration or research report the conversation folded in.
    The user's own statements that decided or approved something outside a numbered question travel with them.
 
@@ -58,9 +58,8 @@ Number on from the conversation's last question where an interview preceded, so 
    **Model selection.** Use the platform's balanced mid-tier model for the rereader when the current harness exposes a known override. In Claude Code this is the Sonnet class. In Codex, apply this tier only when the active dispatch primitive exposes an explicit model or custom-agent selector; task wording alone does not select a different model. Otherwise omit the override and inherit the parent model -- a working pass on the parent model beats a broken dispatch.
 
    You are the draft's only writer: apply to the file each finding that needs no user call, and hold the rest for step 6.
-   Then message the same sub-agent to reread the file — a fresh dispatch carrying the same brief and material where the harness cannot message a sub-agent it spawned.
+   Then message the same sub-agent to reread the file.
    Repeat until a pass reports nothing that changes a decision, a claim or a gap beyond the findings already held, three passes at most; wording-only findings are fixed without calling for another pass.
-   Where the harness has no sub-agents, run the three checks yourself, rereading the draft from disk each pass, under the same stop rule and cap.
 
 6. Put the residue to the user: one line saying what the reread fixed or softened on its own, then the questions only the user can settle, as one numbered round ending the message, in step 3's format.
    A third pass that still changed a decision, a claim or a gap is residue too: say the cap was hit.

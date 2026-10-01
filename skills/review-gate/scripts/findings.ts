@@ -463,7 +463,7 @@ function report(file: string, input: Json): Result {
       level = state.level;
     }
   }
-  const unverified = level === 'low' || input.unverified === true;
+  const unverified = level === 'low';
   const arbiter = input.arbiter === undefined ? undefined : object(input.arbiter, 'input.arbiter');
   const judged = arbiter !== undefined;
   const verifiers = input.verifiers === undefined ? undefined : object(input.verifiers, 'input.verifiers');
@@ -551,7 +551,7 @@ function report(file: string, input: Json): Result {
 
   const declined = fresh.filter((f) => f.ruling === 'decline');
   // A round with nothing to rule wakes no arbiter; one with findings and no ruling names them unjudged.
-  const due = judged || arbiterDue(state, { level, unverified: input.unverified === true });
+  const due = judged || arbiterDue(state);
   const unjudged = due ? fresh.filter((f) => !f.ruling) : [];
   if (loop) {
     const round: Round = {
@@ -619,11 +619,8 @@ function report(file: string, input: Json): Result {
   return { user, agent, handoff: state.mode === 'fix' && shown.length ? 'fix' : undefined };
 }
 
-// Above low, an unverified pass is the no-sub-agent fallback, where no arbiter runs either, the run's
-// low delta rounds included.
-function arbiterDue(state: State, pass?: Pick<Round, 'level' | 'unverified'>): boolean {
-  const fallback = [...state.rounds, ...(pass ? [pass] : [])].some((r) => r.level !== 'low' && r.unverified);
-  return state.mode !== 'report' && state.level !== 'low' && !fallback;
+function arbiterDue(state: State): boolean {
+  return state.mode !== 'report' && state.level !== 'low';
 }
 
 function parkRoutes(spec: Finding[]): string {

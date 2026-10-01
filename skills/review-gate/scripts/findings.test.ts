@@ -303,13 +303,6 @@ withSandbox('an unverified pass says so once, marks every finding plausible, and
   assert.match(fixed.agent, /^next: close with the flow pointer$/m);
 });
 
-withSandbox('the fallback declares itself unverified at medium', (s) => {
-  s.call('start', { level: 'medium', mode: 'report', target: 't' });
-  const out = s.call('report', { spec: true, unverified: true, candidates: [{ ...LRU, verdict: undefined }] });
-  assert.equal(out.status, 0);
-  assert.match(out.user, /single pass, unverified$/);
-});
-
 withSandbox('findings the arbiter left unruled are named unjudged', (s) => {
   s.call('start', { level: 'medium', mode: 'fix', target: 't' });
   const out = s.call('report', {
@@ -323,16 +316,8 @@ withSandbox('findings the arbiter left unruled are named unjudged', (s) => {
 
 withSandbox('a low delta round inside a medium loop is judged, so a missing arbiter shows', (s) => {
   loopWithFix(s);
-  const out = s.call('report', { ...VERIFIED, level: 'low', unverified: true, delta_over: ['F1'], candidates: [bug(2)] });
+  const out = s.call('report', { ...VERIFIED, level: 'low', delta_over: ['F1'], candidates: [bug(2)] });
   assert.match(out.user, / · ⚖️ unjudged: F2$/m);
-});
-
-withSandbox('a run on the no-sub-agent fallback is never judged, its low delta rounds included', (s) => {
-  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
-  s.call('report', { spec: true, unverified: true, checks: 'baseline', candidates: [bug(1)] });
-  s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
-  const out = s.call('report', { spec: true, level: 'low', unverified: true, checks: 'baseline', delta_over: ['F1'], candidates: [bug(2)] });
-  assert.doesNotMatch(out.user, /⚖️/);
 });
 
 withSandbox('a report-only spec finding carries its routes as lettered options, one recommended', (s) => {

@@ -1,7 +1,7 @@
 # Loop mode
 
 Drive the gate to **green** instead of reporting once: certify the whole target, then apply the findings in batches and re-review each batch, until nothing is left to fix or re-review with the project's checks at their baseline and nothing parked for the user.
-These rules govern the whole run at every level and on every harness: they leave Scope, Find, Verify and Sweep as they are where those run, save what a gate call below adds to a finder's brief, and stand in for the reporting and closing the level would otherwise have done — Synthesize and report's at `medium` and `high`, the inline pass's at `low`, and the Close section's on every path.
+These rules govern the whole run at every level: they leave Scope, Find, Verify and Sweep as they are where those run, save what a gate call below adds to a finder's brief, and stand in for the reporting and closing the level would otherwise have done — Synthesize and report's at `medium` and `high`, the inline pass's at `low`, and the Close section's on every path.
 How a finding is judged, shaped and channelled still comes from the section the level would have run; every path writes its fixes under Synthesize and report's apply mode, inside the run's mutation boundary, which a delta round's narrower scope never narrows.
 
 ## The run
@@ -10,7 +10,7 @@ The script paces the run: after each call, do what its `next:` and `then:` lines
 
 - **Checks** — the project's own checks (the commands its `AGENTS.md`/`CLAUDE.md` names, or the obvious suite runner), run once before the first gate call as the **baseline**; each `report` says whether a rerun adds to it, a red parked for the user excepted, or that the project has none.
 - **Gate calls** — a **certifying pass** is the full gate over the run's target as the tree now stands; a **delta round** is the gate over one batch's diff, handed to Scope as the target, at the highest level the batch earns, capped at the invoked one: a few lines inside one file earn `low`, several files or anything other code depends on earn `medium`, one nobody would want reviewed hunk-only earns the invoked level.
-  Either hands `report` everything it found, whatever cap its level's report would apply, and each finder's brief — the inline pass itself, where the level or the harness dispatches no finder — carries the ledger block the script prints before it.
+  Either hands `report` everything it found, whatever cap its level's report would apply, and each finder's brief — the inline pass itself, where the level dispatches no finder — carries the ledger block the script prints before it.
 - **Re-finds** — tag each candidate that matches a finding the run already holds `same_as` that finding: the script retries it, parks it, or stops the run on it by those tags alone.
 - **A batch** — each finding's fix under apply mode, or the edit the user made where that was their answer; the batch's **record** is its edits, files and hunks, since no fixed point separates them from the feature work around them, plus any file it created, and a delta round's diff is the record's.
 - **A red batch** — where the checks come back with new failures, back out the edit likeliest behind the red, the user's included; where that clears the checks, repair it once, parking it backed out where the checks still fail; where it does not, revert the batch and park it as one item under the finding it answered, `with` the rest, a red that survives the revert, or that no edit explains, parked with it; a backed-out or reverted edit loses its outcome, a repaired one is `fixed`.
