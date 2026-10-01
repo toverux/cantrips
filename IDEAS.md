@@ -270,6 +270,18 @@ still hand back anything it could not reach. Weigh this against why the boundary
 outside the reviewed scope is one no finder or verifier looked at. Raised in session
 `33c53966-f425-4648-a8cf-2d5cf0de084b`.
 
+Seen again in session `723b78a4-40ad-4691-b3db-a62baa50c2eb`, in the sharpest form the idea has:
+a `--loop` round deleted an `internal static` member, and a repo skill doc still cited it as its
+worked example, so the only fix for a now-false instruction was one file outside the target. The
+user's answer was "Extend the mutation boundary when needed." That sub-case needs neither a flag
+nor a judgement call, because the target's own deletion is what falsified the doc — a reference the
+diff broke is not unreviewed scope, it is the diff's own fallout, and the run already knows which
+symbols the diff removed or renamed. It is also the case most likely to be missed, since the stale
+reference lives where no finder is looking unless a lens happens to sweep the docs.
+
+**Adopt when:** adopt the deleted-reference case now, since it is mechanical and the boundary's own
+rationale does not cover it; keep deferring the general widening until a third session asks for it.
+
 ## The loop parks for the user what the arbiter could rule
 
 `--loop` parks for the user every item it cannot resolve, including those asking only whether a fix
