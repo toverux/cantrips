@@ -28,7 +28,9 @@ The user made this call.
 
 ## Consequences
 
-`low` is `/review-gate`'s only inline path: the only pass the findings script records unverified, and under `--loop` the only run that applies fixes with no arbiter.
-On a harness without sub-agents, `/review-gate` above `low` and `/spec`'s reread have nothing to run.
+`inline` is `/review-gate`'s only inline path and the only pass the findings script records unverified, and every run that applies fixes is judged.
+On a harness without sub-agents, `/review-gate` above `inline` and `/spec`'s reread have nothing to run.
 A hedge returns only where a rescan shows a supported harness lost the capability by default; the research note is of its date.
 A dispatch that fails mid-run still costs `/review-gate` an angle in silence, and Codex's cap on running children — three on one of its tool surfaces, six on the other — makes that predictable at `medium`; `IDEAS.md` carries it.
+
+2026-10-01: ADR 0010 renamed the inline pass `inline` and judged every applying run, and the first two Consequences lines were edited in place, an exception to [`adr-format.md`](../../skills/compound/adr-format.md)'s status-flip-only rule.

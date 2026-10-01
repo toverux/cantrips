@@ -27,6 +27,8 @@ The user made this call.
 ## Consequences
 
 Green rests on the delta rounds, so a fix stays on the record until a round names it, and a round with nothing to rule wakes no arbiter.
-The last fixes of a `high` run may be reviewed at the level their batch earned, `low` included; the closing report names the rounds that ran unverified, and the arbiter's extra pass is the valve.
+The last fixes of a `high` run may be reviewed at the level their batch earned, `low` included, and the arbiter's extra pass is the valve; only a run invoked at `inline` has unverified rounds, which the closing report names.
 A run continued by `answers` after a stop owes no certifying pass, where a relaunch does.
 The rule lives in the findings script, as ADR 0006 has it, in the one function that names what still blocks an ending.
+
+2026-10-01: ADR 0010 made `low` a verified level, and the Consequences line on unverified rounds was edited in place, an exception to [`adr-format.md`](../../skills/compound/adr-format.md)'s status-flip-only rule.
