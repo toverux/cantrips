@@ -315,6 +315,16 @@ routes and actions only they can perform.
 
 **Adopt when:** the user answers a parked item with "ask the arbiter" again.
 
+## A spec finding is parked even when a sibling fix already settled its route
+
+A spec finding and a conventions finding sat on one line; the arbiter ruled the conventions fix in,
+and that fix aligned the line with the spec. The script still asked to park the spec finding for
+its route, so it was recorded `no_change_needed` by hand (transcript
+`a7963c1a-809b-41c7-b381-eb3563cc3309`). The script could drop a spec finding's park once another
+fix in the batch leaves no mismatch to route.
+
+**Adopt when:** a second run parks, or hand-settles, a spec finding another fix made moot.
+
 ## The arbiter's earlier rulings should bind it
 
 Over one `--loop` run (transcript `6155e3fb-b5ba-457a-8d49-c88c8e3d2a3a`) the arbiter ruled the same finding three ways in three rounds (a lock takeover
@@ -396,3 +406,13 @@ touches neither the real index nor any ref. `/implement` could record one such t
 commit and `/commit` replay them in order.
 
 **Adopt when:** a second spec prescribes more than one commit.
+
+## `/spec` decides in prose while rewriting a published body
+
+Asked after publication to make tag matching case-insensitive, a probed `/spec` rewrote the body in
+place and chose on its own that case is ignored only when filtering, saying so in a paragraph rather
+than as a numbered question (transcript `0bd2fa27-5f4f-4178-bba7-71f8cbe2d620`). The rewrite runs
+with no reread, so nothing turns such a choice into a question. The rewrite could put any decision
+the correction did not state to the user in the numbered format.
+
+**Adopt when:** a post-publication rewrite carries a decision the user later reverses.
