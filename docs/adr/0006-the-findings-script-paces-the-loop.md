@@ -21,7 +21,7 @@ The split chosen below.
 
 ## Decision
 
-The script's `next:` lines carry the loop's order — certify the whole target once, apply the next batch, run a delta round over what it fixed, close once nothing is left of either — and `LOOP.md` holds only the judgement the script cannot make: the checks and their baseline, what a gate call is and the level a delta round earns, tagging re-finds `same_as`, a batch's record, a red batch, what to park, and the conduct once the run ends.
+The script's `next:` lines carry the loop's order — certify the whole target once, apply the next batch, run a delta round over what it fixed, close once nothing is left of either — and `LOOP.md` holds only the judgement the script cannot make: the checks and their baseline, what a gate call is and the level a delta round earns, tagging re-finds `same_as`, a red batch, what to park, and the conduct once the run ends.
 
 What settled it is that the script already had to encode the order to suggest it and to evaluate the stops, and that its reading is shipped and covered by CLI tests, where the block's was checked against a model nobody committed.
 One statement of the order removes the drift instead of policing it.
@@ -34,3 +34,5 @@ A change to the loop's order is now a change to the script and its tests; a gate
 The script no longer only suggests: the agent follows its `next:` lines and departs from them only where `LOOP.md`'s judgement calls for it, so a wrong line in the script misleads every run until it is fixed.
 The script's tests take over the executable model's role as the oracle for the loop's order.
 ADR 0002's rule for reviewers — hunt semantics, not case coverage — holds for what remains of `LOOP.md`.
+
+2026-10-01: ADR 0011 moved a batch's record into the script, and the Decision's list of what `LOOP.md` holds was edited in place, an exception to [`adr-format.md`](../../skills/compound/adr-format.md)'s status-flip-only rule.
