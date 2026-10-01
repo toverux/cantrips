@@ -30,20 +30,6 @@ before adding one.
 **Adopt when:** someone actually asks for a third harness — starting with the Copilot test, which
 costs five minutes and may already work.
 
-## What the plugin believes about each harness is stale
-
-WHY.md says Codex has no sub-agents, and casts `/review-gate`'s inline single-pass fallback as
-Codex's path; README said the same until this session corrected it. That is wrong: the user
-flagged it during session
-`33c53966-f425-4648-a8cf-2d5cf0de084b`, and ADR 0005 already records that "both harnesses proved
-able to message a spawned sub-agent, verified on 2026-09-19". The same kind of claim is scattered
-unchecked across the tree: which harness has sub-agents, background dispatch, a model or
-custom-agent selector, a close step for a spawned agent, or a typed findings tool. ADR 0005 also
-records a Codex session whose toolset differed from what its feature list implied. Rescan each
-supported harness's capabilities from primary sources (a `/research` note), then correct every
-claim that names a harness: README, WHY.md, AGENTS.md, FORKS.md, a superseding ADR for any that
-carries one, and each skill's fallback and model-selection wording.
-
 ## Wayfinder, adapted to local files
 
 Pocock's `wayfinder` plans work too big for one agent session as a shared map of decision tickets
@@ -221,12 +207,14 @@ dispatch.
 
 ## /review-gate loses an angle silently when one dispatch fails mid-run
 
-Its only fallback triggers on "the harness cannot run parallel sub-agents" — a capability check
-made once — so a finder or verifier dispatch that fails mid-run costs an angle or lens and the
-report still reads as a complete pass; the closing summary reports findings per class and whether
-a spec was available, no other per-angle coverage. `/simplify` closed the same hole with a
-per-fixer inline fallback; the gate
-has no counterpart.
+It has no fallback for a failed dispatch, so a finder or verifier dispatch that fails mid-run costs
+an angle or lens and the report still reads as a complete pass; the closing summary reports
+findings per class and whether a spec was available, no other per-angle coverage. `/simplify`
+closed the same hole with a per-fixer inline fallback; the gate has no counterpart. Codex makes
+the failure predictable: its default surface runs three children at once and fails the next spawn
+with `AgentLimitReached`
+([research](docs/research/harness-subagent-capabilities.md#2-parallel-fan-out)), where `medium`
+dispatches six finders.
 
 **Adopt when:** a gate dispatch fails mid-run.
 
@@ -243,16 +231,15 @@ the user's harness, or that a tier is off, for tiering skills to read beside the
 `/review-gate`'s finders, verifiers and arbiter, and `/simplify`'s fixers, are general-purpose
 dispatches handed a brief the orchestrator pastes from a sibling file (ANGLES.md,
 QUALITY-LENSES.md, ARBITER.md). The plugin could ship them as agent definitions instead, one per
-role. Claude Code reads agent definitions from a plugin, and the model-selection paragraphs already
-allow for Codex's custom-agent selector. Each role would then show up by name in the harness,
-carry its own brief behind a context pointer rather than the orchestrator's prompt, and pin its
-model tier and read-only toolset in frontmatter rather than in prose. Weigh the costs first:
-- **Packaging per harness.** Agent definitions come in a different format for each harness, so
-  every role becomes one more dual-manifest-style copy to keep in sync.
-- **Paths that still inline the brief.** `low` and the no-sub-agent fallback run the brief
-  inline, and AGENTS.md rule 4 makes every path carry what it needs.
-- **What each harness supports.** The capabilities rescan above (session
-  `33c53966-f425-4648-a8cf-2d5cf0de084b`) should settle this first.
+role. Each role would then show up by name in the harness, carry its own brief behind a context
+pointer rather than the orchestrator's prompt, and pin its model tier and read-only toolset in
+frontmatter rather than in prose. Weigh the costs first:
+- **Claude Code only.** A Claude Code plugin ships `agents/*.md`; a Codex plugin cannot ship roles,
+  which load only from the user's or project's own config
+  ([research](docs/research/harness-subagent-capabilities.md#4-model-and-named-agent-selection-per-dispatch)).
+  Codex would keep the pasted briefs, so every role lives twice.
+- **Paths that still inline the brief.** `low` runs the brief inline, and AGENTS.md rule 4 makes
+  every path carry what it needs.
 
 ## The arbiter can decline a spec finding without the user hearing of it
 
@@ -266,13 +253,15 @@ arbiter to the user, as before it existed.
 
 **Adopt when:** a run's ledger shows a declined spec finding the user would have wanted to route.
 
-## A `/review-gate` level between `low` and `medium`
+## `/review-gate`'s `low` renamed `inline`, with a lighter dispatched `low` in its place
 
 `low` is one inline pass with no sub-agents and no verifier; `medium` is six finders and a
 verifier per group. Nothing sits between them, so a small change that deserves independent
 verification pays for the full fan-out: on some 240 lines of skill prose, each `medium` certifying
 pass cost five finders and five to ten verifiers, and surfaced a dozen novel candidates on text
-that had not changed. A middle level could run one or two finders and verify what they return.
+that had not changed. The inline pass would take the name `inline`, and `low` become the missing
+level: a single-agent finder and verifier. Open: whether one agent does both or each role gets its
+own. It changes what `low` means, so it ships as a breaking change.
 
 ## `/review-gate`'s default target is empty once the work is committed
 
