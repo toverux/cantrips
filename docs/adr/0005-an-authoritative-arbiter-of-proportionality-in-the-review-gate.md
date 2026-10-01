@@ -24,11 +24,11 @@ ADR 0004 holds `LOOP.md` to sixty lines, which left the arbiter little room ther
 
 `/review-gate` gains an arbiter: one independent sub-agent on the harness's most capable model, holding the view of a long-term maintainer, whose `fix` or `decline` ruling on each finding binds.
 A declined finding is `skipped` with the arbiter's reason in the disposition ledger, whatever its category or verdict, and the user is never asked; the opinion beside each ruling — the smallest fix that would do, a reframe answering several findings — is advisory.
-It runs under `--loop` and one-shot `--fix`, at `medium` and `high`, in parallel with the verifiers and from the first round; a `low` run and the no-sub-agent fallback go unjudged, while a `low` delta round inside a larger loop is still sent to it.
+It runs under `--loop` and one-shot `--fix`, at `medium` and `high`, in parallel with the verifiers and from the first round; a `low` run goes unjudged, while a `low` delta round inside a larger loop is still sent to it.
 Under `--loop` it is one agent for the whole run, messaged each round with the findings, the target's measured growth and the last round's verdicts, and it may raise one finding per applied fix to shrink it or back it out.
 
 What settled it is that over-engineering in a loop is cumulative, so only an observer with memory across rounds can see it, and that an opinion the loop may route around changes nothing.
-Persistence was chosen over a fresh judge per round once both harnesses proved able to message a spawned sub-agent, verified on 2026-09-19; the fresh judge with a ledger remains the fallback where a harness cannot.
+Persistence was chosen over a fresh judge per round once both harnesses proved able to message a spawned sub-agent, verified on 2026-09-19.
 Silence means `fix`: the arbiter exists to subtract work, so its absence leaves the gate as it was.
 
 ## Consequences
@@ -43,3 +43,5 @@ The arbiter's trajectory opinion stands in for the convergence-reading lines an 
 
 AGENTS.md rule 5 changes: the carried "Model selection" paragraph may vary the tier as well as the noun, and the arbiter's names no model class, since the top class is renamed faster than a skill is revised.
 The lifecycle is worded without naming a tool — close the arbiter when the run ends, where the harness has a close step — because the Codex session tested exposed no close tool and a toolset other than the one its feature list implied.
+
+2026-10-01: ADR 0008 retired the no-sub-agent fallback and the fresh judge per round, and the two clauses of the Decision naming them were removed in place. [`adr-format.md`](../../skills/compound/adr-format.md) permits only a status flip as an in-place edit; the amendment stands as a deliberate exception.
