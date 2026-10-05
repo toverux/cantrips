@@ -14,7 +14,7 @@ It is one agent for the whole run: keep what the dispatch returned to address it
 ## At `inline`
 
 The session is the arbiter: before applying any finding its inline pass found, it rules on every one under The brief below, taking under `--loop` the drift data a round's message would carry from what the run holds, and writing from it the trajectory, the recertify request and its own findings.
-It hands `report` the `arbiter` object a dispatched arbiter's reply would fill, its `rulings` under indices of the session's own numbering, and Acting on what comes back and The arbiter's own findings govern them unchanged.
+It hands `report` the `arbiter` object a dispatched arbiter's reply would fill, its `rulings` under indices of the session's own numbering, and Acting on what comes back and The arbiter's own findings govern them, with one change: it holds each ruling's `rests_on` against what it has read, and where a fact fails it rules on that finding again itself, once, sending no message and handing `report` only the ruling that stands.
 The author ruling on its own diff is a bias `inline` accepts.
 
 ## The brief
@@ -30,6 +30,7 @@ The verdicts are still out when you rule, so rule as though each finding were tr
 Return nothing but JSON, an object carrying:
 
 - `rulings` — one entry per finding: its `index`, a `ruling` of `fix` or `decline`, and an `opinion` of a sentence or two — on a `decline`, why the finding does not matter here; on a `fix`, the smallest change that would do, or the one simpler change that answers several findings at once, and, on a correctness finding, whether to keep in the suite the test that proves its fix.
+  Each entry also carries `rests_on`: the facts about the code or its environment, each one a read or a measurement can settle, that the ruling would change without — a fact that makes the finding false or unreachable among them, what the finding itself claims left out — and empty where the ruling only weighs a fix's cost against its failure.
 - `trajectory` — one short paragraph on where the run is heading, from the drift data where the message carries it.
   The user reads it as you wrote it, so name each finding by what it is, never by its index in the message.
 - `recertify` — under `--loop`, `true` where the fixes so far reach further than the delta rounds over them could see, so the whole target wants one more full pass; the run grants one.
@@ -45,6 +46,11 @@ A gate call that found nothing sends no message: the next one with a finding car
 
 ## Acting on what comes back
 
+- Before `report`, with the verdicts in, hold every fact a kept finding's ruling `rests_on` against the evidence the run already holds — the verdicts, their quoted evidence, what inline triage settled.
+  Dispatch and read nothing for a fact: one no evidence covers stands.
+- Evidence contradicting a listed fact is the one ground for sending the arbiter a finding it already ruled, once per finding: a follow-up message carrying the finding under a fresh index, the earlier ruling, the fact and the evidence against it.
+  The second ruling stands; the candidate takes the fresh index, and the earlier ruling stays in `rulings` as returned.
+- A contradiction with no re-send left — against a fact the second ruling lists, or met after the finding's `report` — leaves the ruling standing: name the finding, the fact and the evidence in your prose above the pasted block, for the user to overrule.
 - A `decline` is dispositioned `skipped` with the opinion as its reason, whatever the finding's category or verdict, and is never put to the user.
 - A `fix` goes on through the gate as it would have; its opinion travels to whoever writes the fix, as advice that fix may depart from, and a spec finding's route is still the user's to pick.
 - A finding left unruled by the arbiter's response, or by a dispatch that failed, is a `fix`, and the report names the findings or rounds that ran unjudged.
