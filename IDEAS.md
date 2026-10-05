@@ -313,6 +313,27 @@ evidence; the brief should, so a reversal has to name what changed.
 
 **Adopt when:** the arbiter reverses a ruling with no new evidence again.
 
+## Checking a decline's premise no evidence covers
+
+The arbiter lists the facts each ruling rests on, and the run holds them against the evidence it
+already has; a fact no verdict covers stands unchecked, since every disproved premise recorded so
+far had been measured by the finding's own verifier (transcripts
+`c37f6e53-4a06-42b1-8d91-f44288a3c916`, `d5213dad-05ef-46ff-80eb-a116a8e4c535`). The gate could
+dispatch a verifier for a decline's uncovered premise, at the cost of a dispatch per such decline.
+
+**Adopt when:** a false premise under a decline survives because no verdict covered it.
+
+## A finder's `spec` label parks findings no spec route fits
+
+The category is the finder's, so a missing test assertion and slips in the wording of the run's own
+spec annotation, labelled `spec`, were parked for the user with align-or-annotate routes that did
+not apply; the agent wrote stand-in options instead (transcript
+`c37f6e53-4a06-42b1-8d91-f44288a3c916`, five findings). Verification could reclassify a candidate
+whose evidence quotes no spec requirement, or the script could park only `spec` findings anchored
+to one.
+
+**Adopt when:** a run parks a `spec` finding whose options are not the two routes again.
+
 ## A tripped `/review-gate` stop prints below everything else
 
 Under `--loop` the line that announces a stop closes the agent section, after the warnings and
@@ -383,6 +404,17 @@ reverses the ruling that kept a side object directory out of the snapshot's desi
 
 **Adopt when:** a Codex user runs `/review-gate --fix` or `--loop` under the default sandbox.
 
+## `/review-gate --loop` sees one repository of a cross-repo target
+
+The script keys its state and its snapshots on the worktree it is called from. On a target spanning
+two repositories, the delta round's diff held the first one only, a batch that touched only the
+second was answered with "the batch changed nothing the tree shows" and went unreviewed, and
+`outcomes` called from the second faulted with "no run in this session and worktree" (transcript
+`f89d8dff-1caa-41a7-86c8-5a3f0671ea05`). `start` could take the target's repositories and snapshot
+each, or refuse a target that names more than one.
+
+**Adopt when:** a second cross-repo run leaves a batch unreviewed.
+
 ## A `--1`/`--one` argument for `/grilling`
 
 `/grilling` asks the whole frontier in each round. A `--1`/`--one` argument would ask one question
@@ -411,3 +443,12 @@ with no reread, so nothing turns such a choice into a question. The rewrite coul
 the correction did not state to the user in the numbered format.
 
 **Adopt when:** a post-publication rewrite carries a decision the user later reverses.
+
+## Apply mode skips a correctness fix no red case can reach
+
+A correctness fix lands only once its case goes red, so a fix to engine-bound code with no
+off-engine test is `skipped` even when the arbiter rules it worth fixing: a two-line read-once guard
+waited for the user to re-queue it (transcript `d5213dad-05ef-46ff-80eb-a116a8e4c535`). The skip
+could park the finding with the arbiter's ruling and the missing case as options instead.
+
+**Adopt when:** another engine- or platform-bound fix is skipped this way.
