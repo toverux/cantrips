@@ -353,6 +353,7 @@ Verified against `compound-engineering-v3.27.0`.
 - Upstream's `gh repo view --json defaultBranchRef` fallback not carried — `git rev-parse` plus a `main` default resolves the branch without adding a `gh` dependency to the skill.
 - The body is a condensed rewrite in this repo's voice: the H1 and the standalone Context table are gone, and upstream's `## Context` section merges with the Workflow step 0 that only re-runs it into one Step 2 bullet list.
   The table itself is not restored — it carries a not-a-git-repo stop and an unborn-repo column the fork's bullets lack, while the fork's clean-tree stop and `origin/`-strip rule run the other way, both recorded below.
+- Step 4 caps the subject at 100 characters for the whole line, a documented limit alone replacing the number, and sends what will not fit to the body — upstream asks only for a concise subject, which a long-subject history stretches past what a changelog line or a commit list renders.
 - Step 4's conventional-commit default names the type enum where upstream gives the shape `type(scope): description` with only a fix-over-feat tie-break — handed the shape without the set, an agent invents types outside it, and a repo whose release tooling keys on the type then skips the commit silently.
   The tie-break is carried reworded into Step 4 with its why test spelled out; upstream's closing "User override wins." is not carried.
 - Upstream's Bad/Good subject examples not carried — Step 4 states the subject rule as its own bullet with the _why_ test spelled out.

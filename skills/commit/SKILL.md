@@ -2,7 +2,7 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.1.1
+version: 1.2.0
 source: EveryInc/compound-engineering-plugin@3.27.0 (ce-commit)
 ---
 
@@ -54,7 +54,9 @@ In priority order:
 
 Message discipline, whatever the convention:
 
-- **Subject**: concise, imperative mood, focused on _why_ the change has value, not what changed.
+- **Subject**: the whole line at most 100 characters, imperative mood, focused on _why_ the change has value, not what changed.
+  A documented limit alone replaces the number.
+  Where the claim will not fit, cut it to the value and let the body carry the rest.
 - **Body**: for non-trivial changes, a blank line then the problem the change solves and why this approach — a few short paragraphs at most.
   The body records _why_ the code is now this way; the diff already shows _how_, and the process — attempts, dead ends, how the change was verified — dies with the session.
   Write it plain and self-contained: direct declarative sentences a stranger can skim years later, each claim one that stays true about the code; non-obvious trade-offs and costs qualify, the story of the work does not.

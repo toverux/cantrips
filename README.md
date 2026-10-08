@@ -419,8 +419,9 @@ flowchart TD
 - **When to use** — the gate has passed and the tree holds the finished work.
 - **The intent** — the learnings scan comes _first_ so `/compound`'s approved writes join the
   working tree and ride into the same commit ceremony, instead of dirtying the tree right after
-  you committed. Messages communicate value ("why"), follow the repo's observed convention, and
-  distinct concerns split into at most two or three file-level commits.
+  you committed. Messages communicate value ("why") in a subject of at most 100 characters, follow
+  the repo's observed convention, and distinct concerns split into at most two or three file-level
+  commits.
 - **How it works** — scans the session for compound candidates and invokes `/compound` when any
   might clear its bar; then gathers git context, picks the branch per the repo's workflow,
   matches the message convention, and stages files by name, group by group.
