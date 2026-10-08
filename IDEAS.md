@@ -2,8 +2,9 @@
 
 Analyzed during the design of the loop and deliberately deferred. Most of these earn their keep at
 team scale or on big, long-running projects; cantrips targets a solo workflow. An entry may note
-when it becomes worth adopting; an edit that fires such a trigger adopts the entry or re-defers it
-under a new one in the same change.
+when it becomes worth adopting, naming the step or line its concern sits in so a diff settles
+whether an edit fired it; an edit that fires such a trigger adopts the entry or re-defers it under
+a new one in the same change.
 
 ## More harnesses beyond Claude Code and Codex CLI
 
@@ -202,8 +203,8 @@ rules in two skills and none elsewhere. The section is carried upstream bytes an
 byte-identical where it is; the honest home for a plugin-wide rule is a shared reference the other
 skills point at, reconciling the two wordings on the way.
 
-**Adopt when:** the next edit touching `/commit` or `/handoff` lands, or a secret reaches a gate
-dispatch.
+**Adopt when:** the next edit touching `/commit`'s context-gathering step or `/handoff` lands, or a
+secret reaches a gate dispatch.
 
 ## /setup-cantrips-loop sets up model-tier preferences
 
@@ -291,7 +292,16 @@ each one still holds the run at `WAITING:` short of green until answered. A flag
 answer, could hand the arbiter the parked set, keeping for the user what it cannot rule: spec
 routes and actions only they can perform.
 
-**Adopt when:** the user answers a parked item with "ask the arbiter" again.
+A user can also delegate up front, spec routes included: a run invoked with "completely
+autonomously, no questions parked for me" was still told to park every spec finding, and closed on
+`fourth_novel_round` with two waiting, so the agent routed each on its recommended option by hand
+(transcript `e304cec3-a2fa-4376-a0a7-6dd13e4b5a26`). The same flag could route spec findings on
+their recommended option when the user delegates them. A run told "call the shots, I'm hands off"
+also closed on `fourth_novel_round` with two queued findings standing, which the agent answered on
+their recommended option by hand (transcript `72284c61-7ff3-4a44-8ec2-d1aefc771e0e`).
+
+**Adopt when:** the user answers a parked item with "ask the arbiter" again, or a third run
+delegates every parked item up front and still stops on items left for the user.
 
 ## A spec finding is parked even when a sibling fix already settled its route
 
@@ -334,6 +344,16 @@ to one.
 
 **Adopt when:** a run parks a `spec` finding whose options are not the two routes again.
 
+## A merge across categories is verified under one
+
+Finders raised one defect as `spec` (Angle D) and as `correctness` (Angles A and C). Merged, it
+went to the spec verifier, which refuted it because the code matched the spec's wording; a fresh
+verifier judging it as correctness confirmed it (transcript
+`72284c61-7ff3-4a44-8ec2-d1aefc771e0e`). Verify could judge a cross-category merge under each of
+its categories and keep the strongest verdict.
+
+**Adopt when:** another merged candidate's categories would split its verdict.
+
 ## A tripped `/review-gate` stop prints below everything else
 
 Under `--loop` the line that announces a stop closes the agent section, after the warnings and
@@ -342,6 +362,15 @@ batches past a tripped `fourth_novel_round` without seeing it (transcript
 `5678f667-f07c-4826-b158-8e10551a2d4f`). The script could print a stop first.
 
 **Adopt when:** a run works past a stop it did not see again.
+
+## A delta round's level follows its file count, not its weight
+
+LOOP.md earns `medium` for "several files", so a 62-line batch of docblock rewraps, a blank line
+and a one-line filter over four files got four correctness and two quality finders, which returned
+edge cases and re-finds (transcript `72284c61-7ff3-4a44-8ec2-d1aefc771e0e`). The level could
+follow what a batch changes rather than how many files it touches.
+
+**Adopt when:** another delta round spends `medium` on a mostly cosmetic batch.
 
 ## No `/review-gate` subcommand lists the findings a `same_as` tag matches against
 
@@ -423,6 +452,20 @@ the next question is framed. The user asked for it at the start of a grilling se
 `270fcb57-9d96-4487-b800-f522f8cbf6f7`). With one question per message, the frontier and the lock
 still apply, but the "numbers still open" line has nothing to name.
 
+## `/grilling`'s recommended answer carries the agent's bias, not the user's
+
+`/grilling` gives every question a recommended answer and says nothing about how to pick it. In
+use, the recommendation often merges the options ("A, and a little bit of B") instead of choosing
+one, and where it does choose, it weighs cost and scope the agent's way: the cheaper, narrower
+option gets recommended even when the user's standing instruction is to recommend the option with
+the best outcome and state its cost and scope as facts beside it (reported from use in transcript
+`0f7ff5f9-1e01-4ce0-ad75-4066be791109`). The skill could ask for one option per recommendation,
+the others' cost and scope stated as facts next to it, and let the user name the bias to recommend
+on, so an answer that reads "A" is A and not the agent's compromise.
+
+**Adopt when:** another grilling round recommends a merge of its options, or the user overrides a
+recommendation on cost grounds.
+
 ## `/implement` cannot keep a spec's commit boundaries when the agent may not commit
 
 A spec prescribing four ordered commits was implemented in a repo whose rules forbid the agent to
@@ -451,4 +494,30 @@ off-engine test is `skipped` even when the arbiter rules it worth fixing: a two-
 waited for the user to re-queue it (transcript `d5213dad-05ef-46ff-80eb-a116a8e4c535`). The skip
 could park the finding with the arbiter's ruling and the missing case as options instead.
 
-**Adopt when:** another engine- or platform-bound fix is skipped this way.
+It recurred on a broken user rule: `process.exit()` after a stdout write truncates nothing below
+64 KiB, so no case went red and the run closed green with the rule still broken. Re-raising it as a
+`conventions` candidate `same_as` the skipped finding, ruled `fix`, left it skipped, and `answers`
+refused it (`F2 is not waiting on an answer`) (transcript `9f48eefc-4716-4be5-b628-b49447244957`).
+A finding quoting a broken rule could apply as conventions, with no red case.
+
+**Adopt when:** a third fix is skipped this way.
+
+## `/review-gate`'s `report` contract leaves the shape of `also` unstated
+
+SKILL.md lists `also` among a candidate's fields "for a merged entry's other locations" without a
+shape, so an agent building the call from the contract alone sent `{ file, line }` objects, which
+the script rejects (`input.candidates[6].also[0]: expected a location string`) (transcript
+`1e56ae8c-aec3-466c-b63e-e6dcbb3dbd0d`). The contract could say `"file:line"` strings, as it says
+`same_as: "F3"`.
+
+**Adopt when:** the next edit to the script's contract lands, or another run trips on it.
+
+## `/review-gate --loop` documents no way to overrule a declined finding
+
+LOOP.md's "What needs the user" re-queues what the user asked fixed through `answers`, but
+`answers` refuses a finding the arbiter declined (`F1 was declined by the arbiter: to overrule it,
+apply the fix and call outcomes`), so the path lives only in the script's error (transcript
+`7af0aa81-bfb7-4ab4-a7fb-f99674bc8e95`). LOOP.md could say it: a decline the user overrules is fixed
+directly and recorded through `outcomes`.
+
+**Adopt when:** the next edit to LOOP.md lands, or another run trips on it.
