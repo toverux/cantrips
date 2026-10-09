@@ -1,5 +1,31 @@
 # Changelog
 
+## [3.0.0](https://github.com/toverux/cantrips/compare/v2.7.0...v3.0.0) (2026-10-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* **skills:** /review-gate no longer falls back to `bun` or `deno` for its script; it needs `node` 22.18 or later.
+* **skills:** `low` no longer names the inline pass; pass `inline` for it.
+* **skills:** on a harness without sub-agents, /review-gate above `low` and /spec's reread have no inline path left.
+* **review-gate:** /review-gate now needs node 22.18 or later, bun or deno on PATH to run its findings script, and refuses to run without one.
+
+### Features
+
+* **review-gate:** hand later-round finders the disposition ledger's skipped and refuted entries as a do-not-re-raise list, and count novelty only after the arbiter ([8bab303](https://github.com/toverux/cantrips/commit/8bab3031e2b936ca151945e18cf64dc0949452ad))
+* **review-gate:** hold the run's findings in a script that prints every report and paces the loop, so a run reads the same each time and --loop reaches green after one certifying pass ([c7aaa00](https://github.com/toverux/cantrips/commit/c7aaa0079940cdd566ac6b9a90067cd1336767c8))
+* **review-gate:** land a fix to running code only once its failure scenario goes red on the unfixed code, so behaviour fixes stop resting on premises no case reproduces ([dd5ba9a](https://github.com/toverux/cantrips/commit/dd5ba9a5926d84eab2d406957d9af9f8b730b0ed))
+* **skills:** cap /commit's subject at 100 characters and send the overflow to the body ([5e387a9](https://github.com/toverux/cantrips/commit/5e387a9b5511e98118690fd94a42ad48601a78af))
+* **skills:** make /review-gate report a round's findings before it applies them, flag an edit made early, and report only rulings the arbiter gave ([a7d93f0](https://github.com/toverux/cantrips/commit/a7d93f063e70493c68c870c95b457946132b753d))
+* **skills:** make /review-gate's arbiter name the facts each ruling rests on, and send a finding back once when the run's own evidence disproves one ([05b6538](https://github.com/toverux/cantrips/commit/05b653848dc217bf7da3e8de19d705f539c489fa))
+* **skills:** rename /review-gate's inline pass to `inline` and make `low` one dispatched finder and verifier, so a small change gets an independent review without medium's fan-out ([1182eb6](https://github.com/toverux/cantrips/commit/1182eb66f75ea70abd05e4f12ded6f014b1808d7))
+* **spec:** put every standing ADR to the user, reread the draft through a sub-agent and publish once, so a spec stops carrying decisions the user never made ([51fc8be](https://github.com/toverux/cantrips/commit/51fc8be764fa59936dd851dd0c1ad44e6d3c75e1))
+
+
+### Bug Fixes
+
+* **skills:** drop the fallbacks for a harness without sub-agents, since both supported harnesses spawn them, run them in parallel and in the background, and message one they spawned ([b0cd774](https://github.com/toverux/cantrips/commit/b0cd7743292d0a953f4eec8336b5cdcae381a8b7))
+
 ## [2.7.0](https://github.com/toverux/cantrips/compare/v2.6.0...v2.7.0) (2026-09-19)
 
 
