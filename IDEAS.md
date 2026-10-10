@@ -149,9 +149,12 @@ could stay on lines the diff wrote, and dictated wording be checked against the 
 lands. A `--loop` run (transcript `bb9dec00-76ec-4cd6-b666-f7c2f43996e5`) stopped on
 `fourth_novel_round` from this churn alone: each delta round's findings were the last batch's
 rephrasings — a rephrase the arbiter asked for contradicting its own entry, another asserting a
-false fact — and the arbiter's own advice was to delete rather than rephrase.
+false fact — and the arbiter's own advice was to delete rather than rephrase. A third run
+(transcript `e374cb72-49ce-405a-b991-6e1a7871c66f`) replaced a comment with wording the arbiter
+dictated, which the next round found false; the arbiter then had it deleted, "each version of it so
+far has been wrong in a new way."
 
-**Adopt when:** a third run shows a prose fix, or wording the arbiter dictated, adding an error of
+**Adopt when:** adopt now: the third run has shown wording the arbiter dictated adding an error of
 fact.
 
 ## /setup-cantrips-loop writes without interviewing
@@ -229,6 +232,10 @@ frontmatter rather than in prose. Weigh the costs first:
 - **Paths that still inline the brief.** `inline` runs the brief inline, and AGENTS.md rule 4
   makes every path carry what it needs.
 
+The prose pin leaks (session `c8610db9-8641-4448-a2b8-7393fb1a56cc`): an arbiter briefed
+"Read-only: do not edit any file" edited a tracked source file to settle a `tsc` question, then
+restored it. A verifier whose brief named a scratch copy ran the same measurement in `/tmp`.
+
 ## The arbiter can decline a spec finding without the user hearing of it
 
 A `decline` binds whatever the finding's category
@@ -280,8 +287,12 @@ diff broke is not unreviewed scope, it is the diff's own fallout, and the run al
 symbols the diff removed or renamed. It is also the case most likely to be missed, since the stale
 reference lives where no finder is looking unless a lens happens to sweep the docs.
 
-**Adopt when:** adopt the deleted-reference case now, since it is mechanical and the boundary's own
-rationale does not cover it; keep deferring the general widening until a third session asks for it.
+A third session asked (transcript `e374cb72-49ce-405a-b991-6e1a7871c66f`): a committed comment
+outside the target, which the run's own SDK trace had shown false, was handed back as a question,
+and the user answered "update the comment, and don't ask me again for trivial things like that."
+
+**Adopt when:** adopt now, both the deleted-reference case and the general widening: a third
+session has asked for it.
 
 ## The loop parks for the user what the arbiter could rule
 
@@ -298,7 +309,10 @@ autonomously, no questions parked for me" was still told to park every spec find
 (transcript `e304cec3-a2fa-4376-a0a7-6dd13e4b5a26`). The same flag could route spec findings on
 their recommended option when the user delegates them. A run told "call the shots, I'm hands off"
 also closed on `fourth_novel_round` with two queued findings standing, which the agent answered on
-their recommended option by hand (transcript `72284c61-7ff3-4a44-8ec2-d1aefc771e0e`).
+their recommended option by hand (transcript `72284c61-7ff3-4a44-8ec2-d1aefc771e0e`). A run told
+"I remove the gate's round cap limit, drive to green" still stopped on `fourth_novel_round`, which
+no input lifts; only an `answers` call resumed it with fresh counts (transcript
+`e374cb72-49ce-405a-b991-6e1a7871c66f`). The same flag could lift the novelty stop.
 
 **Adopt when:** the user answers a parked item with "ask the arbiter" again, or a third run
 delegates every parked item up front and still stops on items left for the user.
@@ -322,6 +336,16 @@ rulings travel in the message as drift data, but nothing says they stand unless 
 evidence; the brief should, so a reversal has to name what changed.
 
 **Adopt when:** the arbiter reverses a ruling with no new evidence again.
+
+## A question settled at cost leaves no trace in the code
+
+A finding the run paid to settle — a behaviour traced through the decompile, a refuted equality
+claim, an engine event order measured in game — is recorded only in the ledger, which binds this
+run's finders and no later session. The user asked that fixes leave a comment wherever a costly
+investigation settled a question, so no later round or session reopens it (transcript
+`e374cb72-49ce-405a-b991-6e1a7871c66f`). Apply mode could say so beside its prose-reread rule.
+
+**Adopt when:** the next edit to `/review-gate`'s apply-mode rules.
 
 ## Checking a decline's premise no evidence covers
 
