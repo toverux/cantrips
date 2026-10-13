@@ -353,7 +353,10 @@ The arbiter lists the facts each ruling rests on, and the run holds them against
 already has; a fact no verdict covers stands unchecked, since every disproved premise recorded so
 far had been measured by the finding's own verifier (transcripts
 `c37f6e53-4a06-42b1-8d91-f44288a3c916`, `d5213dad-05ef-46ff-80eb-a116a8e4c535`). The gate could
-dispatch a verifier for a decline's uncovered premise, at the cost of a dispatch per such decline.
+dispatch a verifier for a decline's uncovered premise, at the cost of a dispatch per such decline. A fix
+ruling's premise goes unchecked the same way: one replaced a comment with an `<inheritdoc>` of a
+member whose note is a `//` comment, which `<inheritdoc>` does not carry, and only the applying
+session caught it (transcript `b6281e1d-cfef-4c62-848f-3c9d1cc36902`).
 
 **Adopt when:** a false premise under a decline survives because no verdict covered it.
 
@@ -392,9 +395,18 @@ batches past a tripped `fourth_novel_round` without seeing it (transcript
 LOOP.md earns `medium` for "several files", so a 62-line batch of docblock rewraps, a blank line
 and a one-line filter over four files got four correctness and two quality finders, which returned
 edge cases and re-finds (transcript `72284c61-7ff3-4a44-8ec2-d1aefc771e0e`). The level could
-follow what a batch changes rather than how many files it touches.
+follow what a batch changes rather than how many files it touches. The floor binds too: a run invoked
+at `high` refuses `inline`, so a two-line comment fix still cost a finder (transcript `b6281e1d-cfef-4c62-848f-3c9d1cc36902`).
 
 **Adopt when:** another delta round spends `medium` on a mostly cosmetic batch.
+
+## A mechanical convention drips in one delta round at a time
+
+Three delta rounds each found a mid-phrase docblock wrap beside the previous round's reflow, until
+the arbiter ruled one sweep over every new file and declined later isolated reflows (transcript
+`b6281e1d-cfef-4c62-848f-3c9d1cc36902`). The arbiter could rule that sweep on the first finding of a mechanical rule.
+
+**Adopt when:** another run spends two delta rounds on one mechanical rule.
 
 ## No `/review-gate` subcommand lists the findings a `same_as` tag matches against
 
