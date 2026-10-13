@@ -356,7 +356,11 @@ far had been measured by the finding's own verifier (transcripts
 dispatch a verifier for a decline's uncovered premise, at the cost of a dispatch per such decline. A fix
 ruling's premise goes unchecked the same way: one replaced a comment with an `<inheritdoc>` of a
 member whose note is a `//` comment, which `<inheritdoc>` does not carry, and only the applying
-session caught it (transcript `b6281e1d-cfef-4c62-848f-3c9d1cc36902`).
+session caught it (transcript `b6281e1d-cfef-4c62-848f-3c9d1cc36902`). Under `--loop` it compounds
+when no reading can settle the premise: three delta rounds refused, built, then refused again a
+value on what a debuggee would accept in which slot, until a verifier measured it by experiment
+(transcript `180476e2-6357-4a30-b6c1-7ecd92f3fed9`); the first ruling resting on such a premise
+could get that experiment.
 
 **Adopt when:** a false premise under a decline survives because no verdict covered it.
 
@@ -397,6 +401,8 @@ and a one-line filter over four files got four correctness and two quality finde
 edge cases and re-finds (transcript `72284c61-7ff3-4a44-8ec2-d1aefc771e0e`). The level could
 follow what a batch changes rather than how many files it touches. The floor binds too: a run invoked
 at `high` refuses `inline`, so a two-line comment fix still cost a finder (transcript `b6281e1d-cfef-4c62-848f-3c9d1cc36902`).
+The resume step names only the ceiling ("at the level it earns, at most high"), so a run sent
+`inline` for a pure re-wrap and had it rejected (transcript `180476e2-6357-4a30-b6c1-7ecd92f3fed9`).
 
 **Adopt when:** another delta round spends `medium` on a mostly cosmetic batch.
 
@@ -557,3 +563,40 @@ apply the fix and call outcomes`), so the path lives only in the script's error 
 directly and recorded through `outcomes`.
 
 **Adopt when:** the next edit to LOOP.md lands, or another run trips on it.
+
+## `/review-gate` narrates its own mechanics
+
+SKILL.md keeps the agent's prose to what the pasted blocks and the screen lack, yet every
+background-agent notification resumes the agent, and it answers each with a status line: which
+finders returned, what a verifier found, who is still running. The user asked for only the most
+important information to surface (transcript `b436114f-763c-45bc-9bd8-f4982f710aa1`). The skill
+could say what a notification turn writes when it carries no question and no pasted block: nothing.
+
+**Adopt when:** another run draws the same complaint.
+
+## A decision revised in a spec comment never reaches `/compound`
+
+A `--loop` run routed a spec finding to the annotate route, and SKILL.md says to "flag it for
+`/compound` at loop end", but neither `outcomes` nor the closing block carries the flag, so it
+lived only in the agent's memory and was lost; `/commit`'s first scan then offered two gotchas and
+missed the medal-ladder decision the spec's dated comment recorded, which the user had to ask
+after (transcript `67e62cb7-f0a5-44a1-ba5f-153678e67d1c`). The closing block could list each spec
+finding routed to annotate as `/compound` material, and `/commit`'s scan could name the spec's
+dated comments as a source of ADR candidates.
+
+**Adopt when:** the next edit to `/commit`'s scan or `/review-gate`'s closing block, or another
+revised decision goes unrecorded.
+
+## `/grilling auto`: a stand-in answers in the user's place
+
+**Priority:** high.
+
+A user ran `/grilling` and then `/spec` with a higher-tier agent (Fable) answering every round in their place (transcript `adbb1db9-e96a-4134-9d5c-40054a500f42`). It was briefed once to favour the product and its users over implementation cost, to practise YAGNI/KISS, and to want an excellent experience, and it was resumed with `SendMessage` for each round. Today the interviewer improvises all of this. A `/grilling auto` mode, backed by a stand-in skill that `/spec`'s step-3 round and any other numbered round can reuse, would make it a supported path:
+
+- The interviewer dispatches the stand-in on the harness's higher-tier model. The stand-in skill fixes the briefing: its bias, the feature context, and that it has read-only repo access.
+- The stand-in may change its mind about an earlier answer, push back on a question's framing or its recommendation, and, in the hardest cases, stop and call for the user rather than answer.
+- On a hard subject it may dispatch an unanchored subagent for a second opinion, sparingly. That subagent gets the question without the interviewer's recommendation.
+- It has a mind of its own and a strong personality. It thinks outside the box and takes nothing it is handed for granted: not a premise, a framing or a recommendation. That's not a licence to complicate things; YAGNI/KISS still hold.
+- It checks a question's factual premises against the repo before accepting them. In the session above it accepted a recommendation built on "the usual ambiguity report", a report the evaluator does not have. Only `/spec`'s reread caught it, after the decision had been drafted.
+
+**Adopt when:** next; the user ranked it high priority.
