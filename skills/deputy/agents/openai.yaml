@@ -1,0 +1,5 @@
+interface:
+  display_name: 'Deputy'
+  short_description: 'Engage a stand-in that answers in your place for the rest of the session'
+policy:
+  allow_implicit_invocation: false

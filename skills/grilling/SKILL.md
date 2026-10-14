@@ -1,13 +1,14 @@
 ---
 name: grilling
 description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to be grilled about a plan, wants a decision stress-tested, or when requirements are fuzzy before a spec is written.
-version: 2.2.3
+version: 2.3.0
 source: mattpocock/skills@1.2.3 (grilling)
 ---
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **decision tree**: every decision branches into the decisions that hang off it.
 
 Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled — the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round: number each question and give your recommended answer. Number sequentially across the whole interview rather than restarting each round, so an answer naming Q2 points at one question. Then wait for the user's answers before the next round.
+Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
 
 Each question should be formatted like so:
 
@@ -41,3 +42,5 @@ Otherwise close with a single sentence stating that shared understanding is reac
 - `/prototype` when an unresolved question survived the interview and needs empirical evidence — in this session, feeding the verdict back here.
 - `/research` when an unresolved question needs facts from primary sources — it runs in the background while this session continues.
 - `/questionnaire` (user-invoked) when an unresolved question needs facts only another person holds — in this session, drafting the document; the answers come back on the recipient's clock.
+
+Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.

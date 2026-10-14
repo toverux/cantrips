@@ -2,7 +2,7 @@
 name: improve-codebase-architecture
 description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
 disable-model-invocation: true
-version: 1.2.3
+version: 1.3.0
 source: mattpocock/skills@1.2.3 (improve-codebase-architecture)
 ---
 
@@ -59,6 +59,7 @@ End the report with a **Top recommendation** section: which candidate you'd tack
 See [HTML-REPORT.md](HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance.
 
 Do NOT propose interfaces yet. After the file is written, ask the user: "Which of these would you like to explore?"
+Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
 
 ### 3. Grilling loop
 
@@ -76,5 +77,7 @@ Close with a flow pointer (the message's final paragraph, a blockquote in full i
 - `/codebase-design` when alternative interfaces for the deepened module are still worth exploring — its design-it-twice parallel sub-agent pattern surfaces the options.
 - `/spec` (user-invoked) when the deepening is a change worth a written contract.
 - `/implement` (user-invoked) when it is small enough to go straight in.
+
+Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.
 
 Where the interview ended in a rejection, the capture above is the outcome — say so and offer this skill again on the next candidate.

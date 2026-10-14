@@ -1,7 +1,7 @@
 ---
 name: prototype
 description: Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.
-version: 1.2.2
+version: 1.3.0
 source: mattpocock/skills@1.2.3 (prototype)
 ---
 
@@ -32,3 +32,4 @@ The two branches produce very different artifacts — getting this wrong wastes 
    The main branch keeps only the validated decision.
 
 Question answered → close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash): feed the verdict back into the decision that spawned the prototype — the `/grilling` interview or the spec being written.
+Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.

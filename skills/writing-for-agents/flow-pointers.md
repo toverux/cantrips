@@ -24,6 +24,18 @@ A closing that can point into `/simplify` or `/review-gate` carries this line af
 
 > Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.
 
+## The closing's deputy step
+
+Every closing carries this line after its steps and its compact hint:
+
+> Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.
+
+## The routing clause
+
+A gate that puts a decision to the user — a numbered round, a write gate, a verdict, a parked route — carries this sentence right after the line that puts it to the user:
+
+> Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
+
 ## What a closing message looks like
 
 One step, from a skill invoked as `/compound`:

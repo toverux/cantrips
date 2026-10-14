@@ -2,13 +2,13 @@
 name: spec
 description: Synthesize the current conversation into a published spec, test seams included.
 disable-model-invocation: true
-version: 1.2.0
+version: 1.3.0
 source: mattpocock/skills@1.2.3 (to-spec)
 ---
 
 Produce a spec from the current conversation and codebase understanding.
 Synthesize what you already know — the interview, if any, already happened (`/grilling`).
-Where the conversation holds nothing the user decided or approved about the design, recommend `/grilling` and stop there, drafting nothing.
+Where the conversation holds nothing the user decided or approved about the design — a deputy's answer counting as the user's — recommend `/grilling` and stop there, drafting nothing.
 
 ## Process
 
@@ -23,6 +23,7 @@ Where the conversation holds nothing the user decided or approved about the desi
 3. Propose the **test seams** — the places `/implement` will drive TDD (seam vocabulary: `/codebase-design`). Prefer existing seams to new ones; place any new seam at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
 
 Put the seams and step 2's ADR questions to the user as one numbered round, and wait for the answers before drafting.
+Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
 Each question should be formatted like so:
 
 ```
@@ -37,7 +38,7 @@ Number on from the conversation's last question where an interview preceded, so 
    Where the loop config translates the publish-spec verb to a file path, write the draft straight to that path; on any other backend, write it to the OS temp directory.
 
 5. Have a sub-agent **reread** the draft: a fresh dispatch, in the background (Claude Code: do not use `run_in_background: false`).
-   Give it the draft's path, the brief below, and, pasted verbatim, everything a decision can trace to: each question put to the user as it was asked — options and recommendation included — with the user's answer, step 3's round among them, and every exploration or research report the conversation folded in.
+   Give it the draft's path, the brief below, and, pasted verbatim, everything a decision can trace to: each question put to the user as it was asked — options and recommendation included — with its answer, labelled the user's or a deputy's by who gave it, step 3's round among them, and every exploration or research report the conversation folded in.
    The user's own statements that decided or approved something outside a numbered question travel with them.
 
    <reread-brief>
@@ -45,7 +46,7 @@ Number on from the conversation's last question where an interview preceded, so 
    Edit nothing yourself: report each finding with its evidence and a proposed wording.
    Run three checks over the whole draft:
 
-   - **Traced** — every decision traces to something the user answered or approved.
+   - **Traced** — every decision traces to something the user answered or approved, an answer labelled a deputy's counting as the user's.
      Report one that does not as a question for the user.
    - **Evidenced** — every claim about the code, and everything a decision relies on the code to provide, is no firmer than its evidence.
      Read the repo to settle what a check can settle, and propose softer wording where none can.
@@ -62,11 +63,13 @@ Number on from the conversation's last question where an interview preceded, so 
    Repeat until a pass reports nothing that changes a decision, a claim or a gap beyond the findings already held, three passes at most; wording-only findings are fixed without calling for another pass.
 
 6. Put the residue to the user: one line saying what the reread fixed or softened on its own, then the questions only the user can settle, as one numbered round ending the message, in step 3's format.
+   Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
    A third pass that still changed a decision, a claim or a gap is residue too: say the cap was hit.
    Leave the draft out of the message.
    With no residue, publish without stopping.
    Apply the user's answers to the draft.
    Where an answer departs from its question's recommendation, run one more pass over the applied answers, by the means of step 5's later passes, and apply what it finds; a finding that needs the user opens one more numbered round.
+   Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
 
 7. Publish the spec, once — the publish-spec verb, translated by the loop config from step 2.
    A draft written at the verb's own path is published as it stands; any other goes through the verb byte for byte, and its temp file is then removed without mention.
@@ -131,3 +134,5 @@ Spec published → close with a flow pointer (the message's final paragraph, a b
 
 - `/tickets` (user-invoked) where the work spans multiple sessions or context windows — in a fresh context.
 - `/implement` (user-invoked) otherwise — in a fresh context.
+
+Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.

@@ -3,7 +3,7 @@ name: compound-refresh
 description: Garbage-collect the knowledge stores — audit AGENTS.md, and docs/solutions/ where that store is enabled, against the current code.
 argument-hint: '[optional: scope — directory, module, or keyword; blank audits everything]'
 disable-model-invocation: true
-version: 1.3.0
+version: 1.4.0
 source: EveryInc/compound-engineering-plugin@3.27.0 (ce-compound-refresh)
 ---
 
@@ -11,7 +11,7 @@ Audit the knowledge stores against the current codebase and prune what no longer
 Two stores: the project's `AGENTS.md`, always, and `docs/solutions/` when the loop config enables it.
 The loop config is `docs/agents/cantrips-loop.md`; when that doc is absent, the solutions store is off.
 The opt-in `docs/adr/` store stays out of scope by design — supersession is its own hygiene mechanism.
-Every change is user-gated.
+Every change is gated on the user, or on a deputy engaged in their place.
 
 ## Scope
 
@@ -72,7 +72,9 @@ Before applying any `AGENTS.md` edit, read [`../writing-for-agents/SKILL.md`](..
 ## Gate, report, close
 
 Present the verdicts: Keeps as one summarized list; every Update, Consolidate, Delete, and `AGENTS.md` edit individually with its evidence, for the user to approve, adjust, or reject.
+Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
 Apply only approved changes.
 
 Close with counts (kept / updated / consolidated / deleted / AGENTS.md findings) and a one-liner per touched file.
 Changes applied → close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash): `/commit` (user-invoked) — to land the refreshed docs.
+Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.

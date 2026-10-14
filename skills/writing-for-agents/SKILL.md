@@ -1,7 +1,7 @@
 ---
 name: writing-for-agents
 description: Load before writing or editing any file an agent will load and act on — a skill (SKILL.md), an AGENTS.md or CLAUDE.md, or a rules file. The vocabulary and principles that make those files predictable. A session that only reads them leaves this unloaded.
-version: 2.1.0
+version: 2.2.0
 source: mattpocock/skills@1.2.3 (writing-for-agents)
 ---
 
@@ -97,4 +97,4 @@ You win twice: fewer tokens, and a sharper hook for the agent to hang its thinki
 ## Pipeline closings
 
 A skill that hands off to the next step of a loop ends on a **flow pointer**.
-Author that closing from [`flow-pointers.md`](flow-pointers.md): its shape, and the format clause and compact hint each closing carries word for word.
+Author that closing from [`flow-pointers.md`](flow-pointers.md): its shape, and the format clause, compact hint and deputy step each closing carries word for word; the same file holds the routing clause for a gate that puts a decision to the user.

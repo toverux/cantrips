@@ -7,7 +7,7 @@ _“Basic spells a caster always has prepared.”_
 **A curated set of agent skills for Claude Code and Codex.**
 
 One coherent engineering loop — grill, spec, implement, review, commit — that _remembers what it
-learns_. \
+learns_ and _runs on without you_ once you delegate. \
 And a set of utilities for day to day needs.
 
 Inspired by and kept in sync with [Matt Pocock's skills](https://github.com/mattpocock/skills) and
@@ -44,6 +44,10 @@ Cantrips is not a bag of independent commands — it is one dynamic, discoverabl
 - **The loop remembers.** `/compound` routes what a session learned into knowledge stores, and
   `/spec`, `/review-gate`, and `/diagnosing-bugs` read those stores back — each unit of work makes
   the next one easier.
+- **The loop runs without you.** `/deputy` engages a stand-in that answers every round, gate and
+  closing in your place — the product's CTO to your CEO — and hands back only the decisions you
+  kept, so the calls from interview to tickets get made while you are away, and you only type
+  each next step.
 
 ## The tiers
 
@@ -86,6 +90,7 @@ flowchart TD
   context window.
 - **Bugs** enter through `/diagnosing-bugs` instead of grill/spec; the root cause becomes a
   learning at commit time.
+- `/deputy` carries any tier through its rounds, gates and closings while you are away.
 - `/handoff` breaks context at any tier (compaction for resuming — never a substitute for a spec).
 - A closing that points into `/simplify` or `/review-gate` hands you a keep-list to compact the
   conversation with first: a full pass rarely fits one context window, and only you can see how
@@ -156,7 +161,7 @@ The part that makes each unit of work easier than the last:
   project's `AGENTS.md`, a `docs/adr/` decision record, a `docs/solutions/` entry, a rules file,
   a skill, or your user-global memory file (`CLAUDE.md`, `AGENTS.md`, or your harness's
   equivalent). The two opt-in stores take writes only where the repo enables them. **Every write
-  is user-gated**: approve, redirect, or kill.
+  is gated**: you or your deputy approve, redirect, or kill.
 - **Read-back arrows:** `/spec` reads the repo's decision memory — `AGENTS.md`, plus ADRs for
   decisions already made and solutions for gotchas where those stores are enabled (never past
   specs) — and `/review-gate` and `/diagnosing-bugs` re-check `docs/solutions/` learnings when
@@ -184,8 +189,9 @@ can still type them).
 | [`/simplify`](#simplify)               | 🧑         | Optional preserving quality pass before review.                              |
 | [`/review-gate`](#review-gate)         | 🧑         | The gate: effort-scaled finder angles, every finding independently verified. |
 | [`/commit`](#commit)                   | 🧑         | Scan the session for learnings, then craft the commit(s).                    |
-| [`/compound`](#compound)               | 🧑🤖       | Route each learning to the right store — every write user-gated.             |
+| [`/compound`](#compound)               | 🧑🤖       | Route each learning to the right store, gated on you or your deputy.         |
 | [`/diagnosing-bugs`](#diagnosing-bugs) | 🧑🤖       | The bug entry point: diagnosis loop replacing grill/spec.                    |
+| [`/deputy`](#deputy)                   | 🧑         | Answer in your place for the rest of the session: the loop, unattended.      |
 
 **The utilities:**
 
@@ -430,14 +436,14 @@ flowchart TD
 ### `/compound`
 
 **The loop's memory: capture durable learnings and route each to the right knowledge store, every
-write user-gated.**
+write gated on you or your deputy.**
 
 - **When to use** — `/commit`'s opening scan invokes it with candidates; `/diagnosing-bugs` closes
   out through it; it also fires ad-hoc when you ask to capture or remember something.
 - **The intent** — automatic memory fails by hoarding trivia. Every candidate faces a two-part
   quality bar — _would it change a future agent's behavior in a different session, and is it
   non-obvious and stable?_ — and session-specific noise dies there. Survivors go to the cheapest
-  store that serves them, and nothing is ever written without your approval.
+  store that serves them, and nothing is ever written without your approval or your deputy's.
 
 ```mermaid
 flowchart TD
@@ -487,6 +493,31 @@ flowchart TD
   gotchas, and what didn't work into a durable learning — a `docs/solutions/` entry where that
   store is enabled.
 
+### `/deputy`
+
+**A stand-in that runs the loop in your place.**
+
+- **When to use** — before stepping away from a feature you have briefed: type it once, with
+  standing orders in free text or nothing at all, and every round, gate and closing a later skill
+  would put to you goes to the deputy for the rest of the session.
+- **The intent** — the loop stops for you at every decision round and every closing, so a feature
+  you are not sitting beside stalls at the first one. The deputy is the product's CTO to your CEO,
+  on the harness's most capable model: it takes nothing it is handed as given, checks a question's
+  premises against the repo before answering, waves a tech lead's question through in a line and
+  spends itself on the ones that shape the product. It decides broadly by design — a standing
+  ADR's fate and `/compound`'s gate included, the latter under a bar that defaults to no — and
+  hands back only what you kept: the commit, a change to what the feature is against your orders or
+  your own answers, anything that commits money, a third party or something outside the repo besides
+  your own memory file and personal skills, and a taste call your orders do not settle. A hand-back
+  stops the session at once and notifies you where the harness can.
+- **How it works** — every decision gate carries one routing clause that sends the gate to an
+  engaged deputy, and its replies are printed verbatim under a header, so the transcript reads as
+  an interview you audit by scrolling. Where the next step it chose is one you type, the session
+  notifies you and waits for the keystroke. Answer a round yourself to override that round;
+  `/deputy <orders>` reaches the running deputy; `/deputy off` dismisses it.
+- **Next** — whatever the deputy chose at the last closing; the loop goes on as if you had
+  answered.
+
 ## The utilities, skill by skill
 
 ### `/setup-cantrips-loop`
@@ -513,7 +544,8 @@ stays inert until you trust it under `/hooks`.
 and staleness — and, when the solutions store is enabled, every `docs/solutions/` doc against the
 current code (cited paths still exist, the fix still matches reality). Verdict per doc — keep,
 update, consolidate, or delete — with the prime directive _match docs to reality, never the
-reverse_; every change is user-gated. Run it when the stores feel stale, not on a schedule.
+reverse_; every change is gated on you or your deputy. Run it when the stores feel stale, not on
+a schedule.
 
 ### `/handoff`
 

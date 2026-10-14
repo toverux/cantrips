@@ -2,7 +2,7 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.2.0
+version: 1.3.0
 source: EveryInc/compound-engineering-plugin@3.27.0 (ce-commit)
 ---
 
@@ -15,8 +15,9 @@ Scan the whole session for candidate learnings: root causes uncovered, gotchas h
 Judge each against compound's quality bar — _would it change a future agent's behavior in a different session, and is it non-obvious and stable?_
 Session-specific trivia dies here.
 
-- Any candidate might clear the bar → invoke `/compound` with the candidates; it routes each to a destination and gates every write on the user.
+- Any candidate might clear the bar → invoke `/compound` with the candidates; it routes each to a destination and gates every write.
   Once the approved writes land, present their diff and wait for the user's verdict on the wording — approve, edit, or drop each document — since the destination gate cleared a one-line proposal, not the prose itself.
+  Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
   Writes that survive ride into the commits below.
 - None → say so in one line and move on.
 

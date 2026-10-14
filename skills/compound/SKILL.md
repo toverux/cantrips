@@ -1,12 +1,12 @@
 ---
 name: compound
-description: Capture this session's durable learnings and route each to the right knowledge store, every write user-gated. Use at loop end when /commit's opening scan finds candidates, when /diagnosing-bugs closes out a fix, or when the user wants to capture, remember, or write down a learning, convention, gotcha, decision, or preference.
+description: Capture this session's durable learnings and route each to the right knowledge store, every write gated on the user or their deputy. Use at loop end when /commit's opening scan finds candidates, when /diagnosing-bugs closes out a fix, or when the user wants to capture, remember, or write down a learning, convention, gotcha, decision, or preference.
 argument-hint: '[optional: what to capture; blank scans the whole session]'
-version: 1.3.1
+version: 1.4.0
 ---
 
 Harvest what this session learned so future sessions inherit it.
-Only knowledge that compounds gets written; every write is approved by the user first.
+Only knowledge that compounds gets written; every write is approved first, by the user or by a deputy engaged in their place.
 
 ## 1. Scan the session
 
@@ -42,6 +42,7 @@ A survivor aimed at a disabled store is presented with that store's own remedy �
 
 Present the survivors as one list: for each, the proposed destination and a one-line rationale.
 The user answers per candidate — approve, redirect (different destination or wording), or kill.
+Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
 A write happens only on an approval.
 
 ## 5. Write the approved ones
@@ -56,3 +57,4 @@ The rationale was for the gate; the file carries the rule.
 
 Done when every approved candidate is written to its store.
 The writes join the working tree: `/commit`'s flow picks them up when it invoked this scan; on an ad-hoc run, close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash): `/commit` (user-invoked) — it lands these writes with the rest of the diff.
+Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.

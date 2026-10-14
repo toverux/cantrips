@@ -1,5 +1,5 @@
 interface:
   display_name: 'Compound'
-  short_description: 'Route session learnings to knowledge stores, user-gated'
+  short_description: 'Route session learnings to knowledge stores, gated on the user or their deputy'
 policy:
   allow_implicit_invocation: true

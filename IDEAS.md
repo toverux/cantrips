@@ -180,8 +180,8 @@ task is broken…"). And under a `/goal` Stop hook, an agent routed around
 `disable-model-invocation` by replicating the whole gate workflow by hand ("The stop hook is the
 user's explicit invocation — I'll run the gate by its files"), forty-seven nag cycles deep.
 
-**Adopt when:** the next edit touching descriptions lands, or the next `/review-gate` edit for the
-gate lock, which needs wording that survives hook pressure.
+**Adopt when:** the next edit to a skill's trigger phrases lands, or the next `/review-gate` edit
+for the gate lock, which needs wording that survives hook pressure.
 
 ## /compound-refresh's judgment rules guard only the audit that never runs here
 
@@ -193,7 +193,8 @@ true but uncorroborated claim can still be stripped, the outcome the restoration
 prevent. The fix is hoisting the store-neutral rules above both audits; it restructures a body the
 fork-divergence spec kept out of bounds, which is why it waits here.
 
-**Adopt when:** the next `/compound-refresh` edit lands.
+**Adopt when:** the next edit to `/compound-refresh`'s audit sections lands, or a run strips a true
+AGENTS.md line.
 
 ## The redaction discipline lives in one skill
 
@@ -345,7 +346,7 @@ run's finders and no later session. The user asked that fixes leave a comment wh
 investigation settled a question, so no later round or session reopens it (transcript
 `e374cb72-49ce-405a-b991-6e1a7871c66f`). Apply mode could say so beside its prose-reread rule.
 
-**Adopt when:** the next edit to `/review-gate`'s apply-mode rules.
+**Adopt when:** the next edit to apply mode's prose-reread rule in `/review-gate`.
 
 ## Checking a decline's premise no evidence covers
 
@@ -562,7 +563,8 @@ apply the fix and call outcomes`), so the path lives only in the script's error 
 `7af0aa81-bfb7-4ab4-a7fb-f99674bc8e95`). LOOP.md could say it: a decline the user overrules is fixed
 directly and recorded through `outcomes`.
 
-**Adopt when:** the next edit to LOOP.md lands, or another run trips on it.
+**Adopt when:** the next edit to how `answers` re-queues a finding lands, or another run trips on
+it.
 
 ## `/review-gate` narrates its own mechanics
 
@@ -584,19 +586,49 @@ after (transcript `67e62cb7-f0a5-44a1-ba5f-153678e67d1c`). The closing block cou
 finding routed to annotate as `/compound` material, and `/commit`'s scan could name the spec's
 dated comments as a source of ADR candidates.
 
-**Adopt when:** the next edit to `/commit`'s scan or `/review-gate`'s closing block, or another
-revised decision goes unrecorded.
+**Adopt when:** the next edit to what `/commit`'s scan reads or what `/review-gate`'s closing block
+flags as `/compound` material, or another revised decision goes unrecorded.
 
-## `/grilling auto`: a stand-in answers in the user's place
+## The deputy and the arbiter are pasted briefs, not agents
 
-**Priority:** high.
+`/deputy` and `/review-gate` each brief a long-lived sub-agent by pasting a reference file into a
+generic dispatch: ROUNDS.md's Dispatch pastes BRIEF.md, and ARBITER.md pastes its own brief. The
+session reads the brief into its own context before every dispatch and types it out again as the
+dispatch message, about 4.5 KB for the deputy, and a context loss repeats both (transcript
+`0b9eb4f8-9742-4008-8df3-6a1b68fdf0bf`). Claude Code plugins ship agent definitions — a system
+prompt with its own model and tool set that a dispatch names by type and the session never reads —
+and Codex exposes a custom-agent selector the model-selection paragraph already names. Porting the
+two roles to agent definitions keeps the brief out of the session, pins the model in the definition
+instead of the paragraph, and leaves the reference files to the session's own procedure. To settle
+first: whether a Codex plugin can ship the same brief as a custom agent, so the plugin carries one
+definition per harness rather than a pasted-brief fallback, and how a per-harness definition sits
+with rule 5's harness-neutral bodies and ADR 0008.
 
-A user ran `/grilling` and then `/spec` with a higher-tier agent (Fable) answering every round in their place (transcript `adbb1db9-e96a-4134-9d5c-40054a500f42`). It was briefed once to favour the product and its users over implementation cost, to practise YAGNI/KISS, and to want an excellent experience, and it was resumed with `SendMessage` for each round. Today the interviewer improvises all of this. A `/grilling auto` mode, backed by a stand-in skill that `/spec`'s step-3 round and any other numbered round can reuse, would make it a supported path:
+**Adopt when:** now, ahead of every other entry here — the next edit to either brief ports it
+instead of growing it.
 
-- The interviewer dispatches the stand-in on the harness's higher-tier model. The stand-in skill fixes the briefing: its bias, the feature context, and that it has read-only repo access.
-- The stand-in may change its mind about an earlier answer, push back on a question's framing or its recommendation, and, in the hardest cases, stop and call for the user rather than answer.
-- On a hard subject it may dispatch an unanchored subagent for a second opinion, sparingly. That subagent gets the question without the interviewer's recommendation.
-- It has a mind of its own and a strong personality. It thinks outside the box and takes nothing it is handed for granted: not a premise, a framing or a recommendation. That's not a licence to complicate things; YAGNI/KISS still hold.
-- It checks a question's factual premises against the repo before accepting them. In the session above it accepted a recommendation built on "the usual ambiguity report", a report the evaluator does not have. Only `/spec`'s reread caught it, after the decision had been drafted.
+## A parked row still reads as a question after a deputy answered it
 
-**Adopt when:** next; the user ranked it high priority.
+Under `/deputy`, a `/review-gate --loop` run sends a parked spec finding's route to the deputy, and
+its reply reaches `answers` only at the next round boundary. Until then, every block the findings
+script prints shows the finding as parked under "❓ Options", so the user, back at the screen,
+reads a question the deputy already answered and asks why it went unanswered (transcript
+`0b9eb4f8-9742-4008-8df3-6a1b68fdf0bf`). The parked row could show that a reply is queued, or
+LOOP.md could hand `answers` a deputy's reply as soon as it lands.
+
+**Adopt when:** the next edit to how the findings script renders a parked row, or another deputy
+run draws the same question.
+
+## The top-tier model paragraph cannot tell which model is the top tier
+
+ROUNDS.md and ARBITER.md ask for "the platform's most capable model" and drop the sentence naming a
+Claude Code class, so the session must rank the models it can name. It cannot: in one session the
+deputy inherited the parent model (Fable) while the arbiter went out on Opus, because the user's
+global instructions name Opus for review-work agents and the skill names no class to weigh against
+it (transcript `0b9eb4f8-9742-4008-8df3-6a1b68fdf0bf`). Two roles the plugin tiers alike ran on
+different models, and nothing says which one the skill wanted. The paragraph could say to inherit
+the parent where the session cannot rank the models, or the agent-definition port could pin the
+tier in each definition and retire the judgement.
+
+**Adopt when:** the agent-definition port above lands, or another run splits the two roles across
+models.
