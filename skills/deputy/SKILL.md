@@ -6,7 +6,7 @@ disable-model-invocation: true
 version: 1.0.0
 ---
 
-Engage a **deputy** for the rest of this session: one sub-agent that answers, in the user's place, every round, gate and closing a later skill would put to them, under the brief in [BRIEF.md](BRIEF.md) and the per-gate procedure in [ROUNDS.md](ROUNDS.md).
+Engage a **deputy** for the rest of this session: the plugin agent `cantrips:deputy`, whose definition is its brief, answering in the user's place every round, gate and closing a later skill would put to them, under the per-gate procedure in [ROUNDS.md](ROUNDS.md).
 
 - With a deputy engaged — `off` dismisses it: close it where the harness has a close step, say so, and from here every gate goes to the user as each skill says.
   Standing orders go to it as a follow-up message; bare, say that one is engaged.

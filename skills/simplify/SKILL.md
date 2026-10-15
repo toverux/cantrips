@@ -10,7 +10,7 @@ source: EveryInc/compound-engineering-plugin@3.27.0 (ce-simplify-code)
 Simplify recently changed material while preserving what it does.
 Prioritize readable, explicit results over compact ones — fewer lines is not the goal.
 
-The contract below governs every step of this pass, and travels verbatim to each fixer dispatched in Step 2.
+The contract below governs every step of this pass, and travels verbatim to each lens finder dispatched in Step 2.
 
 <preservation-contract>
 Preserve what the material does.
@@ -34,37 +34,23 @@ Which test that is depends on the material, and a file is judged by its own kind
 
 If the scope comes up empty, stop and ask the user what to simplify.
 
-## Step 2: Launch three fixers in parallel
+## Step 2: Dispatch the three lens finders in parallel
 
-Dispatch one subagent per lens — **Reuse**, **Simplification**, **Efficiency** — in parallel and in the background (Claude Code: do not use `run_in_background: false`) — a blocking dispatch freezes the session until the fixer returns.
-Give each one:
-
-- the preservation contract above and the fixer brief below, both **verbatim**;
-- its single lens section from [`../review-gate/QUALITY-LENSES.md`](../review-gate/QUALITY-LENSES.md) — the lens text, the restraints printed under it, and the governing rules from that file's preamble;
-- the resolved scope (the full diff or file set).
-
-Paraphrasing any of it from memory loses the restraints that keep the pass preserving.
-Where a dispatch fails for a reason that survives correcting the invocation, or the harness offers no way to make a dispatch at all, run that pass inline under the same preservation contract, lens and scope, and disclose the substitution.
-
-<fixer-brief>
-Propose fixes; the skill that dispatched you applies them. Edit nothing yourself.
-Hunt only through the lens you were given, and for each thing you find, name the concrete fix — one that satisfies the preservation contract you were given, since a fix that cannot is one this pass will drop.
-Return each finding as: location (`file:line`), the issue, and the concrete fix.
-If there is nothing to flag, say so explicitly.
-</fixer-brief>
-
-**Model selection.** Use the platform's balanced mid-tier model for these reviewers when the current harness exposes a known override. In Claude Code this is the Sonnet class. In Codex, apply this tier only when the active dispatch primitive exposes an explicit model or custom-agent selector; task wording alone does not select a different model. Otherwise omit the override and inherit the parent model -- a working pass on the parent model beats a broken dispatch.
+Dispatch `cantrips:finder:reuse`, `cantrips:finder:simplification` and `cantrips:finder:efficiency` in parallel, each message carrying the preservation contract above **verbatim** and the resolved scope (the full diff or file set) — no cap and no brief, since each definition holds its lens with the restraints printed under it, the rules governing every lens, and the contract it answers in: a JSON array of candidates, each carrying its `fix`.
+Every dispatch names the definition by its scoped name and passes no model; the definition pins the model and a background run.
+Where the harness loads no plugin agent definitions, read [`<role>.md`](../../agents/finder/), skip its frontmatter, paste its body into a general-purpose dispatch run in the background, and apply the model its frontmatter names where the dispatch primitive exposes a selector.
+Where a dispatch fails for a reason that survives correcting the invocation, or the harness offers no way to make a dispatch at all, run that pass inline under the same preservation contract and scope, hunting through the lens and the rules governing every lens, read from that finder's definition past its role framing, and disclose the substitution.
 
 ## Step 3: Apply fixes
 
-Proceed once all three lens passes are complete, whether a dispatched fixer returned one or this context ran it, aggregate their findings, and fix each issue directly.
+Proceed once all three lens passes are complete, whether a dispatched finder returned its candidates or this context ran it, aggregate the candidates, and apply each one's `fix` directly.
 A false positive or a fix not worth its churn: note it, skip it, move on — settle it yourself rather than raising it to the user.
 
 Inspect beyond the resolved scope when needed to evaluate a finding, but edit only that scope and the import/export lines it needs. For a user-named file or directory scope, those import/export lines must also be inside it; skip any fix that would edit outside the mutation boundary.
 
 Before applying each fix, confirm it satisfies the preservation contract for that material.
 If it can't clear that test, skip it.
-Write each fix from the line at the finding's location, read in place — never from the finding's description of it.
+Write each fix from the line at the candidate's location, read in place — never from the candidate's description of it.
 
 An interface or data shape that existed only in an earlier iteration of the current unshipped scope is not protected behavior once you verify it has no deployed, persisted, public, external, dependent-branch, or in-repo caller outside the resolved scope. Remove that compatibility path only when every required caller update fits the existing mutation boundary; otherwise preserve it.
 

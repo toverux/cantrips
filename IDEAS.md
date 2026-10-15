@@ -212,30 +212,22 @@ secret reaches a gate dispatch.
 
 ## /setup-cantrips-loop sets up model-tier preferences
 
-Skills that tier a dispatch name the tier abstractly — mid-tier for `/simplify`'s fixers and the
-gate's mechanical-lens finder, most capable for the arbiter — and fall back to the parent model
-wherever the harness exposes no selector. Which model a tier means is left to each run. The setup
-interview could ask once and record the answer in the loop config: the model each tier maps to on
-the user's harness, or that a tier is off, for tiering skills to read beside the storage verbs.
+Each dispatched role pins its model as an alias in its definition's frontmatter: mid-tier on the
+three mechanical lens finders, most capable on the arbiter and the deputy. The general-purpose
+dispatches that stay tiered, such as `/spec`'s rereader, name the tier abstractly and fall back to
+the parent model wherever the harness exposes no selector, so which model that tier means is left to
+each run. The setup interview could ask once and record the answer in the loop config: the model
+each tier maps to on the user's harness, or that a tier is off, for tiering skills to read beside
+the storage verbs.
 
-## Dispatched roles as agent definitions
+## The arbiter's read-only pin is prose, and prose leaks
 
-`/review-gate`'s finders, verifiers and arbiter, and `/simplify`'s fixers, are general-purpose
-dispatches handed a brief the orchestrator pastes from a sibling file (ANGLES.md,
-QUALITY-LENSES.md, ARBITER.md). The plugin could ship them as agent definitions instead, one per
-role. Each role would then show up by name in the harness, carry its own brief behind a context
-pointer rather than the orchestrator's prompt, and pin its model tier and read-only toolset in
-frontmatter rather than in prose. Weigh the costs first:
-- **Claude Code only.** A Claude Code plugin ships `agents/*.md`; a Codex plugin cannot ship roles,
-  which load only from the user's or project's own config
-  ([research](docs/research/harness-subagent-capabilities.md#4-model-and-named-agent-selection-per-dispatch)).
-  Codex would keep the pasted briefs, so every role lives twice.
-- **Paths that still inline the brief.** `inline` runs the brief inline, and AGENTS.md rule 4
-  makes every path carry what it needs.
-
-The prose pin leaks (session `c8610db9-8641-4448-a2b8-7393fb1a56cc`): an arbiter briefed
-"Read-only: do not edit any file" edited a tracked source file to settle a `tsc` question, then
-restored it. A verifier whose brief named a scratch copy ran the same measurement in `/tmp`.
+Every dispatched role keeps the full tool set, so "edit nothing" is a sentence of the arbiter's,
+the finders' and the deputy's definitions rather than a tool restriction, and a tool denylist would
+not stop a write through Bash anyway. The pin leaks (session
+`c8610db9-8641-4448-a2b8-7393fb1a56cc`): an arbiter briefed "Read-only: do not edit any file"
+edited a tracked source file to settle a `tsc` question, then restored it. A verifier whose brief
+named a scratch copy ran the same measurement in `/tmp`.
 
 ## The arbiter can decline a spec finding without the user hearing of it
 
@@ -589,24 +581,6 @@ dated comments as a source of ADR candidates.
 **Adopt when:** the next edit to what `/commit`'s scan reads or what `/review-gate`'s closing block
 flags as `/compound` material, or another revised decision goes unrecorded.
 
-## The deputy and the arbiter are pasted briefs, not agents
-
-`/deputy` and `/review-gate` each brief a long-lived sub-agent by pasting a reference file into a
-generic dispatch: ROUNDS.md's Dispatch pastes BRIEF.md, and ARBITER.md pastes its own brief. The
-session reads the brief into its own context before every dispatch and types it out again as the
-dispatch message, about 4.5 KB for the deputy, and a context loss repeats both (transcript
-`0b9eb4f8-9742-4008-8df3-6a1b68fdf0bf`). Claude Code plugins ship agent definitions — a system
-prompt with its own model and tool set that a dispatch names by type and the session never reads —
-and Codex exposes a custom-agent selector the model-selection paragraph already names. Porting the
-two roles to agent definitions keeps the brief out of the session, pins the model in the definition
-instead of the paragraph, and leaves the reference files to the session's own procedure. To settle
-first: whether a Codex plugin can ship the same brief as a custom agent, so the plugin carries one
-definition per harness rather than a pasted-brief fallback, and how a per-harness definition sits
-with rule 5's harness-neutral bodies and ADR 0008.
-
-**Adopt when:** now, ahead of every other entry here — the next edit to either brief ports it
-instead of growing it.
-
 ## The deputy as an advisor: it recommends, the user decides
 
 A session engaged the deputy with standing orders that it recommend in one sentence per question
@@ -622,7 +596,7 @@ and without the question once. To settle: whether the mode is a `/deputy` argume
 standing-orders text ROUNDS.md recognises, and that its At a gate step puts the round to the deputy
 first and renders both at once.
 
-**Adopt when:** now, with the entry above — the deputy's definition is where the mode would live.
+**Adopt when:** now — the deputy's definition is where the mode would live.
 
 ## A parked row still reads as a question after a deputy answered it
 
@@ -636,16 +610,27 @@ LOOP.md could hand `answers` a deputy's reply as soon as it lands.
 **Adopt when:** the next edit to how the findings script renders a parked row, or another deputy
 run draws the same question.
 
-## The top-tier model paragraph cannot tell which model is the top tier
+## The deputy does not survive a context summary, and the session rediscovers it
 
-ROUNDS.md and ARBITER.md ask for "the platform's most capable model" and drop the sentence naming a
-Claude Code class, so the session must rank the models it can name. It cannot: in one session the
-deputy inherited the parent model (Fable) while the arbiter went out on Opus, because the user's
-global instructions name Opus for review-work agents and the skill names no class to weigh against
-it (transcript `0b9eb4f8-9742-4008-8df3-6a1b68fdf0bf`). Two roles the plugin tiers alike ran on
-different models, and nothing says which one the skill wanted. The paragraph could say to inherit
-the parent where the session cannot rank the models, or the agent-definition port could pin the
-tier in each definition and retire the judgement.
+A sub-agent's handle lives in the context that dispatched it, so once a session's context is
+summarized the deputy is gone whatever the summary says of it: the session asks the harness for its
+agents, finds none, and dispatches afresh, learning the same fact at the cost of a check every time
+(transcript `630414a4-34f9-4780-8916-258f59aa1d93`, twice in one session). ROUNDS.md's Dispatch
+already covers the re-dispatch — a session that no longer holds the handle dispatches at the next
+gate and says so — but states it as one case among three rather than as the fact behind it. The
+`/deputy` skill could say outright that a summary loses the deputy, so a session arriving from one
+re-engages without looking for an agent it cannot hold.
 
-**Adopt when:** the agent-definition port above lands, or another run splits the two roles across
-models.
+**Adopt when:** the next edit to `/deputy` or ROUNDS.md's Dispatch.
+
+## The deputy is dispatched eagerly, where a lazy dispatch would serve
+
+`/deputy` dispatches the deputy at invocation, and a re-engagement after a summary dispatches it
+again before any gate: a top-tier agent is paid for and onboarded with every round so far, and a
+ticket that raises no gate never uses it (transcript `630414a4-34f9-4780-8916-258f59aa1d93`, where
+ticket 01's deputy answered nothing but its first line). Instead, `/deputy` could switch deputy mode
+on and hold the standing orders, and the first round, gate or closing that needs the user would
+dispatch the deputy then, onboarded as Dispatch says; the same rule relaunches it after a summary,
+at the next gate rather than at re-invocation, so the entry above costs nothing to check.
+
+**Adopt when:** the entry above lands, or the next edit to `/deputy`'s invocation step.

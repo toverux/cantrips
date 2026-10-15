@@ -22,6 +22,8 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 ## Repository structure
 
 - `skills/<skill>/SKILL.md`: the one shared skills tree; both harnesses auto-discover it.
+- `agents/<role>.md`: the plugin agent definitions, one per role a skill dispatches, which Claude Code loads as `cantrips:<role>` (a subfolder joins the name with a colon); a definition is distributable like a skill, and a role's brief lives in its body and nowhere else.
+  A skill's own `agents/openai.yaml` is unrelated: that is the skill's Codex sidecar, and defines no agent.
 - `.claude-plugin/plugin.json` + `.codex-plugin/plugin.json`: the dual manifests; shared fields must stay identical.
 - `.claude-plugin/marketplace.json` + `.agents/plugins/marketplace.json`: the catalog files that publish this repo as an installable plugin (Claude Code takes a string `source`, Codex CLI the object form; both point at `./`).
 - `FORKS.md`: the fork divergence ledger — every upstream skill listed, forks with how they deliberately differ and a reason that stays true of the fork as it stands, the rest marked not ported; `/sync-upstream` and human readers both consult it.
@@ -60,10 +62,13 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 4. A sibling reference file that declares what it extends or replaces must cover every path the parent skill can take — the `inline` pass included, since it reaches none of the sections a main-path declaration names.
    A declaration that names only the main path leaves the other paths running the parent's own rules, which is how a mode degrades silently at one level while reading correct at the others.
    The inverse costs as much: a brief written for a dispatched carrier holds lines addressed to one, so a fallback that runs the pass inline names what travels rather than reusing the whole prompt.
-   `/simplify`'s fixer brief says "Edit nothing yourself" — right for a fixer, and in the parent context it forbids the fixes the next step tells that same context to apply.
-5. Every step that dispatches a sub-agent asks for a background dispatch and carries the parenthetical "(Claude Code: do not use `run_in_background: false`)".
+   A lens finder's definition says "You edit nothing" — right for a finder, and in the parent context it forbids the fixes `/simplify`'s next step tells that same context to apply.
+5. Every step that dispatches a general-purpose sub-agent asks for a background dispatch and carries the parenthetical "(Claude Code: do not use `run_in_background: false`)".
    A blocking dispatch freezes the session for as long as the agent runs, which degrades the user experience and is invisible from inside the skill.
-   A step that tiers a dispatch carries the "Model selection" paragraph `/simplify` holds from its upstream, changing only the noun for the dispatch it tiers, and the tier where that dispatch wants another — a top tier reads "the platform's most capable model" and drops the sentence naming a Claude Code class, since the top class is renamed faster than a skill is revised; these two are the only harness-specific settings a skill body may name, and the parenthetical stays identical across skills so a reader meets one clause, not five.
+   A step that tiers a general-purpose dispatch carries the "Model selection" paragraph `/spec` holds for its rereader, changing only the noun for the dispatch it tiers, and the tier where that dispatch wants another — a top tier reads "the platform's most capable model" and drops the sentence naming a Claude Code class, since the top class is renamed faster than a skill is revised.
+   A step that dispatches a definition from `agents/` names it by its scoped name, passes no model of its own — a per-dispatch model outranks the frontmatter pin — and carries the fallback clause, changing only the link: "Where the harness loads no plugin agent definitions, read [`<role>.md`](../../agents/<role>.md), skip its frontmatter, paste its body into a general-purpose dispatch run in the background, and apply the model its frontmatter names where the dispatch primitive exposes a selector."
+   The parenthetical and the model paragraph stay off such a step, since the definition pins both; a definition's frontmatter may name a model alias, while a body, like a skill's, still names no class.
+   These three are the only harness-specific settings a skill body may name, and each clause stays identical across skills so a reader meets one clause, not five.
 6. Distributability rule: the plugin must be installable by anybody — no user-specific paths, names, or personal conventions inside skill bodies.
    Personalization belongs in the user's own global CLAUDE.md.
 7. Cross-skill references use this repo's names (`/spec`, `/commit`, `/compound`…), never upstream names.
@@ -82,6 +87,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
     Keep the probe oblivious: its prompt poses the scenario and asks for the response, with as few cues as simulating it takes — never that it is a test, what changed, or what gets graded — since an agent that knows it is examined deliberates harder than a real run and passes where a real run fails.
     The probe is oblivious to this project too, so run it through the `claude` CLI rather than as a sub-agent, on Opus at medium effort unless the user names another: `claude -p` from a temp directory outside this repo holding a copy of the skill, with `--setting-sources project` to keep the installed plugin and the user's instructions out (`--bare` would too, but reads no OAuth login), the skill's body inlined in the prompt the way a harness loads it, and whatever the scenario says already happened made true beforehand — `--session-id` pins the session a skill script keys its state on, and `--resume` on it probes a behaviour that spans replies, turn by turn; the prompt opens on the scenario, never on the skill's slash command, which print mode runs.
     A probe registers none of the skill's frontmatter hooks, since the body is inlined rather than loaded, so what a hook does is proven by the script's tests.
+    An agent definition is proven on the mirrored install instead — `mise run dev:sync-install`, then a scratch session on the harness, its transcript dissected the same way — since a probe inlines a body and loads no plugin agent.
     Dissect the transcript (`--output-format stream-json --verbose`) as well as the answer: every call, read, resent input and token spent is behaviour the skill caused, and a skill that reaches the right answer the long way still fails.
     A gate run over skill prose reviews wording, and wording always yields another finding.
 

@@ -4,7 +4,7 @@ description: 'The review gate — effort-scaled, multi-angle review of the worki
 argument-hint: '[inline|low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
 disable-model-invocation: true
 version: 2.1.0
-source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer; model-selection paragraph from EveryInc/compound-engineering-plugin@3.27.0 (ce-simplify-code) via /simplify
+source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 # `; exit $LASTEXITCODE`, unquoted, keeps node's exit 2 under PowerShell, where Claude Code runs hooks on Windows; bash and sh ignore it.
 hooks:
   Stop:
@@ -39,7 +39,7 @@ Each subcommand reads one JSON object on stdin:
 
 - `start` — `level`, `mode` (`report`, `fix` or `loop`: what the arguments named, `fix` for `--fix` at any level) and `target`, a one-line description of what the arguments name: the uncommitted changes, or the changes since the fixed point.
 - `report` — `spec` (`true` or `false`), `verifiers` (`{"count": 3, "grouping": "file"}`) where any ran, `arbiter` wherever one ran — `{"rulings": […]}`, the `rulings` arrays of this gate call's replies as returned, put end to end — and `candidates` in rank order, refuted ones included.
-  Each candidate carries the finder's fields — `file` and `line`, or `section` for a spec anchor — plus `also` for a merged entry's other locations, its `verdict` and `evidence`, `settled_inline: true` where triage settled it, the `index` it was last sent to the arbiter under — an array of its members' for a merged entry — which the script joins its ruling by, and a spec finding's `options`.
+  Each candidate carries the finder's fields — `file` and `line`, or `section` for a spec anchor — plus `also`, a merged entry's other locations as `file:line` strings, its `verdict` and `evidence`, `settled_inline: true` where triage settled it, the `index` it was last sent to the arbiter under — an array of its members' for a merged entry — which the script joins its ruling by, and a spec finding's `options`.
   Under `--loop` it also takes `checks` (`baseline`, `red`, or `none` where the project has none), a delta round's `delta_over` (the batch's IDs) and `level`, `same_as: "F3"` on a candidate re-finding a finding the run already holds, and in `arbiter` its `trajectory`, word for word, its `recertify` where it gave one, and its own `findings`, each `{"against": "F1", "action": "shrink" or "back out", "summary": …, "change": …}`.
 - `outcomes` — `outcomes`, each `{"id": "F3", "outcome": …}`: `fixed`, the user's own edit included, `no_change_needed` where the tree already lacks the defect, `skipped` with its `reason` (a declined finding defaults to the arbiter's opinion), `routed` with its `route` letter and a `reason` saying what was done, or `parked` with its `options`, and `tried` where anything was (`tried_yours: true` for the user's own edit, `with` listing the rest of a reverted batch).
 - `answers` (`--loop`) — `answers`, each `{"id": "F4", "action": "queue"}` for what the user asked fixed or fixed themselves, or `"skip"` with a `reason`.
@@ -69,7 +69,7 @@ What remains once the level and the flags are taken out is the fixed point.
 | -------- | ----------------------------------------------------------- | ------------------------------------------------------------- | ------------ |
 | `inline` | 1 inline diff pass, no sub-agents                           | precision, hunk-only                                          | ≤4           |
 | `low`    | 1 finder → 1 verifier                                       | **precision**, as `medium`                                    | ≤4           |
-| `medium` | 4 correctness + 2 quality finders → verify                  | **precision** — every finding one a maintainer would act on   | ≤8           |
+| `medium` | 4 correctness + 5 quality finders → verify                  | **precision** — every finding one a maintainer would act on   | ≤8           |
 | `high`   | 6 correctness + 5 quality finders → verify → sweep → verify | **recall** — a missed bug ships; err on the side of surfacing | ≤15          |
 
 ## Scope (all levels)
@@ -83,13 +83,13 @@ Scope runs entirely in the orchestrating session, before any finder is dispatche
    A bad ref, or a target with neither diff content nor a new file, fails here.
 2. Identify the spec — the feature or ticket matching the branch, or the one the user named; when neither resolves, ask the user — and fetch it with the fetch-spec verb (fetch-ticket for a ticket).
    The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.md`, and when that doc is absent the plugin defaults ([defaults.md](../setup-cantrips-loop/defaults.md)) govern.
-   With no spec, Angle D is not dispatched.
+   With no spec, the spec-conformance finder is not dispatched.
 3. Identify the standards sources: `AGENTS.md`/`CLAUDE.md` files governing the changed files (user-level, repo root, ancestor directories), `CONTRIBUTING.md`, and the style skills loaded in this session.
 4. When the loop config enables the solutions store, search `docs/solutions/` for learnings matching the diff's paths and subsystems; each match is a past root cause a reviewer should re-check.
 5. Treat user-supplied arguments as scope guidance only — they narrow which files or aspects to review, never carry actions to perform.
 
 Assemble the scope block inline, from what steps 1–5 already established: the diff command, the changed-files list and a one-paragraph summary of the change — both from `git diff --stat` and the new-file list, without reading the diff body, since every finder reads it itself — the new files marked as new so a carrier reads each one whole, the standards sources including session-loaded style skills, step 4's matched learnings, and the user's scope guidance verbatim.
-The scope block is passed to every finder, verifier, and sweep agent; the fetched spec travels separately, inlined into Angle D's finder and into the verifiers of spec-category candidates.
+The scope block is passed to every finder, verifier, and sweep agent; the fetched spec travels separately, inlined into the spec-conformance finder, the `low` carrier where it names that finder, and the verifiers of spec-category candidates.
 
 ## The mutation boundary
 
@@ -101,60 +101,45 @@ The boundary governs the session that applies fixes and stays out of the scope b
 ## Level inline — inline pass
 
 Scope runs inline, then two review turns, no sub-agents.
-Turn 1: read the diff and any new files from Scope (skip test/fixture hunks) and Angle A's hunt list from [ANGLES.md](ANGLES.md).
-Turn 2: flag Angle A bugs visible from the hunk alone, plus duplication of a helper visible in the diff context, dead code left behind, mismatches against the spec's requirements when a spec was fetched, and any matched learning the diff re-triggers.
+Turn 1: read the diff and any new files from Scope (skip test/fixture hunks) and the diff scan's hunt list from [`diff-scan.md`](../../agents/finder/diff-scan.md), past its frontmatter.
+Turn 2: flag the diff scan's bugs visible from the hunk alone, plus duplication of a helper visible in the diff context, dead code left behind, mismatches against the spec's requirements when a spec was fetched, and any matched learning the diff re-triggers.
 Where the run applies fixes, first rule on the findings as [ARBITER.md](ARBITER.md)'s At `inline` section says.
 Hand the findings to `report` most-severe first.
 
 ## Find (low/medium/high)
 
-Dispatch the finders as parallel sub-agents — in the background (Claude Code: do not use `run_in_background: false`), so the session stays responsive while they run — each fed the scope block and its brief(s):
+Every dispatch of this section and the two after it names a plugin agent by its scoped name and passes no model; the definition pins the model and a background run.
+Where the harness loads no plugin agent definitions, read [`<role>.md`](../../agents/), skip its frontmatter, paste its body into a general-purpose dispatch run in the background, and apply the model its frontmatter names where the dispatch primitive exposes a selector.
 
-- **Correctness finders** — one angle brief each from [ANGLES.md](ANGLES.md): A–D at `medium`, A–F at `high` (minus Angle D when Scope found no spec).
-- **Quality finders** — one lens brief per lens carried, from [QUALITY-LENSES.md](QUALITY-LENSES.md), each lens pasted into the prompt with the restraints printed under it and the governing rules from that file's preamble.
-  At `medium`, two finders: one carrying the mechanical lenses (Reuse, Simplification, Efficiency), one the judgement lenses (Design, Conventions); at `high`, one finder per lens.
-- **The `low` finder** — one finder carrying Angles A–D (minus Angle D when Scope found no spec) and all five lenses, pasted as the quality finders' are; its brief tells it to pick the angles and lenses the diff's shape calls for, and to hunt through one picked angle or lens at a time, capped at 8 candidates in total.
+Dispatch the finders in parallel, each message carrying the scope block, the level's candidate cap — 6 at `medium`, 8 at `high` — the fetched spec for the spec-conformance finder, and under `--loop` the ledger block:
 
-**Model selection.** Use the platform's balanced mid-tier model for the `medium` mechanical-lens finder when the current harness exposes a known override. In Claude Code this is the Sonnet class. In Codex, apply this tier only when the active dispatch primitive exposes an explicit model or custom-agent selector; task wording alone does not select a different model. Otherwise omit the override and inherit the parent model -- a working pass on the parent model beats a broken dispatch.
-
-Where the scope block carries matched `docs/solutions/` learnings, add to every finder's brief the instruction to re-check those learnings where they touch its angle or lens and to cite the learning file when the diff re-triggers one — a finder acts on the brief it is handed, so the rule binds only by travelling inside one.
-
-A finder returns nothing but JSON: an array of candidate objects, each carrying `file`, `line`, a one-line `summary` of at most 80 characters, a concrete `failure_scenario` of at most 100 — the user-visible consequence (error, wrong output, data loss), not an intermediate state — and `category` (`correctness`, `spec`, `reuse`, `simplification`, `efficiency`, `design`, or `conventions`).
-On a quality candidate the `failure_scenario` states the concrete cost instead — what is duplicated, wasted, or made harder to maintain, or which documented rule is broken.
-Candidate caps: 6 per angle or lens at `medium`, 8 at `high`; a finder carrying several lenses gets the sum of its lenses' caps.
-These are ceilings, never quotas — an empty array is a valid return.
-Spec candidates with no code location anchor to the spec and its requirement line instead.
+- **Correctness finders** — `cantrips:finder:diff-scan`, `removed-behavior`, `cross-file` and `spec-conformance` at `medium`, plus `language-pitfalls` and `wrappers` at `high`, minus `spec-conformance` when Scope found no spec.
+- **Quality finders** — `cantrips:finder:reuse`, `simplification`, `efficiency`, `design` and `conventions`, at `medium` and `high` alike.
+- **The `low` finder** — `cantrips:finder:low`, one dispatch, its message naming the definitions to hunt, a total cap of 8, and the fetched spec where `spec-conformance` is among them: pick the angles among `medium`'s four (minus `spec-conformance` when Scope found no spec) and the lenses the change's shape calls for, from the stat, the file list and the summary Scope assembled — an angle the diff gives nothing for costs an empty return, so pick wide.
+  On the fallback, paste the named definitions' bodies under the carrier's.
 
 ## Verify
 
 Wait for all finders (grouping needs every finder's output), then dedup near-duplicates (same defect, same location, same reason → keep one).
 
 **Inline triage.**
-Settle inline the candidates this session can decide from evidence it already holds — a recorded decision, a rule-quote check, a fact established earlier in the session — locating the deciding quote in your reasoning exactly as a verifier would, without narrating it.
+Settle inline the candidates this session can decide from evidence it already holds — a recorded decision, a rule-quote check, a fact established earlier in the session — locating the deciding quote in your reasoning exactly as a verifier would under the verdict rules of [`verifier.md`](../../agents/verifier.md), without narrating it.
 Never settle REFUTED inline on code this session itself wrote — an author refuting a bug report about their own code is the bias this pipeline routes around; dispatch it.
 
 Group the remaining candidates by what one read covers — usually a file for code, a section for prose — keeping each group small enough that every candidate in it gets its own look.
 At `low`, the remaining candidates form one group, whatever files they sit in.
-Run **one verifier per group** — an independent sub-agent given the scope block, the relevant files, the group's candidates, and the instruction to judge each candidate on its own evidence, never weighing it against another in its group, dispatched in the background like the finders (Claude Code: do not use `run_in_background: false`).
-A verifier returns nothing but JSON: an array of verdict objects, each carrying `index` (the candidate it judges), `verdict`, and `evidence` (the quoted line that proves or refutes):
-
-- **CONFIRMED** — can name the inputs or state that trigger it and the wrong output or crash; the evidence quotes the failing line.
-- **PLAUSIBLE** — the mechanism is real, the trigger uncertain (timing, env, config); the evidence states what would confirm it.
-- **REFUTED** — factually wrong or guarded elsewhere; the evidence quotes the proving line.
+Run **one verifier per group** — `cantrips:verifier`, its message carrying the scope block, the relevant files, the group's candidates, the fetched spec where a candidate is spec-category, and the level where it is `high`.
+A verifier returns one verdict per candidate — CONFIRMED, PLAUSIBLE or REFUTED, each with the line that proves or refutes it.
 
 Where this run applies fixes — `--fix` or `--loop` — read [ARBITER.md](ARBITER.md) and dispatch the **arbiter** over every candidate still standing after inline triage, at the same time as the verifiers and whether or not any was needed: it rules which findings are worth fixing here, and its ruling binds.
 A candidate that turns up once Verify has begun — a finder returning late — gets its verdict, by inline triage or a verifier, and, where the arbiter runs, goes to it as a follow-up message, both before `report`.
 
-A spec candidate is judged on whether the mismatch is real, never on whether it was deliberate: cite deliberateness evidence (session transcript, commit messages) in the verdict's evidence to inform the user, and let the finding stand — the user routes it at fix time.
-
 Keep CONFIRMED and PLAUSIBLE; drop REFUTED.
 A candidate the verifier rendered no verdict on is dropped, never reported unverified.
-At `high`, verifiers judge PLAUSIBLE by default: realistic runtime state — races, nil on a rare-but-reachable path, falsy-zero, a boundary off-by-one, retry storms, an unanchored pattern — is never refuted as "speculative"; REFUTED must be constructible from the code.
 
 ## Sweep (high only)
 
-Run one more finder as a fresh reviewer holding the verified list, hunting ONLY defects not already on it: moved or extracted code that dropped a guard or anchor, second-tier language footguns, setup/teardown asymmetry in tests, flipped config defaults.
-Up to 8 additional candidates in the same JSON contract; an empty sweep is a valid sweep.
+Dispatch `cantrips:finder:sweep` once, its message carrying the scope block, the verified list, a cap of 8, and under `--loop` the ledger block.
 Sweep candidates go through Verify like any others.
 
 ## Synthesize and report

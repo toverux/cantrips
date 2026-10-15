@@ -322,16 +322,16 @@ flowchart LR
 material does.**
 
 - **When to use** — the diff works but feels heavier than the problem deserved.
-- **The intent** — cleanup and bug-hunting are different jobs; this one only cleans. Three parallel
-  fixers, one per shared quality lens (reuse, simplification, efficiency), propose fixes; every fix
-  must preserve what the material does — exact behavior in code, the whole instruction set in
-  agent-facing prose — and **safety checks are never simplified away**, a gate or a prohibition in
-  prose counting as one.
+- **The intent** — cleanup and bug-hunting are different jobs; this one only cleans. The three
+  mechanical lens finders `/review-gate` runs (reuse, simplification, efficiency) propose fixes;
+  every fix must preserve what the material does — exact behavior in code, the whole instruction
+  set in agent-facing prose — and **safety checks are never simplified away**, a gate or a
+  prohibition in prose counting as one.
 - **How it works** — resolves the scope (your words, or the branch diff plus anything uncommitted
-  and untracked), dispatches the fixers against `/review-gate`'s quality lenses, applies the
-  worthwhile findings that fit inside that scope and names the ones it skipped, then verifies:
-  typecheck, lint and scoped tests on a code diff, or a re-read confirming every instruction
-  survived on a prose-only one.
+  and untracked), dispatches those three plugin agents by name with the scope and the preservation
+  contract, applies the worthwhile fixes that fit inside that scope and names the ones it skipped,
+  then verifies: typecheck, lint and scoped tests on a code diff, or a re-read confirming every
+  instruction survived on a prose-only one.
 - **Next** — `/review-gate`, in this session, with a suggested effort level scaled to the diff.
 
 ### `/review-gate`
@@ -356,7 +356,7 @@ diff (or the changes since a fixed point), every finding independently verified.
 ```mermaid
 flowchart TD
     scope["🔭 <b>Scope</b><br/>target diff · spec · standards · docs/solutions/ learnings"]
-    scope ==> corr["🐞 Correctness finders — one per angle<br/>A line-by-line · B removed behavior · C cross-file<br/>D spec conformance · E language pitfalls* · F wrappers*"]
+    scope ==> corr["🐞 Correctness finders — one per angle<br/>diff scan · removed behavior · cross-file<br/>spec conformance · language pitfalls* · wrappers*"]
     scope ==> qual["🧹 Quality finders<br/>reuse · simplification · efficiency<br/>design (Fowler smells) · conventions"]
     corr ==> verify["⚖️ <b>Verify</b> — independent verifiers, one per file or section<br/>CONFIRMED / PLAUSIBLE / REFUTED, with evidence"]
     qual ==> verify
@@ -371,11 +371,17 @@ flowchart TD
 <sup>\* `high` effort only.</sup>
 
 - **How it works** — four effort levels: `inline` is one diff pass by the session itself, no
-  sub-agents and no verifier (≤4 findings); `low` dispatches one finder carrying `medium`'s angles
-  and every lens, hunting those the diff calls for one at a time, then one verifier (≤4); `medium`
-  dispatches 4 correctness + 2 quality finders reviewing for **precision** (≤8); `high` dispatches
+  sub-agents and no verifier (≤4 findings); `low` dispatches one finder with the angles and lenses
+  the gate picked from the diff's shape, hunted one at a time, then one verifier (≤4); `medium`
+  dispatches 4 correctness + 5 quality finders reviewing for **precision** (≤8); `high` dispatches
   6 correctness + 5 quality finders reviewing for **recall**, then a gap-hunting sweep (≤15).
-  Finders run as parallel sub-agents; every candidate must name a concrete failure scenario.
+  The finders, the verifier and the arbiter are plugin agents the gate dispatches by name
+  (`cantrips:finder:reuse`, `cantrips:verifier`, …), each one's brief, model and background run
+  pinned in its definition. On Claude Code they sit in the agent roster and the `@agent-` typeahead
+  rather than among the slash commands, and a finder or the verifier can be summoned from there
+  directly on a file. Codex plugins carry no agents, so there the skill pastes a definition's body
+  into a plain sub-agent. Finders run in parallel; every candidate must name a concrete failure
+  scenario.
   Verifiers judge each candidate on its own evidence, and refuted or unverified candidates never
   reach a report above `inline`. At every level, `--fix` applies the surviving findings that fit
   inside the scope it reviewed, naming any it had to hand back, and lands a fix to running code
@@ -501,20 +507,22 @@ flowchart TD
   standing orders in free text or nothing at all, and every round, gate and closing a later skill
   would put to you goes to the deputy for the rest of the session.
 - **The intent** — the loop stops for you at every decision round and every closing, so a feature
-  you are not sitting beside stalls at the first one. The deputy is the product's CTO to your CEO,
-  on the harness's most capable model: it takes nothing it is handed as given, checks a question's
-  premises against the repo before answering, waves a tech lead's question through in a line and
-  spends itself on the ones that shape the product. It decides broadly by design — a standing
-  ADR's fate and `/compound`'s gate included, the latter under a bar that defaults to no — and
-  hands back only what you kept: the commit, a change to what the feature is against your orders or
-  your own answers, anything that commits money, a third party or something outside the repo besides
-  your own memory file and personal skills, and a taste call your orders do not settle. A hand-back
-  stops the session at once and notifies you where the harness can.
+  you are not sitting beside stalls at the first one. The deputy is a plugin agent,
+  `cantrips:deputy`, the product's CTO to your CEO on the harness's most capable model: it takes
+  nothing it is handed as given, checks a question's premises against the repo before answering,
+  waves a tech lead's question through in a line and spends itself on the ones that shape the
+  product. It decides broadly by design — a standing ADR's fate and `/compound`'s gate included, the
+  latter under a bar that defaults to no — and hands back only what you kept: the commit, a change
+  to what the feature is against your orders or your own answers, anything that commits money, a
+  third party or something outside the repo besides your own memory file and personal skills, and a
+  taste call your orders do not settle. A hand-back stops the session at once and notifies you where
+  the harness can.
 - **How it works** — every decision gate carries one routing clause that sends the gate to an
   engaged deputy, and its replies are printed verbatim under a header, so the transcript reads as
   an interview you audit by scrolling. Where the next step it chose is one you type, the session
   notifies you and waits for the keystroke. Answer a round yourself to override that round;
-  `/deputy <orders>` reaches the running deputy; `/deputy off` dismisses it.
+  `/deputy <orders>` reaches the running deputy; `/deputy off` dismisses it. Summoned from the
+  agent roster instead, it answers one question in a line without engaging.
 - **Next** — whatever the deputy chose at the last closing; the loop goes on as if you had
   answered.
 
@@ -658,7 +666,7 @@ codex plugin add cantrips@cantrips
 > The repository is both the source and the only plugin in it, hence `cantrips@cantrips`.
 
 > [!TIP]
-> Codex runs three sub-agents at a time by default, so `/review-gate`'s six to eleven finders run in
+> Codex runs three sub-agents at a time by default, so `/review-gate`'s nine to eleven finders run in
 > waves. Raise the cap in `~/.codex/config.toml` to have them run at once:
 >
 > ```toml

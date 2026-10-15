@@ -5,20 +5,18 @@ The user is the CEO, who reads the transcript later; the deputy is the CTO decid
 
 ## Dispatch
 
-One deputy serves the whole session: dispatch it in the background (Claude Code: do not use `run_in_background: false`), keep what the dispatch returned to address it by, send every later gate as a follow-up message to that same agent, and close it on `/deputy off`, where the harness has a close step.
-A deputy dispatched after rounds were answered is onboarded with them, so one message serves a first engagement, a re-engagement after `off`, and a session that no longer holds its deputy's handle — after a context summary or a restart — which dispatches afresh at the next gate and says so in one line.
+One deputy serves the whole session: dispatch `cantrips:deputy`, keep what the dispatch returned to address it by, send every later gate as a follow-up message to that same agent, and close it on `/deputy off`, where the harness has a close step.
+Where the harness loads no plugin agent definitions, read [`deputy.md`](../../agents/deputy.md), skip its frontmatter, paste its body into a general-purpose dispatch run in the background, and apply the model its frontmatter names where the dispatch primitive exposes a selector.
+A deputy dispatched after rounds were answered is onboarded with them, so one message serves a first engagement, a re-engagement after `off`, and a session that no longer holds its deputy's handle — after a context summary — which dispatches afresh at the next gate and says so in one line.
 
 The dispatch message carries, and only carries:
 
-- [BRIEF.md](BRIEF.md), verbatim;
 - the standing orders — whatever followed `/deputy` on invocation, free text — or nothing;
 - every round this session has put so far: each question as it was asked, options and recommendation included, with its answer under it, labelled `User:` or `Deputy:` by who gave it;
 - the loop config's content — `docs/agents/cantrips-loop.md`, or [defaults.md](../setup-cantrips-loop/defaults.md) where the repo has none;
 - the repo's root, read-only.
 
 Not the transcript, not skill bodies, not exploration reports or working notes.
-
-**Model selection.** Use the platform's most capable model for the deputy when the current harness exposes a known override. In Codex, apply this tier only when the active dispatch primitive exposes an explicit model or custom-agent selector; task wording alone does not select a different model. Otherwise omit the override and inherit the parent model -- a working pass on the parent model beats a broken dispatch.
 
 ## At a gate
 
