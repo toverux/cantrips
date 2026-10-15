@@ -396,6 +396,10 @@ follow what a batch changes rather than how many files it touches. The floor bin
 at `high` refuses `inline`, so a two-line comment fix still cost a finder (transcript `b6281e1d-cfef-4c62-848f-3c9d1cc36902`).
 The resume step names only the ceiling ("at the level it earns, at most high"), so a run sent
 `inline` for a pure re-wrap and had it rejected (transcript `180476e2-6357-4a30-b6c1-7ecd92f3fed9`).
+The ladder itself starts at `low` ("a few lines inside one file earn `low`"), so a `medium` run
+paid a finder for a two-line docblock rewrap in one file, and another for an 11-line batch of two
+rewraps and a reordered spread (transcript `418d6400-586d-4a4f-8ca9-9035f2843e98`); `inline` could
+be the rung for a batch that changes only comments or one expression.
 
 **Adopt when:** another delta round spends `medium` on a mostly cosmetic batch.
 
@@ -642,3 +646,18 @@ dispatch the deputy then, onboarded as Dispatch says; the same rule relaunches i
 at the next gate rather than at re-invocation, so the entry above costs nothing to check.
 
 **Adopt when:** the entry above lands, or the next edit to `/deputy`'s invocation step.
+
+## A delta round over a small diff dispatches every agent afresh
+
+LOOP.md's delta round runs the gate at the level its diff earns, and Find and Verify dispatch new
+finders and verifiers each time, so each one rereads the standards sources and the files around
+the diff before it reaches the few lines that changed. In transcript
+`418d6400-586d-4a4f-8ca9-9035f2843e98`, a 53-line fix batch over four files earned `medium` and
+paid for nine fresh finders and a verifier, which raised three one-line findings. For a simple
+diff, the gate could resume the round's finders and verifiers with a follow-up message carrying
+the new diff and the ledger, as the arbiter is already resumed each round. That brief would have to
+say that a callback deserves the same skepticism as the first message: the agent must not trust
+its earlier reading of a file the batch changed, nor defend a verdict it gave before. A level, or
+a size the diff stays under, would mark where reuse stops paying.
+
+**Adopt when:** the next edit to LOOP.md's gate calls or Find's dispatch rule.
