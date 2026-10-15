@@ -59,3 +59,7 @@ The second correction is an instance of [ADR 0003](0003-byte-identity-on-carried
 - "Every section of that file is self-contained, because both skills dispatch a carrier exactly one lens at a time" is false in both halves. The Simplification lens's consolidation restraint hands the platform-guarantee route out of a duplicate to the Reuse lens "under the conditions printed there", unreadable to a carrier holding Simplification alone; and `/review-gate` at `medium` hands one finder the three mechanical lenses together. `FORKS.md` records which carriers hit the dead end, and `IDEAS.md` holds the fix options.
 
 2026-09-19: the dead end named in the third correction is closed. The restraint now hands the route to the Reuse lens without pointing into its text, so every section is self-contained; the route is still proposed, since Reuse runs wherever Simplification is carried. `FORKS.md` holds the record, and the `IDEAS.md` entry is gone.
+
+2026-10-15: the lens file is gone; the decision — one text per lens, read by both skills — stands, so the status does not change.
+Each lens now lives once, in its own plugin agent definition under [`agents/finder/`](../../agents/finder/), which `/review-gate` and `/simplify` both dispatch by name.
+`ANGLES.md` went the same way: each correctness angle is a definition there under a descriptive name.

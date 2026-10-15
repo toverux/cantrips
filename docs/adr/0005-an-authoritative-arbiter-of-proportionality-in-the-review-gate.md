@@ -47,3 +47,5 @@ The lifecycle is worded without naming a tool — close the arbiter when the run
 2026-10-01: ADR 0008 retired the no-sub-agent fallback and the fresh judge per round, and the two clauses of the Decision naming them were removed in place. [`adr-format.md`](../../skills/compound/adr-format.md) permits only a status flip as an in-place edit; the amendment stands as a deliberate exception.
 
 2026-10-01: ADR 0010 extended the arbiter to every level, and the Decision's level clause and the cost line in Consequences were edited in place, under the same exception.
+
+2026-10-15: the arbiter's dispatch no longer carries the "Model selection" paragraph; its model is pinned as an alias in its definition's frontmatter, [`agents/arbiter.md`](../../agents/arbiter.md), which AGENTS.md rule 5 permits while a body still names no class.

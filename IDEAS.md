@@ -568,7 +568,7 @@ could say what a notification turn writes when it carries no question and no pas
 
 **Adopt when:** another run draws the same complaint.
 
-## A decision revised in a spec comment never reaches `/compound`
+## A spec's decisions reach `/compound` only where something flags them
 
 A `--loop` run routed a spec finding to the annotate route, and SKILL.md says to "flag it for
 `/compound` at loop end", but neither `outcomes` nor the closing block carries the flag, so it
@@ -578,8 +578,16 @@ after (transcript `67e62cb7-f0a5-44a1-ba5f-153678e67d1c`). The closing block cou
 finding routed to annotate as `/compound` material, and `/commit`'s scan could name the spec's
 dated comments as a source of ADR candidates.
 
-**Adopt when:** the next edit to what `/commit`'s scan reads or what `/review-gate`'s closing block
-flags as `/compound` material, or another revised decision goes unrecorded.
+The same blind spot hides a feature's own decision. The agents-first-roles spec listed in its
+Records only the standing ADRs it revised, so `/commit`'s scan took that list as the whole and wrote
+no record of the choice the spec itself settled, dispatched roles as plugin agents over four live
+alternatives, until the user asked (transcript `4277a26b-0589-43df-820a-7e158f7b9716`). `/spec`'s
+step 2 asks about every standing ADR a feature touches but never whether the feature makes a
+decision worth a record of its own; its Records could name the new ADR the feature earns, and the
+scan could read the spec's Implementation Decisions for one.
+
+**Adopt when:** the next edit to what `/commit`'s scan reads, what `/review-gate`'s closing block
+flags as `/compound` material, or `/spec`'s step 2, or another spec decision goes unrecorded.
 
 ## The deputy as an advisor: it recommends, the user decides
 

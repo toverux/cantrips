@@ -30,3 +30,6 @@ What settled it is that a small change deserves an independent finder and verifi
 `low` changed meaning under an argument users already type, so it shipped as a breaking change.
 A `--loop` delta round over a few lines costs a finder and a verifier where an inline pass once did; in exchange, a dispatched run's green rests on verified rounds throughout.
 The `inline` arbiter is not independent: the author rules on its own diff, a bias `inline` accepts.
+
+2026-10-15: the gate now picks `low`'s angles and lenses from the diff's stat, file list and summary, and dispatches the `low` carrier with them named; the carrier hunts them one at a time under the same cap of 8.
+The angles carry descriptive names in place of A–D, and the level's shape, one finder then one verifier, stands, so the status does not change.
