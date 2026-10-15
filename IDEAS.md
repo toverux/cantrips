@@ -607,6 +607,23 @@ with rule 5's harness-neutral bodies and ADR 0008.
 **Adopt when:** now, ahead of every other entry here — the next edit to either brief ports it
 instead of growing it.
 
+## The deputy as an advisor: it recommends, the user decides
+
+A session engaged the deputy with standing orders that it recommend in one sentence per question
+while the user gave every final answer, and the user wants that as the way they work from here
+(transcript `630414a4-34f9-4780-8916-258f59aa1d93`). The deputy checked each question's premises
+against the repo, waved tech-lead questions through, and twice departed from the recommendation
+on repo evidence — a tool pin, a role's door to direct use — and the user took it both times. The
+protocol that held, after the user corrected the session twice: every round, gate and closing goes
+to the deputy before it is shown, and one message then shows the question and the deputy's line
+together, so the user answers from one screen rather than scrolling for the question. Nothing in
+`/deputy` names the mode: it rode on free text and the session improvised the protocol, late once
+and without the question once. To settle: whether the mode is a `/deputy` argument or
+standing-orders text ROUNDS.md recognises, and that its At a gate step puts the round to the deputy
+first and renders both at once.
+
+**Adopt when:** now, with the entry above — the deputy's definition is where the mode would live.
+
 ## A parked row still reads as a question after a deputy answered it
 
 Under `/deputy`, a `/review-gate --loop` run sends a parked spec finding's route to the deputy, and

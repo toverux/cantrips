@@ -197,6 +197,18 @@ requested results are available, then returns a consolidated response"
     `disallowedTools`, `skills`, `memory`, `background`, `omitClaudeMd`, `isolation`, `color` and
     `cacheTtl`.
   - Ignored fields: `permissionMode`, `hooks`, `mcpServers` and `initialPrompt`.
+  - _2026-10-15 addendum, documented:_ no field opts an agent out of automatic delegation; the
+    one off switch is a `permissions.deny` rule naming it, which blocks explicit dispatch too
+    ([sub-agents#disable-specific-subagents](https://code.claude.com/docs/en/sub-agents#disable-specific-subagents)).
+    `${CLAUDE_PLUGIN_ROOT}` expands anywhere in an agent's Markdown body
+    ([plugins-reference#environment-variables](https://code.claude.com/docs/en/plugins-reference#environment-variables)).
+    `isolation: worktree` branches from the default branch, not the session's `HEAD`, so a
+    worktree agent cannot see uncommitted or feature-branch work
+    ([sub-agents#isolation](https://code.claude.com/docs/en/sub-agents)). Omitting `tools`
+    inherits the built-ins and the session's MCP tools, and an explicit list drops MCP tools
+    unless named ([sub-agents#tools](https://code.claude.com/docs/en/sub-agents)); that
+    `disallowedTools: Edit, Write` leaves writes through Bash open is inferred from the tool
+    list, not a stated rule.
 
   Sources:
   [plugins/components#agents](https://code.claude.com/docs/en/plugins/components#agents),
@@ -479,3 +491,8 @@ these files while this note was written.
   to 0.85.0.
 - Claude Code's main interactive session's exact `Agent` schema: only a background sub-agent and
   `-p` were observed.
+- Whether a plugin-defined Claude Code agent, dispatched by its scoped name, resumes by
+  `SendMessage` with its history; whether an agent of the same full name in the project or user
+  scope shadows the plugin's; and whether a background sub-agent keeps the `Agent` tool, which
+  the docs' reduced built-in set lists by example without it. The docs say none of the three
+  either way as of 2026-10-15; a live check on the installed plugin settles them.
