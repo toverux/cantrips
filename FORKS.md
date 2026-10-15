@@ -249,6 +249,7 @@ Verified against `v1.2.3`.
 - Step 2's "domain glossary vocabulary" trimmed to "domain vocabulary" — upstream's provisioned glossary is a convention this pipeline never establishes.
 - Step 2's "respect ADRs in the area you're touching" not carried — the ADR read belongs to `/spec` step 2 in this pipeline, which flags conflicts into the spec body this skill breaks down; the conversation-only route runs without the read, an accepted gap.
 - The vertical-slice rule on context-window sizing gains "— one ticket, one `/implement` run" — the size that matters here is one run of the step this fork's closing pointer names.
+  It also says a first cut underestimates what one window carries and to prefer fewer, larger slices — the window-sized rule alone leaves an agent's first breakdown over-split.
 - The publish step's "Do NOT close or modify any parent issue." says "the parent spec" — this pipeline's parent artifact is the `/spec` document, not a tracker issue.
 - Upstream's "Work the **frontier**" sentence moves out of the publish step into the closing flow pointer — it decides which ticket `/implement` takes next, not how tickets are published.
 

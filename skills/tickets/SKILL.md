@@ -2,7 +2,7 @@
 name: tickets
 description: Break a spec, plan, or the current conversation into tracer-bullet tickets, each declaring its blocking edges.
 disable-model-invocation: true
-version: 1.2.0
+version: 1.3.0
 source: mattpocock/skills@1.2.3 (to-tickets)
 ---
 
@@ -31,7 +31,7 @@ Break the work into **tracer bullet** tickets.
 
 - Each slice cuts a narrow but COMPLETE path through every layer (schema, API, UI, tests) — vertical, NOT a horizontal slice of one layer
 - A completed slice is demoable or verifiable on its own
-- Each slice is sized to fit in a single fresh context window — one ticket, one `/implement` run
+- Each slice is sized to fit in a single fresh context window — one ticket, one `/implement` run; a first cut underestimates what one window carries, so prefer fewer, larger slices
 - Any prefactoring should be done first
 
 </vertical-slice-rules>

@@ -13,6 +13,7 @@ A closing reads in this order: its trigger ("Spec published →"), "close with a
 `/review-gate`'s two closings stay sentences: `LOOP.md` for its sixty-line budget, `SKILL.md` because its first step names no skill.
 
 Each step names its target by this repo's bare name, adds `(user-invoked)` when the target is a user-invoked skill — so the agent hands that invocation to the user instead of a Skill call the harness rejects — and carries what decides it: the condition, the argument rule or the session hint, where there is one.
+A closing whose message flagged `/compound` material adds `/compound` as a step beside the one it renders, so the flag ends in a pointer rather than a line the user has to act on by hand.
 
 ## The format clause
 
