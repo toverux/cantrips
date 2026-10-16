@@ -661,3 +661,20 @@ its earlier reading of a file the batch changed, nor defend a verdict it gave be
 a size the diff stays under, would mark where reuse stops paying.
 
 **Adopt when:** the next edit to LOOP.md's gate calls or Find's dispatch rule.
+
+## `/review-gate` needs a git repository, and its snapshots follow the global gitignore
+
+`findings.ts start` runs `git rev-parse --git-path index` and faults outside a repository, so a
+target that lives in no repo (a skill folder under `~/.claude/skills/`) cannot be reviewed in place
+(transcript `1395deb9-2a1f-4d28-9964-a90a55d6892f`, where the run went through a copy in a
+throwaway repo). Inside one, the script's tree snapshots list untracked files through the standard
+excludes, so a target file the user's global gitignore matches (`templates/CLAUDE.local.md`, with
+`CLAUDE.local.md` in `~/.gitignore-global`) never enters a snapshot, and a delta round's diff
+silently drops that file; only `core.excludesFile /dev/null` on the repo brought it back. The
+same run never saw the Stop hook that resumes the gate after a pasted block fire, and the user
+typed "next" after every block. The script could snapshot with the repo's own excludes only, or
+warn when a target file the standard excludes hide is passed to it, and `start` could fall back
+to a snapshot of the target's files where there is no repository.
+
+**Adopt when:** the next edit to `findings.ts`'s snapshot, or a second report of the Stop hook
+staying silent.
