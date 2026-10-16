@@ -305,7 +305,12 @@ also closed on `fourth_novel_round` with two queued findings standing, which the
 their recommended option by hand (transcript `72284c61-7ff3-4a44-8ec2-d1aefc771e0e`). A run told
 "I remove the gate's round cap limit, drive to green" still stopped on `fourth_novel_round`, which
 no input lifts; only an `answers` call resumed it with fresh counts (transcript
-`e374cb72-49ce-405a-b991-6e1a7871c66f`). The same flag could lift the novelty stop.
+`e374cb72-49ce-405a-b991-6e1a7871c66f`). A run with standing orders "Unlimited rounds. Drive to
+green" under a `/goal` stopped there too, and the deputy closed it on the arbiter's "certifying
+pass spent"; the `/goal` hook forced a `start`, whose certifying pass found a correctness bug in
+code round 1 had covered, and the next delta round its follow-up race (transcript
+`bef994d4-be89-4e6f-9887-7638ca1ab771`). The same flag could lift the novelty stop, and the
+deputy's closing weigh an active `/goal`.
 
 **Adopt when:** the user answers a parked item with "ask the arbiter" again, or a third run
 delegates every parked item up front and still stops on items left for the user.
@@ -407,9 +412,12 @@ be the rung for a batch that changes only comments or one expression.
 
 Three delta rounds each found a mid-phrase docblock wrap beside the previous round's reflow, until
 the arbiter ruled one sweep over every new file and declined later isolated reflows (transcript
-`b6281e1d-cfef-4c62-848f-3c9d1cc36902`). The arbiter could rule that sweep on the first finding of a mechanical rule.
+`b6281e1d-cfef-4c62-848f-3c9d1cc36902`). Another run spent three delta rounds on active voice, each
+on the comments the last batch touched, until the arbiter ruled one sweep over every comment the PR
+adds (transcript `bef994d4-be89-4e6f-9887-7638ca1ab771`). The arbiter could rule that sweep on the
+first finding of a mechanical rule.
 
-**Adopt when:** another run spends two delta rounds on one mechanical rule.
+**Adopt when:** now; a second run has spent three delta rounds on one mechanical rule.
 
 ## No `/review-gate` subcommand lists the findings a `same_as` tag matches against
 
