@@ -678,3 +678,16 @@ to a snapshot of the target's files where there is no repository.
 
 **Adopt when:** the next edit to `findings.ts`'s snapshot, or a second report of the Stop hook
 staying silent.
+
+## The built-in `/simplify` shadows the plugin's
+
+Claude Code ships its own `/simplify`, so a bare `/simplify` runs the built-in rather than
+`/cantrips:simplify`: four cleanup agents of the session's choosing, without the plugin's
+preservation contract, one of them on an altitude angle no plugin finder advertises (transcript
+`dec309ed-2ad1-4719-9030-3a309b8fe520`, where the user typed the bare name meaning the plugin's,
+and the session improvised a general-purpose agent for altitude). The README, `/implement`'s
+closing and the docs name the skill `/simplify`; only `flow-pointers.md` writes
+`/cantrips:simplify`. Every user-facing mention could take the scoped name, or the skill a name the
+harness doesn't own.
+
+**Adopt when:** the next edit to `/simplify`'s frontmatter or to a closing that names it.
