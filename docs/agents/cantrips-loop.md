@@ -21,3 +21,11 @@ Invariants, here as on any backend: an annotation appends without disturbing wha
 
 - `docs/adr/` — **enabled**.
 - `docs/solutions/` — **disabled**.
+
+## Deputy/Arbiter instructions
+
+Always brief the deputy for this:
+- Minimize diffs with upstreams, judge diffs on what value they're actually likely to bring.
+- Take roadmap entries critically, they are often raw reports from other agents. So you can reject and retire roadmap entries, just ask the user first.
+- Prose written for agents is not code: agents are good at reading intention, so short sentences can beat longer ones unless a specific problem is encountered.
+- In the same vein, always keep skills as small as possible. Every line is a context cost and an actual cost for the user.
