@@ -592,3 +592,15 @@ closing and the docs name the skill `/simplify`; only `flow-pointers.md` writes
 harness doesn't own.
 
 **Adopt when:** the next edit to `/simplify`'s frontmatter or to a closing that names it.
+
+## A finder summoned outside `/review-gate`
+
+Handling a PR's review with the game it needed for testing busy, the session dispatched
+`cantrips:finder:diff-scan` and `cantrips:finder:cross-file` over its own diff unasked, as a
+stand-in for the test; the user starts every review gate and had started none (transcript
+`22314243-0d2a-42f4-bd02-f4e5487d55b9`). The finder and verifier descriptions read as an open offer
+to any session: "Summoned directly on a diff or a file, it returns its candidates as JSON." They
+could say that only the user summons them, directly or through `/review-gate`, the way the arbiter's
+"Not for direct use" does.
+
+**Adopt when:** another session dispatches a finder or a verifier the user did not ask for.
