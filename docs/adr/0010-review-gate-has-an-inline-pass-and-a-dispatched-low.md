@@ -33,3 +33,5 @@ The `inline` arbiter is not independent: the author rules on its own diff, a bia
 
 2026-10-15: the gate now picks `low`'s angles and lenses from the diff's stat, file list and summary, and dispatches the `low` carrier with them named; the carrier hunts them one at a time under the same cap of 8.
 The angles carry descriptive names in place of A–D, and the level's shape, one finder then one verifier, stands, so the status does not change.
+
+2026-10-17: a `--loop` delta round runs at the highest level its batch earns by what it changes, `inline` reachable under every ceiling, and the script rejects `inline` only on a certifying pass; a dispatched run's green rests on verified rounds except over a batch of comments, docstrings or one expression, the cost accepted for a two-line fix.

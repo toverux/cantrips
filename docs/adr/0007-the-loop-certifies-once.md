@@ -32,3 +32,5 @@ A run continued by `answers` after a stop owes no certifying pass, where a relau
 The rule lives in the findings script, as ADR 0006 has it, in the one function that names what still blocks an ending.
 
 2026-10-01: ADR 0010 made `low` a verified level, and the Consequences line on unverified rounds was edited in place, an exception to [`adr-format.md`](../../skills/compound/adr-format.md)'s status-flip-only rule.
+
+2026-10-17: a `--loop` delta round now runs `inline` where its batch earns it (ADR 0010, 2026-10-17), so the unverified rounds the closing report names are any run's `inline` delta rounds, not only a run invoked there.
