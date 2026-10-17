@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.1.0](https://github.com/toverux/cantrips/compare/v3.0.0...v3.1.0) (2026-10-17)
+
+
+### Features
+
+* **review-gate:** add --fsd, a hands-off --loop that waits only on what the user alone can settle ([c982525](https://github.com/toverux/cantrips/commit/c98252596df1db0718b41f47189152201dee376d))
+* **review-gate:** price a delta round by what its batch changes, with inline reachable under every ceiling ([2618560](https://github.com/toverux/cantrips/commit/26185607980c3affc27d617cbf6e134a1b79f93e))
+* **review-gate:** reach cited lines and stale references, sweep a rule once, note what was settled ([758c4fa](https://github.com/toverux/cantrips/commit/758c4fa36c79ce65efae45fab54c9f8a6e805002))
+* **skills:** add /deputy, a stand-in that answers every round, gate and closing while you are away ([f19e9bd](https://github.com/toverux/cantrips/commit/f19e9bdba4ed1ce7c085121df09eddd8427626c4))
+* **skills:** dispatch the review roles as plugin agents, each pinning its brief and model ([ef50cb1](https://github.com/toverux/cantrips/commit/ef50cb1c62011c344bd2660fa73494d397a423a8))
+
+
+### Bug Fixes
+
+* **skills:** size tickets up, and point closings at /compound where they flagged material ([f3117a1](https://github.com/toverux/cantrips/commit/f3117a126e9028aecfe2671d0bc4c859e48dd397))
+
 ## [3.0.0](https://github.com/toverux/cantrips/compare/v2.7.0...v3.0.0) (2026-10-08)
 
 
