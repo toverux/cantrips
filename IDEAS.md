@@ -269,7 +269,19 @@ message alone. Each ruling was applied, each reversal cost a batch and a delta r
 rulings travel in the message as drift data, but nothing says they stand unless the round brings new
 evidence; the brief should, so a reversal has to name what changed.
 
-**Adopt when:** the arbiter reverses a ruling with no new evidence again.
+It happens inside one round too (transcript `b9f2fca5-1192-476b-8041-f43826d39919`, round 9).
+Verifier verdicts sent as follow-ups while the arbiter was still ruling each resumed it, and each
+reply re-ruled every finding of the round. The second of three replies reversed four of the
+first's rulings, though the only evidence between them bore on a fifth finding. One reversal
+declined a narrower retry catch on a doubt about the game's exception mapping, a doubt the first
+reply had settled with a cited line. ARBITER.md says neither which reply stands nor that a
+follow-up re-rules only the findings it carries; the session kept the last ruling per index, which
+`report`'s one-ruling-per-index check forces anyway. Holding the verdicts for one message once
+every verifier returns, or briefing that a follow-up re-rules only the indices it names, would
+close it.
+
+**Adopt when:** the arbiter reverses a ruling with no new evidence again; round 9's run above has
+fired it.
 
 ## Checking a decline's premise no evidence covers
 
