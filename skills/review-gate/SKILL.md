@@ -1,9 +1,9 @@
 ---
 name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
-argument-hint: '[inline|low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop]'
+argument-hint: '[inline|low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop | --fsd]'
 disable-model-invocation: true
-version: 2.1.0
+version: 2.2.0
 source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 # `; exit $LASTEXITCODE`, unquoted, keeps node's exit 2 under PowerShell, where Claude Code runs hooks on Windows; bash and sh ignore it.
 hooks:
@@ -38,11 +38,13 @@ The contract below is the script's whole interface: build every call from it alo
 Each subcommand reads one JSON object on stdin:
 
 - `start` — `level`, `mode` (`report`, `fix` or `loop`: what the arguments named, `fix` for `--fix` at any level) and `target`, a one-line description of what the arguments name: the uncommitted changes, or the changes since the fixed point.
+  Under `--fsd`, `autonomous: true`; left out, a relaunch of a stopped run keeps the run's own.
 - `report` — `spec` (`true` or `false`), `verifiers` (`{"count": 3, "grouping": "file"}`) where any ran, `arbiter` wherever one ran — `{"rulings": […]}`, the `rulings` arrays of this gate call's replies as returned, put end to end — and `candidates` in rank order, refuted ones included.
   Each candidate carries the finder's fields — `file` and `line`, or `section` for a spec anchor — plus `also`, a merged entry's other locations as `file:line` strings, its `verdict` and `evidence`, `settled_inline: true` where triage settled it, the `index` it was last sent to the arbiter under — an array of its members' for a merged entry — which the script joins its ruling by, and a spec finding's `options`.
   Under `--loop` it also takes `checks` (`baseline`, `red`, or `none` where the project has none), a delta round's `delta_over` (the batch's IDs) and `level`, `same_as: "F3"` on a candidate re-finding a finding the run already holds, and in `arbiter` its `trajectory`, word for word, its `recertify` where it gave one, and its own `findings`, each `{"against": "F1", "action": "shrink" or "back out", "summary": …, "change": …}`.
-- `outcomes` — `outcomes`, each `{"id": "F3", "outcome": …}`: `fixed`, the user's own edit included, `no_change_needed` where the tree already lacks the defect, `skipped` with its `reason` (a declined finding defaults to the arbiter's opinion), `routed` with its `route` letter and a `reason` saying what was done, or `parked` with its `options`, and `tried` where anything was (`tried_yours: true` for the user's own edit, `with` listing the rest of a reverted batch).
-- `answers` (`--loop`) — `answers`, each `{"id": "F4", "action": "queue"}` for what the user asked fixed or fixed themselves, or `"skip"` with a `reason`.
+- `outcomes` — `outcomes`, each `{"id": "F3", "outcome": …}`: `fixed`, the user's own edit included, `no_change_needed` where the tree already lacks the defect, `skipped` with its `reason` (a declined finding defaults to the arbiter's opinion), `routed` with its `route` letter, a `reason` saying what was done and, where the route annotated the spec, the `revision` the annotation recorded, or `parked` with its `options` and its `kind` — `worth`, a question of whether the fix is worth it, or `user`, what only the user can settle — and `tried` where anything was (`tried_yours: true` for the user's own edit, `with` listing the rest of a reverted batch).
+- `answers` (`--loop`) — `answers`, each `{"id": "F4", "action": "queue"}` for what the user asked fixed or fixed themselves, or `"skip"` with a `reason`; the arbiter's `choices` are recorded the same way, its reason as the `reason`.
+  `autonomous: true` switches the run hands off from here on, with or without answers.
 - `close` (`--loop`) — on a stop, `standing`, each `{"id": …, "options": …}` for every queued finding that holds no options yet; otherwise no input.
 - `held` — no input; prints what the cap held back and what the arbiter declined, under the IDs they already have.
 - `ledger` (`--loop`) — no input; prints the finders' do-not-re-raise block, which also rides with every suggested gate call.
@@ -63,6 +65,7 @@ The user answers by finding ID; map an answer by `file:line` to the one finding 
 The effort level is whichever of `inline`, `low`, `medium`, or `high` appears among the arguments; default `medium`.
 `--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report).
 `--loop`, anywhere in the arguments, implies `--fix` and drives that apply mode to a defined green state instead of reporting once — read [LOOP.md](LOOP.md) before Scope and run the whole gate under its rules.
+`--fsd` (full self-driving), anywhere in the arguments, implies `--loop` and runs it hands off, as LOOP.md says.
 What remains once the level and the flags are taken out is the fixed point.
 
 | Level    | Pipeline                                                    | Bias                                                          | Findings cap |
@@ -149,7 +152,7 @@ Merge findings that share a root cause into one entry noting the other locations
 Hand the ranked list to `report` and paste its block; the script applies the level's cap.
 
 A spec finding carries its two routes as options, one recommended: align the code with the spec, or — the decision was revised mid-implementation — annotate the spec with the revision (the annotate-spec verb from Scope's loop config) and flag it for `/compound` at loop end.
-The user picks the route; in apply mode, park a spec finding with those options rather than applying it.
+Unless a `--loop` run is hands off, the user picks the route: in apply mode, park a spec finding with those options rather than applying it.
 Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
 
 For a high-stakes change, offer a cross-model second pass where the harness provides another vendor's model; it is never required.

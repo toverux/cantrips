@@ -414,6 +414,13 @@ flowchart TD
   taking, a question comes back twice, or rounds keep surfacing findings nothing earlier saw and
   leave work standing. Whatever ended it, everything still waiting on you is printed again, and
   answering picks the same run back up.
+- **Hands off** — `--fsd`, for full self-driving, implies `--loop` and makes the run yours to come
+  back to: every parked question of whether a fix is worth it goes to the arbiter instead of you, a
+  code-vs-spec mismatch takes the route the gate recommends, and the run never stops for finding too
+  much that is new. Only what you alone can settle still waits on you, printed as before, or goes to
+  your deputy where `/deputy` engaged one. Pass it at invocation, or tell a running loop it is hands
+  off from here, and it switches over. A spec revision the run annotated is listed in the closing
+  report as `/compound` material, so `/commit`'s scan sees it.
 - **Held proportionate** — wherever `--fix` or `--loop` applies fixes, an **arbiter** rules beside
   the verifiers: one sub-agent on the harness's most capable model (the session itself at `inline`),
   the long-term maintainer guarding YAGNI and KISS, deciding whether each finding is worth fixing

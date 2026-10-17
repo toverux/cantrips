@@ -14,6 +14,7 @@ It is one agent for the whole run: keep what the dispatch returned to address it
 
 The session is the arbiter: before applying any finding its inline pass found, it rules on every one under the arbiter's brief — the body of [`arbiter.md`](../../agents/arbiter.md), past its frontmatter, its write-nothing clause excepted, since the session also applies the fixes — taking under `--loop` the drift data a round's message would carry from what the run holds, and writing from it the trajectory, the recertify request and its own findings.
 It hands `report` the `arbiter` object a dispatched arbiter's reply would fill, its `rulings` under indices of the session's own numbering, and Acting on what comes back and The arbiter's own findings govern them, with one change: it holds each ruling's `rests_on` against what it has read, and where a fact fails it rules on that finding again itself, once, sending no message and handing `report` only the ruling that stands.
+Once the run is hands off, it rules the `worth` items too, recording each through `answers`.
 The author ruling on its own diff is a bias `inline` accepts.
 
 ## Each round's message
@@ -21,6 +22,7 @@ The author ruling on its own diff is a bias `inline` accepts.
 - The batch's findings, indexed: the candidates still standing after inline triage, whether or not a verifier takes them, sent, and the rulings awaited, before any of them is applied.
   Within one gate call, a follow-up message numbers its findings on from the last index already sent, so no two share an index.
 - Under `--loop`, the drift data — the target's size when the run began and now, and the lines each round's fixes added and removed — and the previous round's verdicts and outcomes, one line per finding.
+- Once the run is hands off, the parked `worth` items `answers` has not yet recorded, each with its options and the recommended one marked, for a `choices` entry each; where the script's `next:` line asks, they go in a message of their own.
 
 A gate call that found nothing sends no message: the next one with a finding carries the drift data of every round since.
 
@@ -32,7 +34,9 @@ A gate call that found nothing sends no message: the next one with a finding car
   The second ruling stands; the candidate takes the fresh index, and the earlier ruling stays in `rulings` as returned.
 - A contradiction with no re-send left — against a fact the second ruling lists, or met after the finding's `report` — leaves the ruling standing: name the finding, the fact and the evidence in your prose above the pasted block, for the user to overrule.
 - A `decline` is dispositioned `skipped` with the opinion as its reason, whatever the finding's category or verdict, and is never put to the user.
-- A `fix` goes on through the gate as it would have; its opinion travels to whoever writes the fix, as advice that fix may depart from, and a spec finding's route is still the user's to pick.
+- A `fix` goes on through the gate as it would have; its opinion travels to whoever writes the fix, as advice that fix may depart from.
+- Each `choices` entry is recorded through `answers` as the user's answer would be: `queue` for an option that fixes, `skip` with the arbiter's reason otherwise.
+- A `worth` item the response, or a failed dispatch, left without a choice takes its recommended option as its choice.
 - A finding left unruled by the arbiter's response, or by a dispatch that failed, is a `fix`, and the report names the findings or rounds that ran unjudged.
 - The report carries how many findings the arbiter declined and, under `--loop`, every round's `trajectory`.
 

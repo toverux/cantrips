@@ -22,8 +22,8 @@ Cantrips is one loop instead: leaner than CE, more integrated than Pocock's, run
 harnesses from a single skills tree. It is not a superset — plenty of upstream skills are
 deliberately not ported, each with its reason recorded in [FORKS.md](FORKS.md).
 
-It targets engineers who want a deliberate loop they stay in control of, rather than an autonomous
-mode that runs ahead of them.
+It targets engineers who want a deliberate loop they stay in control of: its gates wait for you
+unless you hand them to a deputy or to the gate's hands-off flag.
 
 ## The design decisions
 
@@ -172,8 +172,9 @@ one drifts. [AGENTS.md](AGENTS.md) lists them.
 
 ## What this is not
 
-- **Not autonomous.** There is no hands-off ship-to-PR mode. Every gate that matters waits for you,
-  and that is a design choice, not a missing feature. If you want autonomy, CE's outer loop is the
+- **Not autonomous by default.** There is no hands-off ship-to-PR mode. Every gate that matters
+  waits for you unless you delegate it, through `/deputy` or `/review-gate --fsd`, and that
+  is a design choice, not a missing feature. If you want an autonomous outer loop, CE's is the
   better fit.
 - **Not a superset of its upstreams.** Roughly half of each upstream is deliberately not ported.
   [FORKS.md](FORKS.md) says which and why; [IDEAS.md](IDEAS.md) holds what was deferred rather than

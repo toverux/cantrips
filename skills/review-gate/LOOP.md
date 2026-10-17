@@ -18,14 +18,24 @@ The script paces the run: after each call, do what its `next:` and `then:` lines
 ## What needs the user
 
 Unless the user's answer re-queued it, park a spec finding's route, a finding no fix can resolve, one whose only fix reaches outside the mutation boundary, an action only the user can perform, and anything else the loop cannot resolve — a question beats an improvisation, and a finding is never silenced by weakening what surfaces it.
-Park each through `outcomes` as it lands, with its options and what the loop tried, and keep working: the loop never waits on the user.
-Of the parked items, only a spec finding's route goes to a deputy, its reply reaching `answers` as the user's would, a hand-back staying parked for the user, notified where the harness has a tool for it, while the loop works on.
+Park each through `outcomes` as it lands, with its options, what the loop tried and its `kind`: `worth` where the question is whether a fix is worth it, `user` for the rest — a spec route, a fix beyond the boundary, a finding no fix resolves, a red the user must judge, and anything the loop cannot classify.
+Keep working: the loop never waits on the user.
+Of the parked items, only a spec finding's route goes to a deputy, and every `user` item once the run is hands off, its reply reaching `answers` as the user's would, a hand-back staying parked for the user, notified where the harness has a tool for it, while the loop works on.
 Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
 At the next round boundary, hand `answers` whatever the user replied since: it re-queues what they asked fixed or fixed themselves, their answer widening the mutation boundary where the fix needs it, and skips what they declined, a declined red joining the baseline.
+A decline the user overrules is fixed directly and recorded through `outcomes`, since `answers` refuses a declined finding.
+
+## Hands off
+
+`--fsd` at invocation, or `autonomous: true` handed to `answers` once a reply of the user's delegates the parked set, makes the run hands off.
+A `worth` item goes to the arbiter, as [ARBITER.md](ARBITER.md) says, instead of waiting on the user.
+A spec finding takes the route the gate recommends without parking: align the code as a fix recorded `fixed`, which parks as `user` where no case goes red, or annotate the spec and record the finding `routed` with its `revision`, the spec's edit inside the boundary whatever files the scope guidance names; a `spec`-labelled finding whose options are not those two routes parks as `user`.
+A spec route parked before the run went hands off is taken once it is: an align route queued through `answers`, in the switch's own call where one carries it, an annotate route recorded `routed` through `outcomes`.
+A fix beyond the boundary still parks as `user`.
 
 ## Ending
 
 Once the run has ended, ask again in your next message about any item a reply left unanswered, and push back on closing or `/commit` while any is open.
-Flag `/compound` material after the closing block, and close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash), a **choice** on how the run ended: on green `/commit` (user-invoked) — every fix was re-reviewed; on a stop `/review-gate --loop` (user-invoked) once the standing findings are settled — nothing has reviewed the fixes since; on waiting none, the message ending on the answers it waits for.
+Flag `/compound` material after the closing block, and close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash), a **choice** on how the run ended: on green `/commit` (user-invoked) — every fix was re-reviewed; on a stop `/review-gate --loop` (user-invoked), `--fsd` in its place where the run is hands off, once the standing findings are settled — nothing has reviewed the fixes since; on waiting none, the message ending on the answers it waits for; where the message flagged `/compound` material, `/compound` beside whatever step renders.
 Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.
 Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.

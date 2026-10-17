@@ -21,6 +21,8 @@ const QUALITY = ['reuse', 'simplification', 'efficiency', 'design', 'conventions
 const CATEGORIES = ['correctness', 'spec', ...QUALITY];
 const VERDICTS = ['confirmed', 'plausible', 'refuted'];
 const OUTCOMES = ['fixed', 'no_change_needed', 'skipped', 'parked', 'routed'];
+// What a parked item asks: whether its fix is worth it, which an arbiter can rule, or what only the user can settle.
+const KINDS = ['worth', 'user'];
 const CHECKS = ['baseline', 'red', 'none'];
 const ACTIONS = ['shrink', 'back out'];
 // The kinds of step a hand-off resumes, one Stop hook each in SKILL.md's frontmatter, which labels it.
@@ -65,6 +67,8 @@ interface Finding {
   tried?: string;
   tried_yours?: boolean;
   route?: string;
+  revision?: string; // a routed finding whose route annotated the spec: what the annotation recorded
+  kind?: 'worth' | 'user'; // a parked finding: whether its fix is worth it, or what only the user can settle
   // --loop only
   against?: number; // an arbiter's own finding: the finding whose applied fix it answers
   action?: string; // an arbiter's own finding: shrink or back out
@@ -116,6 +120,7 @@ interface State {
   base?: string; // the tree the last reported gate call reviewed
   handed?: string; // the tree handed to the gate call in flight
   // --loop only
+  autonomous: boolean; // --fsd: the arbiter rules the parked questions of worth, and the novelty stop never trips
   queue: number[];
   rounds: Round[];
   epoch: number; // bumped when a stopped run continues, so its stop counts start fresh
@@ -157,6 +162,14 @@ function choice(o: Json, key: string, allowed: string[], where: string, required
     throw new InputError(`${where}.${key}: "${value}" is not one of ${allowed.join(', ')}`);
   }
   return value;
+}
+
+// A flag is true or left out.
+function optionalTrue(o: Json, key: string, where: string): true | undefined {
+  const value = o[key];
+  if (value === undefined || value === null) return undefined;
+  if (value !== true) throw new InputError(`${where}.${key}: expected true, or leave it out`);
+  return true;
 }
 
 function list(o: Json, key: string, where: string): unknown[] {
@@ -360,11 +373,11 @@ function letter(i: number): string {
   return String.fromCharCode(65 + i);
 }
 
-function row(f: Finding, lines: string[], opts?: Option[], struck = false): string {
+function row(f: Finding, lines: string[], opts?: Option[], struck = false, label = '❓ Options'): string {
   let out = `- **F${f.id}** ${struck ? `~~${heading(f)}~~` : heading(f)}`;
   for (const line of lines) out += `\\\n  ${line}`;
   if (opts) {
-    out += '\n  - ❓ Options:';
+    out += `\n  - ${label}:`;
     opts.forEach((o, i) => {
       const tag = o.recommended ? `${letter(i)}, recommended` : letter(i);
       const stop = /[.!?]$/.test(o.reasoning) ? '' : '.';
@@ -391,7 +404,18 @@ function reportRow(state: State, f: Finding): string {
   return row(f, lines, state.mode === 'report' ? f.options : undefined);
 }
 
-function outcomeRow(f: Finding): string {
+// Under --fsd a parked question of worth is the arbiter's to rule, and its row says so; a stop hands it back
+// to the user, under the options every other parked item carries.
+function forArbiter(state: State, f: Finding): boolean {
+  return state.autonomous && !state.stopped && f.kind === 'worth';
+}
+
+// Under --fsd, the parked questions of worth the arbiter has yet to rule.
+function unruledWorth(state: State): Finding[] {
+  return openParked(state).filter((f) => forArbiter(state, f));
+}
+
+function outcomeRow(state: State, f: Finding): string {
   switch (f.outcome) {
     case 'fixed':
     case 'no_change_needed':
@@ -407,7 +431,7 @@ function outcomeRow(f: Finding): string {
       const notes = [f.tried_yours ? 'your edit' : '', f.with?.length ? `reverted with ${ids(f.with)}` : ''];
       const note = notes.filter(Boolean).join('; ');
       if (f.tried) lines.push(`🧪 tried${note ? ` (${note})` : ''}: ${f.tried}`);
-      return row(f, lines, f.options);
+      return row(f, lines, f.options, false, forArbiter(state, f) ? "⚖️ Arbiter's call" : undefined);
     }
     default:
       return row(f, [scenarioLine(f)]);
@@ -465,6 +489,8 @@ function start(file: string, input: Json): Result {
   const level = choice(input, 'level', LEVELS, 'input') as Level;
   const mode = choice(input, 'mode', MODES, 'input') as Mode;
   const target = text(input, 'target', 'input') as string;
+  const autonomous = optionalTrue(input, 'autonomous', 'input');
+  if (autonomous && mode !== 'loop') throw new InputError('input.autonomous: a --loop argument, so --fsd implies --loop');
   prune();
   let previous: State | undefined;
   try {
@@ -473,12 +499,15 @@ function start(file: string, input: Json): Result {
     // A missing or corrupt state starts a fresh run.
   }
   if (previous?.mode === 'loop' && previous.stop) {
-    // A --loop start over a stopped run continues it, IDs and ledgers kept, stop counts fresh.
+    // A --loop start over a stopped run continues it, IDs, ledgers and flag kept, stop counts fresh.
     resume(previous);
-    Object.assign(previous, { level, target, due: true, handed: snapshot(file) });
+    Object.assign(previous, { level, target, due: true, handed: snapshot(file), autonomous: autonomous ?? previous.autonomous ?? false });
     save(file, previous);
     const open = openParked(previous);
-    const agent = [`state: ${file}`, `continuing the stopped run from R${previous.rounds.length + 1}, its stop counts fresh`];
+    const agent = [
+      `state: ${file}`,
+      `continuing the stopped run from R${previous.rounds.length + 1}, its stop counts fresh${previous.autonomous ? ', --fsd standing' : ''}`,
+    ];
     if (open.length) agent.push(`still parked: ${ids(open)}`);
     return { user: '', agent: [...agent, 'next: run Scope, then a certifying pass', ...ledgerLines(previous)] };
   }
@@ -489,6 +518,7 @@ function start(file: string, input: Json): Result {
     findings: [],
     refuted: [],
     handed: mode === 'report' ? undefined : snapshot(file),
+    autonomous: autonomous === true,
     queue: [],
     rounds: [],
     epoch: 0,
@@ -607,6 +637,8 @@ function report(file: string, input: Json): Result {
     if (ruling === 'decline') {
       finding.outcome = 'skipped';
       finding.reason = declineLine(finding);
+    } else if (state.autonomous && category === 'spec' && !finding.options) {
+      throw new InputError(`${where}.options: under --fsd a spec finding carries its routes as options, since the run takes the recommended one`);
     }
     fresh.push(finding);
   });
@@ -688,7 +720,7 @@ function report(file: string, input: Json): Result {
     const apply = shown.filter((f) => f.category !== 'spec');
     const spec = shown.filter((f) => f.category === 'spec');
     if (apply.length) agent.push(`next: apply ${ids(apply)} in ID order`);
-    if (spec.length) agent.push(parkRoutes(spec));
+    agent.push(...routeAdvice(state, spec));
     agent.push(shown.length ? `then: call outcomes over ${ids(shown)}` : 'next: close with the flow pointer');
   }
   if (held.length) agent.push(`held back: ${ids(held)}; call held when the user asks for them`);
@@ -696,8 +728,21 @@ function report(file: string, input: Json): Result {
   return flag({ user, agent, handoff: state.mode === 'fix' && shown.length ? 'fix' : undefined });
 }
 
-function parkRoutes(spec: Finding[]): string {
-  return `next: park ${ids(spec)} with the two routes as options, since the user picks the route`;
+// A spec finding's route is the user's to pick, so it parks; under --fsd the run takes the recommended one, and
+// the advice names it wherever the finding carries its routes.
+function routeAdvice(state: State, spec: Finding[]): string[] {
+  const taken = spec.filter((f) => state.autonomous && f.options);
+  const parked = spec.filter((f) => !taken.includes(f));
+  const out: string[] = [];
+  if (taken.length) {
+    const routes = taken.map((f) => {
+      const i = (f.options as Option[]).findIndex((o) => o.recommended);
+      return `F${f.id} (${letter(i)}: ${(f.options as Option[])[i].choice.replace(/\.$/, '')})`;
+    });
+    out.push(`next: take the recommended route of ${routes.join(', ')}, as LOOP.md's Hands off says`);
+  }
+  if (parked.length) out.push(`next: park ${ids(parked)} with the two routes as options, since the user picks the route`);
+  return out;
 }
 
 function arbiterFindings(state: State, arbiter: Json, agent: string[]): Finding[] {
@@ -767,10 +812,11 @@ function loopRound(
   state.queue.push(...[...queued, ...retry].map((f) => f.id));
   state.queue.unshift(...stood.map((f) => f.id));
 
-  // fourth_novel_round counts gate calls past the run's first that left, after declines, a finding none before had.
+  // fourth_novel_round counts gate calls past the run's first that left, after declines, a finding none before had;
+  // under --fsd the user asked for green however many rounds it takes, so the count never stops the run.
   if (round.n > 1 && queued.length) {
     state.novel_rounds.push(round.n);
-    if (state.novel_rounds.length >= 4 && !state.stop) {
+    if (state.novel_rounds.length >= 4 && !state.stop && !state.autonomous) {
       state.stop = { condition: 'fourth_novel_round', tripped: ids(state.novel_rounds, 'R') };
     }
   }
@@ -826,6 +872,7 @@ function next(state: State, roundEnd: boolean, tree: () => string): Step {
   // A red the last gate call reported is settled first, lest the next batch take the blame for it.
   const red = !record.length && state.rounds.at(-1)?.checks === 'red';
   if (red) out.push('next: settle the red checks as LOOP.md says');
+  const worth = unruledWorth(state);
   let handoff: Handoff | undefined;
   if (record.length) {
     handoff = 'round';
@@ -843,8 +890,13 @@ function next(state: State, roundEnd: boolean, tree: () => string): Step {
     handoff = 'fix';
     out.push(...batchAdvice(state));
   } else if (!stop && !blocked(state)) {
-    // close needs no input here, so nothing is handed over: the agent calls it in the same turn.
-    out.push('next: call close');
+    // close needs no input here, so nothing is handed over: the agent calls it in the same turn. A question of worth
+    // the arbiter has yet to rule rides a gate call's message; with none due, it goes in a message of its own.
+    out.push(
+      worth.length
+        ? `next: put ${ids(worth)} to the arbiter for its choices in a message of their own, as ARBITER.md says, then record them through answers`
+        : 'next: call close',
+    );
   } else if (red && !state.due) {
     // An edit made in settling the red joins the record through outcomes; a red settled without one needs only a
     // round to record that it is gone, its report compared with the tree as it stands here.
@@ -858,6 +910,10 @@ function next(state: State, roundEnd: boolean, tree: () => string): Step {
     out.push(`next: a certifying pass over the whole target at ${state.level}, then call report`, ...ledgerLines(state));
   }
   if (red) handoff = 'fix';
+  if (handoff === 'round' && worth.length) {
+    const [it, its] = worth.length === 1 ? ['it', 'its'] : ['them', 'their'];
+    out.push(`arbiter: ${ids(worth)} await${worth.length === 1 ? 's' : ''} ${its} choice; send ${it} with the gate call's message, where it sends one, and record ${it} through answers`);
+  }
   if (stop) out.push(`then: call close once this round ends; the run stops on ${stop}${novelty ? ' if work is still standing then' : ''}`);
   return { handoff, lines: out };
 }
@@ -896,7 +952,7 @@ function batchAdvice(state: State): string[] {
   const apply = batch.filter((f) => !routes.includes(f) && !back.includes(f));
   const out: string[] = [];
   if (apply.length) out.push(`next: apply ${ids(apply)}`);
-  if (routes.length) out.push(parkRoutes(routes));
+  out.push(...routeAdvice(state, routes));
   if (back.length) out.push(`next: park ${ids(back)}, since it came back after its retry`);
   out.push(`then: call outcomes over ${ids(batch)}`);
   return out;
@@ -955,12 +1011,18 @@ function outcomes(file: string, input: Json): Result {
     f.outcome = outcome;
     f.reason = declinedSkip && !reason ? declineLine(f) : reason;
     f.route = outcome === 'routed' ? text(o, 'route', where) : undefined;
+    f.revision = outcome === 'routed' ? text(o, 'revision', where, false) : undefined;
+    f.kind = undefined;
     if (outcome === 'parked') {
       f.evidence = text(o, 'evidence', where, false) ?? f.evidence;
       f.tried = text(o, 'tried', where, false);
       f.tried_yours = o.tried_yours === true;
       f.options = options(o, where) ?? f.options;
       if (!f.options) throw new InputError(`${where}.options: a parked finding needs its options`);
+      f.kind = choice(o, 'kind', KINDS, where, false) as Finding['kind'];
+      if (!f.kind) {
+        throw new InputError(`${where}.kind: a parked finding is worth, a question of whether its fix is worth it, or user, what only the user can settle`);
+      }
       f.came_back = undefined;
       if (o.with !== undefined) {
         f.with = list(o, 'with', where).map((raw, j) => {
@@ -969,7 +1031,7 @@ function outcomes(file: string, input: Json): Result {
           return id;
         });
         if (!f.tried) throw new InputError(`${where}.tried: say what the reverted batch tried`);
-        for (const id of f.with) byId(state, id).outcome = 'parked';
+        for (const id of f.with) Object.assign(byId(state, id), { outcome: 'parked', kind: f.kind });
       }
       // asked_twice: a finding about to reach the user again after they answered it, a reverted batch counting as its item.
       const again = [f.id, ...(f.with ?? [])].filter((id) => byId(state, id).answered_epoch === state.epoch);
@@ -995,15 +1057,16 @@ function outcomes(file: string, input: Json): Result {
   const step = loop && !state.stopped ? next(state, roundEnded(state), () => snapshot(file)) : undefined;
   save(file, state);
 
-  const rows = batch.sort((a, b) => a.id - b.id).map(outcomeRow).join('\n');
+  const rows = batch.sort((a, b) => a.id - b.id).map((f) => outcomeRow(state, f)).join('\n');
   // Under --loop the legend rides only on the closing report, so a long run does not repeat it.
   const user = loop ? rows : withLegend(rows);
   const agent: string[] = [];
   const parked = batch.filter((f) => f.outcome === 'parked');
   if (loop) {
-    if (parked.length) {
-      agent.push(`parked: ${ids(parked)}; keep working, and fold the user's answers in through answers at a round boundary`);
-    }
+    const worth = parked.filter((f) => forArbiter(state, f));
+    const theirs = parked.filter((f) => !worth.includes(f));
+    if (worth.length) agent.push(`parked for the arbiter: ${ids(worth)}`);
+    if (theirs.length) agent.push(`parked: ${ids(theirs)}; keep working, and fold the user's answers in through answers at a round boundary`);
     // A fix after a STOP is re-reviewed only where the user continues the run, never by waking the agent into a round.
     if (!step) return { user, agent: [...agent, 'next: the run stopped; answers or a --loop start continues it'] };
     return { user, agent: [...agent, ...step.lines], handoff: step.handoff };
@@ -1022,7 +1085,7 @@ function held(file: string): Result {
   const state = load(file);
   const found = state.findings.filter((f) => f.held || arbiterSkipped(f));
   if (!found.length) return { user: 'Nothing was held back or declined.', agent: [] };
-  const rows = found.map((f) => (f.outcome && !arbiterSkipped(f) ? outcomeRow(f) : reportRow(state, f)));
+  const rows = found.map((f) => (f.outcome && !arbiterSkipped(f) ? outcomeRow(state, f) : reportRow(state, f)));
   return { user: withLegend(rows.join('\n')), agent: [] };
 }
 
@@ -1031,10 +1094,17 @@ function answers(file: string, input: Json): Result {
   if (state.mode !== 'loop') {
     throw new InputError('answers folds replies into a --loop run; elsewhere, call outcomes with what each answer led to');
   }
+  const autonomous = optionalTrue(input, 'autonomous', 'input');
   const replies = list(input, 'answers', 'input');
-  if (!replies.length) throw new InputError('input.answers: give at least one answer');
+  if (!replies.length && !autonomous) throw new InputError('input.answers: give at least one answer');
   // Answering after a STOP continues the run with fresh stop counts; after WAITING it resumes with its counts.
   if (state.stopped) resume(state);
+  // The switch hands the arbiter the parked questions of worth for the rest of the run, and lifts the one stop the
+  // flag never trips; a churn stop stands.
+  if (autonomous) {
+    state.autonomous = true;
+    if (state.stop?.condition === 'fourth_novel_round') state.stop = null;
+  }
   replies.forEach((raw, i) => {
     const where = `input.answers[${i}]`;
     const o = object(raw, where);
@@ -1081,15 +1151,15 @@ function close(file: string, input: Json): Result {
     if (missing.length) throw new InputError(`input.standing: give options for ${ids(missing)}, still queued`);
     for (const id of state.queue) {
       const f = byId(state, id);
-      Object.assign(f, { outcome: 'parked', options: given.get(id) ?? f.options, came_back: undefined });
+      Object.assign(f, { outcome: 'parked', kind: 'user', options: given.get(id) ?? f.options, came_back: undefined });
     }
     state.queue = [];
     line = `STOP: ${state.stop.condition} — ${state.stop.tripped}`;
-    pointer =
-      'pointer: /review-gate --loop (user-invoked) once the standing findings are settled, since nothing has reviewed the fixes since; answers or a --loop start continues this run with fresh stop counts';
+    pointer = `pointer: /review-gate ${state.autonomous ? '--fsd' : '--loop'} (user-invoked) once the standing findings are settled, since nothing has reviewed the fixes since; answers or a --loop start continues this run with fresh stop counts`;
     state.stopped = true;
   } else {
-    const why = blocked(state);
+    const worth = unruledWorth(state);
+    const why = blocked(state) ?? (worth.length ? `${ids(worth)} await${worth.length === 1 ? 's' : ''} the arbiter's choice` : undefined);
     if (why) throw new InputError(`no ending reached: ${why}`);
     const open = openParked(state);
     line = open.length
@@ -1099,8 +1169,17 @@ function close(file: string, input: Json): Result {
       ? `pointer: none until the user answers ${ids(open)}; answers resumes this run`
       : 'pointer: /commit (user-invoked), since every fix was re-reviewed';
   }
+  // A spec revision the run annotated is /compound material, so the pointer that renders a step adds one for it.
+  if (revisions(state).length && !pointer.startsWith('pointer: none')) {
+    pointer += '; and /compound beside it, over the spec revisions the closing block lists';
+  }
   save(file, state);
   return { user: closingReport(state, line), agent: [pointer] };
+}
+
+// The routed findings whose route annotated the spec, each with what the annotation recorded.
+function revisions(state: State): Finding[] {
+  return state.findings.filter((f) => f.outcome === 'routed' && f.revision).sort((a, b) => a.id - b.id);
 }
 
 function closingReport(state: State, line: string): string {
@@ -1133,15 +1212,19 @@ function closingReport(state: State, line: string): string {
   // The arbiter's declines stay the qualifier's count, as on round blocks.
   const settledRows = state.findings
     .filter((f) => standing(f) && !arbiterSkipped(f))
-    .map(outcomeRow)
+    .map((f) => outcomeRow(state, f))
     .join('\n');
   const open = openParked(state).sort((a, b) => a.id - b.id);
   const example = open.map((f) => `F${f.id}: ${letter((f.options ?? []).findIndex((o) => o.recommended))}`);
   const waiting = open.length
-    ? `⏸️ **Waiting on you** (answer as ${example.join(', ')})\n\n${open.map(outcomeRow).join('\n')}`
+    ? `⏸️ **Waiting on you** (answer as ${example.join(', ')})\n\n${open.map((f) => outcomeRow(state, f)).join('\n')}`
+    : '';
+  const revised = revisions(state);
+  const compound = revised.length
+    ? `📝 **/compound material** — the spec revisions this run annotated\n\n${revised.map((f) => `- **F${f.id}** \`${f.location}\`: ${f.revision}`).join('\n')}`
     : '';
   const key = legend([qualifier.join(' '), settledRows, waiting].join('\n'));
-  return [head, key, settledRows, waiting].filter(Boolean).join('\n\n');
+  return [head, key, settledRows, waiting, compound].filter(Boolean).join('\n\n');
 }
 
 function ledger(file: string): Result {

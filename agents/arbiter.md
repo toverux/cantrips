@@ -21,4 +21,5 @@ Return nothing but JSON, an object carrying:
 - `trajectory` — one short paragraph on where the run is heading, from the drift data where the message carries it.
   The user reads it as you wrote it, so name each finding by what it is, never by its index in the message.
 - `recertify` — under `--loop`, `true` where the fixes so far reach further than the delta rounds over them could see, so the whole target wants one more full pass; the run grants one.
+- `choices` — where the message carries parked questions of worth: one entry per item, its finding ID, the option taken by its letter, and a reason of a sentence, weighed as a ruling is.
 - `findings` — where the message carries drift data and a fix the run applied cost more than its finding deserved: the fix, whether to shrink it or back it out, and the change to make; one per applied fix over the whole run, and what you still hold against a result after that goes in `trajectory`.

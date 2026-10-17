@@ -287,33 +287,16 @@ and the user answered "update the comment, and don't ask me again for trivial th
 **Adopt when:** adopt now, both the deleted-reference case and the general widening: a third
 session has asked for it.
 
-## The loop parks for the user what the arbiter could rule
+## The deputy's closing weighs no active `/goal`
 
-`--loop` parks for the user every item it cannot resolve, including those asking only whether a fix
-is worth it — the arbiter's own question. Twice in one run the user answered "ask the arbiter", then
-delegated to it everything parked from then on. The loop no longer waits on a parked item, but
-each one still holds the run at `WAITING:` short of green until answered. A flag, or a first
-answer, could hand the arbiter the parked set, keeping for the user what it cannot rule: spec
-routes and actions only they can perform.
+A `--loop` run with standing orders "Unlimited rounds. Drive to green" under a `/goal` stopped on
+`fourth_novel_round`, and the deputy closed it on the arbiter's "certifying pass spent"; the
+`/goal` hook then forced a `start`, whose certifying pass found a correctness bug in code round 1
+had covered, and the next delta round its follow-up race (transcript
+`bef994d4-be89-4e6f-9887-7638ca1ab771`). `--fsd` now lifts the novelty stop; the deputy's
+closing could still weigh an active `/goal`, which is neither a plugin skill nor a user skill here.
 
-A user can also delegate up front, spec routes included: a run invoked with "completely
-autonomously, no questions parked for me" was still told to park every spec finding, and closed on
-`fourth_novel_round` with two waiting, so the agent routed each on its recommended option by hand
-(transcript `e304cec3-a2fa-4376-a0a7-6dd13e4b5a26`). The same flag could route spec findings on
-their recommended option when the user delegates them. A run told "call the shots, I'm hands off"
-also closed on `fourth_novel_round` with two queued findings standing, which the agent answered on
-their recommended option by hand (transcript `72284c61-7ff3-4a44-8ec2-d1aefc771e0e`). A run told
-"I remove the gate's round cap limit, drive to green" still stopped on `fourth_novel_round`, which
-no input lifts; only an `answers` call resumed it with fresh counts (transcript
-`e374cb72-49ce-405a-b991-6e1a7871c66f`). A run with standing orders "Unlimited rounds. Drive to
-green" under a `/goal` stopped there too, and the deputy closed it on the arbiter's "certifying
-pass spent"; the `/goal` hook forced a `start`, whose certifying pass found a correctness bug in
-code round 1 had covered, and the next delta round its follow-up race (transcript
-`bef994d4-be89-4e6f-9887-7638ca1ab771`). The same flag could lift the novelty stop, and the
-deputy's closing weigh an active `/goal`.
-
-**Adopt when:** the user answers a parked item with "ask the arbiter" again, or a third run
-delegates every parked item up front and still stops on items left for the user.
+**Adopt when:** a run closes under an active `/goal` again.
 
 ## A spec finding is parked even when a sibling fix already settled its route
 
@@ -549,27 +532,6 @@ A finding quoting a broken rule could apply as conventions, with no red case.
 
 **Adopt when:** a third fix is skipped this way.
 
-## `/review-gate`'s `report` contract leaves the shape of `also` unstated
-
-SKILL.md lists `also` among a candidate's fields "for a merged entry's other locations" without a
-shape, so an agent building the call from the contract alone sent `{ file, line }` objects, which
-the script rejects (`input.candidates[6].also[0]: expected a location string`) (transcript
-`1e56ae8c-aec3-466c-b63e-e6dcbb3dbd0d`). The contract could say `"file:line"` strings, as it says
-`same_as: "F3"`.
-
-**Adopt when:** the next edit to the script's contract lands, or another run trips on it.
-
-## `/review-gate --loop` documents no way to overrule a declined finding
-
-LOOP.md's "What needs the user" re-queues what the user asked fixed through `answers`, but
-`answers` refuses a finding the arbiter declined (`F1 was declined by the arbiter: to overrule it,
-apply the fix and call outcomes`), so the path lives only in the script's error (transcript
-`7af0aa81-bfb7-4ab4-a7fb-f99674bc8e95`). LOOP.md could say it: a decline the user overrules is fixed
-directly and recorded through `outcomes`.
-
-**Adopt when:** the next edit to how `answers` re-queues a finding lands, or another run trips on
-it.
-
 ## `/review-gate` narrates its own mechanics
 
 SKILL.md keeps the agent's prose to what the pasted blocks and the screen lack, yet every
@@ -586,9 +548,9 @@ A `--loop` run routed a spec finding to the annotate route, and SKILL.md says to
 `/compound` at loop end", but neither `outcomes` nor the closing block carries the flag, so it
 lived only in the agent's memory and was lost; `/commit`'s first scan then offered two gotchas and
 missed the medal-ladder decision the spec's dated comment recorded, which the user had to ask
-after (transcript `67e62cb7-f0a5-44a1-ba5f-153678e67d1c`). The closing block could list each spec
-finding routed to annotate as `/compound` material, and `/commit`'s scan could name the spec's
-dated comments as a source of ADR candidates.
+after (transcript `67e62cb7-f0a5-44a1-ba5f-153678e67d1c`). The closing block now lists each spec
+finding routed to annotate as `/compound` material, with its `revision`; `/commit`'s scan could
+still name the spec's dated comments as a source of ADR candidates.
 
 The same blind spot hides a feature's own decision. The agents-first-roles spec listed in its
 Records only the standing ADRs it revised, so `/commit`'s scan took that list as the whole and wrote
@@ -598,8 +560,8 @@ step 2 asks about every standing ADR a feature touches but never whether the fea
 decision worth a record of its own; its Records could name the new ADR the feature earns, and the
 scan could read the spec's Implementation Decisions for one.
 
-**Adopt when:** the next edit to what `/commit`'s scan reads, what `/review-gate`'s closing block
-flags as `/compound` material, or `/spec`'s step 2, or another spec decision goes unrecorded.
+**Adopt when:** the next edit to what `/commit`'s scan reads or `/spec`'s step 2, or another spec
+decision goes unrecorded; the closing-block half is adopted, so an edit there fires nothing here.
 
 ## The deputy as an advisor: it recommends, the user decides
 
@@ -627,8 +589,8 @@ reads a question the deputy already answered and asks why it went unanswered (tr
 `0b9eb4f8-9742-4008-8df3-6a1b68fdf0bf`). The parked row could show that a reply is queued, or
 LOOP.md could hand `answers` a deputy's reply as soon as it lands.
 
-**Adopt when:** the next edit to how the findings script renders a parked row, or another deputy
-run draws the same question.
+**Adopt when:** another deputy run draws the same question; the `--fsd` change re-rendered
+the parked row for a `kind` of its own and left this one standing.
 
 ## The deputy does not survive a context summary, and the session rediscovers it
 
