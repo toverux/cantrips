@@ -96,9 +96,10 @@ The scope block is passed to every finder, verifier, and sweep agent; the fetche
 
 ## The mutation boundary
 
-Wherever this run applies a fix, that fix reaches only the target Scope established for the run, plus the import/export lines the target needs to keep working — and where step 5's guidance named files, those import/export lines must sit inside them too.
+Wherever this run applies a fix, that fix reaches only the target Scope established for the run, plus the import/export lines the target needs to keep working, plus every line a CONFIRMED finding's evidence cites, plus every line that still refers to a symbol the diff removed or renamed — and where step 5's guidance named files, every admitted line must sit inside them too.
 Creating or deleting a file inside that reach is a fix like any other.
-Judging a finding may read anywhere; a fix that cannot stay inside the reach, whatever angle or lens found it, is handed back rather than applied — never a reason to widen the scope — and reported among the run's skipped findings, so the user learns which fix is waiting on a scope only they can widen.
+A fix on an admitted line outside the target applies without asking; name the lines it touched beyond the target in your prose above the pasted block.
+Judging a finding may read anywhere; a fix that cannot stay inside the reach, whatever angle or lens found it, is handed back rather than applied — never a reason to widen the scope — and parked as `user`, so the user learns which fix is waiting on a scope only they can widen.
 The boundary governs the session that applies fixes and stays out of the scope block: a carrier told to withhold a fix withholds the candidate instead.
 
 ## Level inline — inline pass
@@ -166,6 +167,8 @@ Write each fix from the line the finding quotes — the verdict's evidence, or t
 A fix to code that runs, answering a correctness finding or a spec finding routed to align the code, lands only once its failure scenario, built as a case, goes **red** on the unfixed code — a test in the project's suite where there is one, otherwise a command whose output shows the failure — and green with the fix in.
 A case that cannot be built, or that the unfixed code passes, leaves the finding `skipped`, its reason what blocked the case or the run's output.
 The case may be built outside the mutation boundary; delete it once run, unless the arbiter's opinion says to keep it in the suite and its file sits inside the boundary.
+A prose fix touches only lines the diff wrote or the boundary admits, and every sentence the arbiter dictated is checked against the code it describes before it lands.
+Where a CONFIRMED verdict rests on an experiment, a trace through code outside the target or a decompile, the fix leaves a one-line comment at the line the finding concerns stating what was established and how; a REFUTED verdict resting on the same leaves the same comment on a line inside the boundary.
 Where a fix wrote prose, reread every sentence it wrote in place, as its reader will meet it, and fix what that reading catches before reporting the outcome.
 
 ## Close

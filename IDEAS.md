@@ -136,27 +136,6 @@ for Pruning: count an exhaustive claim as you write it, or phrase it so counting
 **Adopt when:** the next edit to `/writing-for-agents`' Pruning section lands, with "Compression
 that falsifies" above — the same defect one step earlier.
 
-## Applied fixes do damage the gate cannot see
-
-A verifier-confirmed finding shipped a visible regression (menu flashing blank, a scrollbar
-popping) the user refused outright. Verification itself reads shallow: a reference that "passed
-three review rounds" for plausibility turned out wrong in every substantive claim on first check
-against the decompile, because "each round's derivation stopped at the line that agreed with it."
-Prose fixes do it too (transcript `2296fef0-9d0e-4541-bac7-ea15e7dd6158`): a conventions finding
-ruled `fix` reworded 22 passive lines the diff never wrote, and two rewrites named the wrong actor;
-a round later, three of five errors of fact came from wording the arbiter dictated. A prose fix
-could stay on lines the diff wrote, and dictated wording be checked against the code before it
-lands. A `--loop` run (transcript `bb9dec00-76ec-4cd6-b666-f7c2f43996e5`) stopped on
-`fourth_novel_round` from this churn alone: each delta round's findings were the last batch's
-rephrasings — a rephrase the arbiter asked for contradicting its own entry, another asserting a
-false fact — and the arbiter's own advice was to delete rather than rephrase. A third run
-(transcript `e374cb72-49ce-405a-b991-6e1a7871c66f`) replaced a comment with wording the arbiter
-dictated, which the next round found false; the arbiter then had it deleted, "each version of it so
-far has been wrong in a new way."
-
-**Adopt when:** adopt now: the third run has shown wording the arbiter dictated adding an error of
-fact.
-
 ## /setup-cantrips-loop writes without interviewing
 
 Observed directly: "Running the setup interview now with this repo's answers…" immediately
@@ -261,32 +240,6 @@ re-queue the applied fixes whose record names the boundary as their constraint.
 
 **Adopt when:** a fix shaped by the narrow boundary survives a widening again.
 
-## The mutation boundary is too conservative a default
-
-The user often ends up widening the mutation boundary, and finds agents too conservative about it.
-Every fix that needs a file just outside the target is handed back, and it waits on a question
-whose answer is usually yes. The user could choose the boundary up front, for example with a flag
-that lets fixes reach beyond the target. The gate could even default to extending the boundary and
-still hand back anything it could not reach. Weigh this against why the boundary exists: a fix
-outside the reviewed scope is one no finder or verifier looked at. Raised in session
-`33c53966-f425-4648-a8cf-2d5cf0de084b`.
-
-Seen again in session `723b78a4-40ad-4691-b3db-a62baa50c2eb`, in the sharpest form the idea has:
-a `--loop` round deleted an `internal static` member, and a repo skill doc still cited it as its
-worked example, so the only fix for a now-false instruction was one file outside the target. The
-user's answer was "Extend the mutation boundary when needed." That sub-case needs neither a flag
-nor a judgement call, because the target's own deletion is what falsified the doc — a reference the
-diff broke is not unreviewed scope, it is the diff's own fallout, and the run already knows which
-symbols the diff removed or renamed. It is also the case most likely to be missed, since the stale
-reference lives where no finder is looking unless a lens happens to sweep the docs.
-
-A third session asked (transcript `e374cb72-49ce-405a-b991-6e1a7871c66f`): a committed comment
-outside the target, which the run's own SDK trace had shown false, was handed back as a question,
-and the user answered "update the comment, and don't ask me again for trivial things like that."
-
-**Adopt when:** adopt now, both the deleted-reference case and the general widening: a third
-session has asked for it.
-
 ## The deputy's closing weighs no active `/goal`
 
 A `--loop` run with standing orders "Unlimited rounds. Drive to green" under a `/goal` stopped on
@@ -317,16 +270,6 @@ rulings travel in the message as drift data, but nothing says they stand unless 
 evidence; the brief should, so a reversal has to name what changed.
 
 **Adopt when:** the arbiter reverses a ruling with no new evidence again.
-
-## A question settled at cost leaves no trace in the code
-
-A finding the run paid to settle — a behaviour traced through the decompile, a refuted equality
-claim, an engine event order measured in game — is recorded only in the ledger, which binds this
-run's finders and no later session. The user asked that fixes leave a comment wherever a costly
-investigation settled a question, so no later round or session reopens it (transcript
-`e374cb72-49ce-405a-b991-6e1a7871c66f`). Apply mode could say so beside its prose-reread rule.
-
-**Adopt when:** the next edit to apply mode's prose-reread rule in `/review-gate`.
 
 ## Checking a decline's premise no evidence covers
 
@@ -388,17 +331,6 @@ trajectory warning that a correct ledger was inverted (transcript
 numbering of every line the message carries.
 
 **Adopt when:** another arbiter reply disputes an outcome ledger that is correct.
-
-## A mechanical convention drips in one delta round at a time
-
-Three delta rounds each found a mid-phrase docblock wrap beside the previous round's reflow, until
-the arbiter ruled one sweep over every new file and declined later isolated reflows (transcript
-`b6281e1d-cfef-4c62-848f-3c9d1cc36902`). Another run spent three delta rounds on active voice, each
-on the comments the last batch touched, until the arbiter ruled one sweep over every comment the PR
-adds (transcript `bef994d4-be89-4e6f-9887-7638ca1ab771`). The arbiter could rule that sweep on the
-first finding of a mechanical rule.
-
-**Adopt when:** now; a second run has spent three delta rounds on one mechanical rule.
 
 ## No `/review-gate` subcommand lists the findings a `same_as` tag matches against
 

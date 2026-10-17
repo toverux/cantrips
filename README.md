@@ -384,7 +384,8 @@ flowchart TD
   scenario.
   Verifiers judge each candidate on its own evidence, and refuted or unverified candidates never
   reach a report above `inline`. At every level, `--fix` applies the surviving findings that fit
-  inside the scope it reviewed, naming any it had to hand back, and lands a fix to running code
+  inside the scope it reviewed (a line a confirmed finding cites, or one still naming a symbol the
+  diff removed, counts as inside), naming any it had to hand back, and lands a fix to running code
   that answers a correctness finding only once a test or command goes red on the unfixed code.
 - **One report format** — a small script shipped with the skill holds the run's findings and prints
   every report, so each run reads the same. Every finding gets an ID like `F3` that you answer by,

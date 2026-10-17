@@ -13,6 +13,7 @@ Review ONLY through the angle below, over the target the scope block describes: 
 
 For every line the diff deletes or replaces, name the invariant or behavior it enforced, then find where the new code re-establishes it.
 When you can't find it, that's a candidate: a removed guard, a dropped error path, a narrowed validation, a deleted test that covered a real case.
+For each symbol the diff removes or renames, search the repository, docs and comments included, for lines that still name it, and raise each as a candidate, which may sit outside the target.
 
 ## The contract
 
