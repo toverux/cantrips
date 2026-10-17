@@ -341,7 +341,9 @@ session caught it (transcript `b6281e1d-cfef-4c62-848f-3c9d1cc36902`). Under `--
 when no reading can settle the premise: three delta rounds refused, built, then refused again a
 value on what a debuggee would accept in which slot, until a verifier measured it by experiment
 (transcript `180476e2-6357-4a30-b6c1-7ecd92f3fed9`); the first ruling resting on such a premise
-could get that experiment.
+could get that experiment. A premise the ruling never lists escapes even the re-send rule: three
+rulings in one run rested on one a live probe then contradicted, and the regression one of them
+declined stood until the user overruled it (transcript `be48e9ab-2360-4cea-b7e5-011c63ad5edd`).
 
 **Adopt when:** a false premise under a decline survives because no verdict covered it.
 
