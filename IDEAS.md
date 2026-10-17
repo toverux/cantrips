@@ -375,21 +375,17 @@ batches past a tripped `fourth_novel_round` without seeing it (transcript
 
 **Adopt when:** a run works past a stop it did not see again.
 
-## A delta round's level follows its file count, not its weight
+## The arbiter's round message numbers findings two ways
 
-LOOP.md earns `medium` for "several files", so a 62-line batch of docblock rewraps, a blank line
-and a one-line filter over four files got four correctness and two quality finders, which returned
-edge cases and re-finds (transcript `72284c61-7ff3-4a44-8ec2-d1aefc771e0e`). The level could
-follow what a batch changes rather than how many files it touches. The floor binds too: a run invoked
-at `high` refuses `inline`, so a two-line comment fix still cost a finder (transcript `b6281e1d-cfef-4c62-848f-3c9d1cc36902`).
-The resume step names only the ceiling ("at the level it earns, at most high"), so a run sent
-`inline` for a pure re-wrap and had it rejected (transcript `180476e2-6357-4a30-b6c1-7ecd92f3fed9`).
-The ladder itself starts at `low` ("a few lines inside one file earn `low`"), so a `medium` run
-paid a finder for a two-line docblock rewrap in one file, and another for an 11-line batch of two
-rewraps and a reordered spread (transcript `418d6400-586d-4a4f-8ca9-9035f2843e98`); `inline` could
-be the rung for a batch that changes only comments or one expression.
+ARBITER.md asks each round's message for the previous round's verdicts and outcomes, one line per
+finding, and names no numbering: the arbiter rules under its own indices, the script reports under
+its ranked `F` IDs, and the two diverge as soon as `report` reranks. A session that wrote the
+previous-round line under `F` IDs had the arbiter read them as its indices and spend its
+trajectory warning that a correct ledger was inverted (transcript
+`a5d3ab6a-1141-4fa6-899e-201b2e389791`). The clause could name the arbiter's indices as the
+numbering of every line the message carries.
 
-**Adopt when:** another delta round spends `medium` on a mostly cosmetic batch.
+**Adopt when:** another arbiter reply disputes an outcome ledger that is correct.
 
 ## A mechanical convention drips in one delta round at a time
 
@@ -630,7 +626,8 @@ say that a callback deserves the same skepticism as the first message: the agent
 its earlier reading of a file the batch changed, nor defend a verdict it gave before. A level, or
 a size the diff stays under, would mark where reuse stops paying.
 
-**Adopt when:** the next edit to LOOP.md's gate calls or Find's dispatch rule.
+**Adopt when:** a delta round at `medium` or above pays for fresh finders over a batch of comments
+or one expression.
 
 ## `/review-gate` needs a git repository, and its snapshots follow the global gitignore
 

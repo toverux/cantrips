@@ -401,8 +401,8 @@ flowchart TD
   repository's object store, with no ref on them, and git prunes them on its own.
 - **Converge until green** — `--loop` implies `--fix` at any level and drives the gate instead of
   reporting once: one full-scope certifying pass, then fix batch, project checks, delta re-review
-  of exactly what changed since the last review (never below `low` unless you invoked `inline`),
-  repeat, until nothing is left to fix or re-review
+  of exactly what changed since the last review at the level that batch earns (a batch of comments
+  runs `inline` whatever level you invoked), repeat, until nothing is left to fix or re-review
   — the arbiter may ask for one more full pass, once. That is green, with the project's checks back
   where they started and every finding explicitly dispositioned: fixed, needing no change, skipped
   with its reason, routed to the spec, or declined by the arbiter.
@@ -422,7 +422,7 @@ flowchart TD
   off from here, and it switches over. A spec revision the run annotated is listed in the closing
   report as `/compound` material, so `/commit`'s scan sees it.
 - **Held proportionate** — wherever `--fix` or `--loop` applies fixes, an **arbiter** rules beside
-  the verifiers: one sub-agent on the harness's most capable model (the session itself at `inline`),
+  the verifiers: one sub-agent on the harness's most capable model (the session in `inline` runs),
   the long-term maintainer guarding YAGNI and KISS, deciding whether each finding is worth fixing
   _here_. Its ruling binds — a declined finding is skipped with its reason, counted in the report
   and listed when you ask, for you to overrule, and never asked about — and under `--loop` it

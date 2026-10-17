@@ -2,7 +2,7 @@
 
 The run's guard against over-engineering: one independent sub-agent that rules whether each finding is worth fixing here, where a verifier rules only whether it is true.
 Its ruling binds.
-These rules govern every run that applies fixes — `--fix` and `--loop` — at every level: dispatched at `low`, `medium` and `high`, and run by the session itself at `inline`, under At `inline` below.
+These rules govern every run that applies fixes — `--fix` and `--loop` — at every level: dispatched at `low`, `medium` and `high`, and run by the session itself in a run invoked at `inline`, under At `inline` below.
 
 ## Dispatch
 

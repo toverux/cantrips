@@ -680,7 +680,7 @@ withSandbox('the loop queues everything found, sizes each batch by the cap, and 
   assert.match(first.agent, /^next: apply F1–F4$/m);
   s.write('src/a.ts', 'export const a = 2;\n');
   const outcome = s.call('outcomes', { outcomes: [1, 2, 3, 4].map((id) => ({ id, outcome: 'fixed' })) });
-  assert.match(outcome.agent, /^then: a delta round over `git diff [0-9a-f]{40} [0-9a-f]{40}` at the level it earns, at most inline; call report with delta_over \["F1","F2","F3","F4"\] and that level and, where it has a candidate, the arbiter's reply$/m);
+  assert.match(outcome.agent, /^then: a delta round over `git diff [0-9a-f]{40} [0-9a-f]{40}` at inline; call report with delta_over \["F1","F2","F3","F4"\] and that level and, where it has a candidate, the arbiter's reply$/m);
   const delta = s.call('report', { spec: true, checks: 'none', level: 'inline', delta_over: ['F1', 'F2', 'F3', 'F4'], candidates: [bug(7)] });
   assert.match(delta.user, /^\*\*R2\*\* 🔬 delta over F1–F4 · inline · 1 found · 1 new · no checks · ⚖️ unjudged: F7$/m);
   assert.match(delta.user, /^- \*\*F7\*\* /m);
@@ -723,12 +723,18 @@ withSandbox('a delta round at a level above the invoked one counts at the invoke
   assert.match(lower.agent, /^input error: input\.level: a certifying pass runs at the invoked level, medium$/m);
 });
 
-withSandbox('a run invoked above inline rejects an inline gate call', (s) => {
+withSandbox('a run invoked above inline takes an inline delta round and still rejects an inline certifying pass', (s) => {
   for (const level of ['low', 'medium']) {
-    loopWithFix(s, 1, level);
-    const out = s.call('report', { ...VERIFIED, level: 'inline', delta_over: ['F1'], arbiter: {}, candidates: [] });
-    assert.equal(out.status, 2);
-    assert.match(out.agent, new RegExp(`^input error: input\\.level: a run invoked at ${level} runs every gate call at low or above$`, 'm'));
+    s.write('src/a.ts', 'export const a = 1;\n');
+    const handoff = loopWithFix(s, 1, level);
+    assert.match(handoff.agent, new RegExp(`^then: a delta round over \`git diff [0-9a-f]{40} [0-9a-f]{40}\` at the level it earns, inline to at most ${level};`, 'm'));
+    const certifying = s.call('report', { ...VERIFIED, level: 'inline', arbiter: {}, candidates: [] });
+    assert.equal(certifying.status, 2);
+    assert.match(certifying.agent, new RegExp(`^input error: input\\.level: a certifying pass runs at the invoked level, ${level}$`, 'm'));
+    const delta = s.call('report', { ...VERIFIED, level: 'inline', delta_over: ['F1'], arbiter: {}, candidates: [] });
+    assert.equal(delta.status, 0);
+    assert.match(delta.user, /^\*\*R2\*\* 🔬 delta over F1 · inline ·/m);
+    assert.match(s.call('close').user, /· R2 ran unverified/);
   }
 });
 

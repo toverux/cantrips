@@ -556,9 +556,6 @@ function report(file: string, input: Json): Result {
     if (input.delta_over === undefined && LEVELS.indexOf(level) < LEVELS.indexOf(state.level)) {
       throw new InputError(`input.level: a certifying pass runs at the invoked level, ${state.level}`);
     }
-    if (level === 'inline' && state.level !== 'inline') {
-      throw new InputError(`input.level: a run invoked at ${state.level} runs every gate call at low or above`);
-    }
     if (LEVELS.indexOf(level) > LEVELS.indexOf(state.level)) {
       agent.push(`warning: a gate call runs at most at the invoked level, so this one counts as ${state.level}`);
       level = state.level;
@@ -883,7 +880,7 @@ function next(state: State, roundEnd: boolean, tree: () => string): Step {
       // A batch whose edits no snapshot sees, an ignored file's say, would be handed a diff that prints nothing.
       state.base === state.handed
         ? `then: the batch changed nothing the tree shows; ${over} and no candidates`
-        : `then: a delta round over \`git diff ${state.base} ${state.handed}\` at the level it earns, at most ${state.level}; ${over} and that level and, where it has a candidate, the arbiter's reply`,
+        : `then: a delta round over \`git diff ${state.base} ${state.handed}\` at ${state.level === 'inline' ? 'inline' : `the level it earns, inline to at most ${state.level}`}; ${over} and that level and, where it has a candidate, the arbiter's reply`,
       ...ledgerLines(state),
     );
   } else if (state.queue.length) {
