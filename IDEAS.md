@@ -505,23 +505,6 @@ scan could read the spec's Implementation Decisions for one.
 **Adopt when:** the next edit to what `/commit`'s scan reads or `/spec`'s step 2, or another spec
 decision goes unrecorded; the closing-block half is adopted, so an edit there fires nothing here.
 
-## The deputy as an advisor: it recommends, the user decides
-
-A session engaged the deputy with standing orders that it recommend in one sentence per question
-while the user gave every final answer, and the user wants that as the way they work from here
-(transcript `630414a4-34f9-4780-8916-258f59aa1d93`). The deputy checked each question's premises
-against the repo, waved tech-lead questions through, and twice departed from the recommendation
-on repo evidence — a tool pin, a role's door to direct use — and the user took it both times. The
-protocol that held, after the user corrected the session twice: every round, gate and closing goes
-to the deputy before it is shown, and one message then shows the question and the deputy's line
-together, so the user answers from one screen rather than scrolling for the question. Nothing in
-`/deputy` names the mode: it rode on free text and the session improvised the protocol, late once
-and without the question once. To settle: whether the mode is a `/deputy` argument or
-standing-orders text ROUNDS.md recognises, and that its At a gate step puts the round to the deputy
-first and renders both at once.
-
-**Adopt when:** now — the deputy's definition is where the mode would live.
-
 ## A parked row still reads as a question after a deputy answered it
 
 Under `/deputy`, a `/review-gate --loop` run sends a parked spec finding's route to the deputy, and
@@ -533,31 +516,6 @@ LOOP.md could hand `answers` a deputy's reply as soon as it lands.
 
 **Adopt when:** another deputy run draws the same question; the `--fsd` change re-rendered
 the parked row for a `kind` of its own and left this one standing.
-
-## The deputy does not survive a context summary, and the session rediscovers it
-
-A sub-agent's handle lives in the context that dispatched it, so once a session's context is
-summarized the deputy is gone whatever the summary says of it: the session asks the harness for its
-agents, finds none, and dispatches afresh, learning the same fact at the cost of a check every time
-(transcript `630414a4-34f9-4780-8916-258f59aa1d93`, twice in one session). ROUNDS.md's Dispatch
-already covers the re-dispatch — a session that no longer holds the handle dispatches at the next
-gate and says so — but states it as one case among three rather than as the fact behind it. The
-`/deputy` skill could say outright that a summary loses the deputy, so a session arriving from one
-re-engages without looking for an agent it cannot hold.
-
-**Adopt when:** the next edit to `/deputy` or ROUNDS.md's Dispatch.
-
-## The deputy is dispatched eagerly, where a lazy dispatch would serve
-
-`/deputy` dispatches the deputy at invocation, and a re-engagement after a summary dispatches it
-again before any gate: a top-tier agent is paid for and onboarded with every round so far, and a
-ticket that raises no gate never uses it (transcript `630414a4-34f9-4780-8916-258f59aa1d93`, where
-ticket 01's deputy answered nothing but its first line). Instead, `/deputy` could switch deputy mode
-on and hold the standing orders, and the first round, gate or closing that needs the user would
-dispatch the deputy then, onboarded as Dispatch says; the same rule relaunches it after a summary,
-at the next gate rather than at re-invocation, so the entry above costs nothing to check.
-
-**Adopt when:** the entry above lands, or the next edit to `/deputy`'s invocation step.
 
 ## A delta round over a small diff dispatches every agent afresh
 

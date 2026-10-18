@@ -509,11 +509,12 @@ flowchart TD
 
 ### `/deputy`
 
-**A stand-in that runs the loop in your place.**
+**A stand-in that runs the loop in your place, or advises while you run it.**
 
 - **When to use** — before stepping away from a feature you have briefed: type it once, with
   standing orders in free text or nothing at all, and every round, gate and closing a later skill
-  would put to you goes to the deputy for the rest of the session.
+  would put to you goes to the deputy for the rest of the session. `/deputy advise` keeps you in
+  the chair: the deputy recommends on each and you give every final answer.
 - **The intent** — the loop stops for you at every decision round and every closing, so a feature
   you are not sitting beside stalls at the first one. The deputy is a plugin agent,
   `cantrips:deputy`, the product's CTO to your CEO on the harness's most capable model: it takes
@@ -524,15 +525,19 @@ flowchart TD
   to what the feature is against your orders or your own answers, anything that commits money, a
   third party or something outside the repo besides your own memory file and personal skills, and a
   taste call your orders do not settle. A hand-back stops the session at once and notifies you where
-  the harness can.
+  the harness can; inside a `--loop` run it parks for you instead and the loop works on.
 - **How it works** — every decision gate carries one routing clause that sends the gate to an
   engaged deputy, and its replies are printed verbatim under a header, so the transcript reads as
-  an interview you audit by scrolling. Where the next step it chose is one you type, the session
-  notifies you and waits for the keystroke. Answer a round yourself to override that round;
-  `/deputy <orders>` reaches the running deputy; `/deputy off` dismisses it. Summoned from the
-  agent roster instead, it answers one question in a line without engaging.
+  an interview you audit by scrolling. In advisor mode one message shows each question with the
+  deputy's line under its recommendation, then waits for you. The deputy is dispatched at the first
+  round, gate or closing that needs you, onboarded with every round so far, and sits in the agent
+  roster as `Deputy`; a context summary loses it, and the session dispatches afresh at its next
+  gate. Where the next step it chose is one you type, the session notifies you and waits for the
+  keystroke. Answer a round yourself to override that round; `/deputy <orders>` reaches the deputy;
+  `/deputy off` dismisses it. Summoned from the agent roster instead, it answers one question in a
+  line without engaging.
 - **Next** — whatever the deputy chose at the last closing; the loop goes on as if you had
-  answered.
+  answered. In advisor mode, the step you picked from its line.
 
 ## The utilities, skill by skill
 
