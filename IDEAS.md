@@ -562,3 +562,15 @@ closing and the docs name the skill `/simplify`; only `flow-pointers.md` writes
 harness doesn't own.
 
 **Adopt when:** the next edit to `/simplify`'s frontmatter or to a closing that names it.
+
+## A delta round's diff carries a rebase made during the run
+
+A run that applies fixes diffs each batch against the tree `start` snapshotted. Where the branch
+moves under the run, as in a rebase the user asks for while the finders work, the first delta
+round's `git diff` carries the commits the rebase brought in as well as the batch (transcript
+`42ae81c1-1c3e-4f05-a365-efd76db5e406`: 37 files of the base's commits around a 3-line batch).
+`report` already warns that the tree moved; it could re-snapshot there, so the next delta starts
+from the tree the round reviewed.
+
+**Adopt when:** the next edit to `findings.ts`'s snapshot, or a second delta round carrying a base
+move.
