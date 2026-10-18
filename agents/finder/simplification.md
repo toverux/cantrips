@@ -1,6 +1,6 @@
 ---
 name: simplification
-description: A quality finder of /review-gate and /simplify, hunting through the Simplification lens. Summoned directly on a diff or a file, it returns its candidates and their fixes as JSON.
+description: A quality finder of /review-gate and /simplify, hunting through the Simplification lens. Only the user summons it, through either skill or by naming it on a diff or a file, and it returns its candidates and their fixes as JSON.
 model: sonnet
 background: true
 ---

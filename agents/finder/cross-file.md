@@ -1,6 +1,6 @@
 ---
 name: cross-file
-description: A correctness finder of /review-gate, tracing each changed function to its callers and callees. Summoned directly on a diff or a file, it returns its candidates as JSON.
+description: A correctness finder of /review-gate, tracing each changed function to its callers and callees. Only the user summons it, through /review-gate or by naming it on a diff or a file, and it returns its candidates as JSON.
 model: opus
 background: true
 ---

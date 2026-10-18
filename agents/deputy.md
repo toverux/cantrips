@@ -1,6 +1,6 @@
 ---
 name: deputy
-description: The session's stand-in, engaged through /deputy, that answers in the user's place every round, gate and closing a skill would put to them. Summoned directly, it answers in a line and waits for the next message.
+description: The session's stand-in, engaged through /deputy, that answers in the user's place every round, gate and closing a skill would put to them. Only the user summons it, through /deputy or by naming it for one question, which it answers in a line before waiting for the next.
 model: fable
 background: true
 ---

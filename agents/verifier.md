@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: /review-gate's verifier, judging each candidate on its own evidence as CONFIRMED, PLAUSIBLE or REFUTED with the proving line. Summoned directly on a claimed bug, it returns the same verdicts as JSON.
+description: /review-gate's verifier, judging each candidate on its own evidence as CONFIRMED, PLAUSIBLE or REFUTED with the proving line. Only the user summons it, through /review-gate or by naming it on a claimed bug, and it returns the same verdicts as JSON.
 model: opus
 background: true
 ---

@@ -23,6 +23,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 
 - `skills/<skill>/SKILL.md`: the one shared skills tree; both harnesses auto-discover it.
 - `agents/<role>.md`: the plugin agent definitions, one per role a skill dispatches, which Claude Code loads as `cantrips:<role>` (a subfolder joins the name with a colon); a definition is distributable like a skill, and a role's brief lives in its body and nowhere else.
+  A definition's description says who summons the role, the user through the skill that dispatches it or by name, or the skill alone where the role takes only the message it composes, since no frontmatter field keeps a plugin agent out of automatic delegation and a description that reads as an open offer gets it dispatched unasked.
   A skill's own `agents/openai.yaml` is unrelated: that is the skill's Codex sidecar, and defines no agent.
 - `.claude-plugin/plugin.json` + `.codex-plugin/plugin.json`: the dual manifests; shared fields must stay identical.
 - `.claude-plugin/marketplace.json` + `.agents/plugins/marketplace.json`: the catalog files that publish this repo as an installable plugin (Claude Code takes a string `source`, Codex CLI the object form; both point at `./`).

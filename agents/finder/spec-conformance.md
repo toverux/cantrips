@@ -1,6 +1,6 @@
 ---
 name: spec-conformance
-description: A correctness finder of /review-gate, checking the diff against the spec. Summoned directly on a diff and a spec, it returns its candidates as JSON.
+description: A correctness finder of /review-gate, checking the diff against the spec. Only the user summons it, through /review-gate or by naming it on a diff and a spec, and it returns its candidates as JSON.
 model: opus
 background: true
 ---

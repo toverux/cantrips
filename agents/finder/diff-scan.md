@@ -1,6 +1,6 @@
 ---
 name: diff-scan
-description: A correctness finder of /review-gate, scanning every hunk line by line and the function around it. Summoned directly on a diff or a file, it returns its candidates as JSON.
+description: A correctness finder of /review-gate, scanning every hunk line by line and the function around it. Only the user summons it, through /review-gate or by naming it on a diff or a file, and it returns its candidates as JSON.
 model: opus
 background: true
 ---

@@ -1,6 +1,6 @@
 ---
 name: design
-description: A quality finder of /review-gate, hunting through the Design lens. Summoned directly on a diff or a file, it returns its candidates and their fixes as JSON.
+description: A quality finder of /review-gate, hunting through the Design lens. Only the user summons it, through /review-gate or by naming it on a diff or a file, and it returns its candidates and their fixes as JSON.
 model: opus
 background: true
 ---

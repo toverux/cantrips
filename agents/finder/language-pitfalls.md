@@ -1,6 +1,6 @@
 ---
 name: language-pitfalls
-description: A correctness finder of /review-gate, hunting the classic pitfalls of the diff's language and framework. Summoned directly on a diff or a file, it returns its candidates as JSON.
+description: A correctness finder of /review-gate, hunting the classic pitfalls of the diff's language and framework. Only the user summons it, through /review-gate or by naming it on a diff or a file, and it returns its candidates as JSON.
 model: opus
 background: true
 ---

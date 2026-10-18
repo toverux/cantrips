@@ -1,6 +1,6 @@
 ---
 name: removed-behavior
-description: A correctness finder of /review-gate, auditing what every deleted or replaced line enforced. Summoned directly on a diff or a file, it returns its candidates as JSON.
+description: A correctness finder of /review-gate, auditing what every deleted or replaced line enforced. Only the user summons it, through /review-gate or by naming it on a diff or a file, and it returns its candidates as JSON.
 model: opus
 background: true
 ---
