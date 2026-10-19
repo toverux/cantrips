@@ -414,6 +414,13 @@ second was answered with "the batch changed nothing the tree shows" and went unr
 `f89d8dff-1caa-41a7-86c8-5a3f0671ea05`). `start` could take the target's repositories and snapshot
 each, or refuse a target that names more than one.
 
+A target in a repository other than the session's directory loses the Stop hooks too: the hook
+moves into the hook input's `cwd` (`findings.ts` `resumeHook`) and keys the hand-off on that
+worktree, so it never finds the target repo's run, and the user typed "continue" after every block,
+while `resume` called from the session's directory answered "nothing handed over: no step is
+pending" rather than "no run" (transcript `acf285ac-7061-46c2-9815-e118a4157d14`). The hook could
+look up every run of the session, whatever worktree it is keyed on.
+
 **Adopt when:** a second cross-repo run leaves a batch unreviewed.
 
 ## A `--1`/`--one` argument for `/grilling`
@@ -550,12 +557,12 @@ excludes, so a target file the user's global gitignore matches (`templates/CLAUD
 `CLAUDE.local.md` in `~/.gitignore-global`) never enters a snapshot, and a delta round's diff
 silently drops that file; only `core.excludesFile /dev/null` on the repo brought it back. The
 same run never saw the Stop hook that resumes the gate after a pasted block fire, and the user
-typed "next" after every block. The script could snapshot with the repo's own excludes only, or
-warn when a target file the standard excludes hide is passed to it, and `start` could fall back
-to a snapshot of the target's files where there is no repository.
+typed "next" after every block, as the hook keys on the session's directory rather than the
+throwaway repo (see the cross-repo entry). The script could snapshot with the repo's own excludes
+only, or warn when a target file the standard excludes hide is passed to it, and `start` could
+fall back to a snapshot of the target's files where there is no repository.
 
-**Adopt when:** the next edit to `findings.ts`'s snapshot, or a second report of the Stop hook
-staying silent.
+**Adopt when:** the next edit to `findings.ts`'s snapshot.
 
 ## The built-in `/simplify` shadows the plugin's
 
