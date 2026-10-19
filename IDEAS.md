@@ -482,7 +482,14 @@ finders returned, what a verifier found, who is still running. The user asked fo
 important information to surface (transcript `b436114f-763c-45bc-9bd8-f4982f710aa1`). The skill
 could say what a notification turn writes when it carries no question and no pasted block: nothing.
 
-**Adopt when:** another run draws the same complaint.
+A second run drew it (transcript `42ae81c1-1c3e-4f05-a365-efd76db5e406`): the agent answered each
+finder's return with a count and each verifier's with a verdict table, and the user asked for no
+table at each round, only the verifying, with the output during a round settled once for all
+sessions rather than improvised by each. The rule belongs in SKILL.md (or as a fixed line the
+script prints), covering every turn between two pasted blocks: finders returning, verdicts
+arriving, the arbiter's reply, a re-send.
+
+**Adopt when:** fired by the second run above; adopt at the next edit to SKILL.md's report section.
 
 ## A spec's decisions reach `/compound` only where something flags them
 
