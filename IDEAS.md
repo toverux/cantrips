@@ -588,3 +588,15 @@ from the tree the round reviewed.
 
 **Adopt when:** the next edit to `findings.ts`'s snapshot, or a second delta round carrying a base
 move.
+
+## A crash wipes a run's state under `/tmp`
+
+`findings.ts` keeps a run's state under `/tmp/cantrips-<uid>/review-gate/`, which a reboot clears.
+Twice in one run a machine crash lost it (transcript `1673c114-ee77-4ed0-9e59-84fd97b01a86`): each
+time the session restarted the run and refiled round 1's report from its own context, and the
+restarted `start` snapshotted a tree that already held the applied batch, so the delta round saw no
+diff and the batch was re-reviewed inline, unverified. State kept somewhere a reboot leaves, such as
+the user's cache directory, would let `resume` pick the run up.
+
+**Adopt when:** the next edit to where `findings.ts` writes its state, or a second run lost to a
+reboot.
