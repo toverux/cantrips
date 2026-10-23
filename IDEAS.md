@@ -638,14 +638,16 @@ scratch copy (`git checkout-index -a --prefix=<tmp>/`), never in the target tree
 **Adopt when:** the next edit to a finder or verifier definition under `agents/`, or a second run
 where a reviewer's experiment lands in the target tree.
 
-## An advisor-mode round binds no meaning to "agree"
+## An advisor-mode round shows two answers where one is wanted
 
-In a `/grilling` run with the deputy in advisor mode, each round showed the interviewer's
-recommendation with the deputy's line under it, and the two departed in three rounds of ten
-(transcript `4be318a5-1877-4a89-9434-a539c612f6dd`). The user bound "agree" to the deputy's line
-by hand before the first round and disambiguated every answer; nothing in the skill says which of
-the two a bare "agree" takes. ROUNDS.md could bind it: render the deputy's advice as the round's
-recommendation where the two differ, or have the reply name the option.
+In a `/grilling` run with the deputy in advisor mode, every round printed the session's own
+recommendation under the question and the deputy's line under that, and the two departed in three
+rounds of ten, so each answer had to be disambiguated by hand (transcript
+`4be318a5-1877-4a89-9434-a539c612f6dd`). The user's direction: the session still sends its
+recommendation to the deputy, since the round reaches the deputy as the skill would have put it to
+the user, but renders only the deputy's reply as the round's answer, and never its own. One answer
+on screen also makes a bare "agree" unambiguous. The change sits in ROUNDS.md's advisor-mode
+paragraph, which today prints the deputy's line verbatim under the question's recommendation.
 
-**Adopt when:** the next edit to ROUNDS.md's advisor-mode paragraph, or a run where an "agree"
-lands on the wrong line.
+**Adopt when:** the next edit to ROUNDS.md's advisor-mode paragraph, or the next advisor-mode run
+where the two answers differ.
