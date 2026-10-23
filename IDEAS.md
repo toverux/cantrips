@@ -600,3 +600,16 @@ the user's cache directory, would let `resume` pick the run up.
 
 **Adopt when:** the next edit to where `findings.ts` writes its state, or a second run lost to a
 reboot.
+
+## Finders and verifiers experiment in the live working tree
+
+In an apply-mode `/review-gate` run, a finder built its repro inside the target repo: it wrote
+scratch stylesheets and edited a tracked source file, then reverted them, while another finder read
+the tree mid-edit (transcript `bf2f47ce-2f5b-43ab-bec3-d33ad898d46b`). A reviewer that does this can
+report on code that is not the diff, and in apply mode a stray edit can ride into a fix batch.
+Briefs saying "experiment in a scratch copy only" kept later rounds clean, so the finder and
+verifier definitions under `agents/` could carry the rule themselves: any experiment runs in a
+scratch copy (`git checkout-index -a --prefix=<tmp>/`), never in the target tree.
+
+**Adopt when:** the next edit to a finder or verifier definition under `agents/`, or a second run
+where a reviewer's experiment lands in the target tree.
