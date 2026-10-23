@@ -651,3 +651,18 @@ paragraph, which today prints the deputy's line verbatim under the question's re
 
 **Adopt when:** the next edit to ROUNDS.md's advisor-mode paragraph, or the next advisor-mode run
 where the two answers differ.
+
+## A project-defined compound step
+
+In Markov's Scale the user asked for a tally of subagent use (times on call, times heeded, one
+observation) in `docs/agents/roster.md`, "updated as a /compound step" (transcript
+`4be318a5-1877-4a89-9434-a539c612f6dd`). `/compound` scans for learnings, discards one-off values
+under its quality bar and routes to six fixed stores, so a tally increment has no step that
+triggers it; the only hook was an imperative in AGENTS.md ("at `/compound`, add the session's
+dispatches to the tally"), which a session obeys because AGENTS.md is always loaded, not because the
+skill asks. A project-local compound step, read from `docs/agents/cantrips-loop.md` beside the
+stores, would let a repo name the bookkeeping that runs at loop end: a tally, a changelog line, a
+status flip.
+
+**Adopt when:** the next edit to compound's SKILL.md or to the setup-cantrips-loop template, or a
+second repo that hooks bookkeeping onto /compound through AGENTS.md.
