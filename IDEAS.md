@@ -601,6 +601,30 @@ the user's cache directory, would let `resume` pick the run up.
 **Adopt when:** the next edit to where `findings.ts` writes its state, or a second run lost to a
 reboot.
 
+## Agent descriptions repeat their summoning guard
+
+Every agent file's `description` sits in the agent-type listing of every session and subagent, and
+13 of them carry the same "Only the user summons it, through /review-gate or by naming it…"
+sentence: the 17 entries cost about 1,000 tokens each time, a cost /review-gate's fan-out pays once
+per spawned finder (Token Optimizer audit, transcript `39d0e12c-5c7a-4b9d-a982-8f65fcf87b39`).
+`finder:low` and `finder:sweep` already carry the guard in one clause ("Not for direct use; it
+expects the message the gate composes"); that form on the rest could save about half. The sentence
+exists to keep the model from spawning these agents on its own, so a shortened guard needs a check
+that it still holds.
+
+**Adopt when:** the next edit to an agent file's frontmatter under `agents/`.
+
+## Unused skills stay model-invocable
+
+`prototype` and `resolving-merge-conflicts` had no invocation in 60 days of transcripts (Token
+Optimizer audit, transcript `39d0e12c-5c7a-4b9d-a982-8f65fcf87b39`), yet their descriptions sit in
+every session's skill listing. `disable-model-invocation: true` would drop them from the listing
+and leave `/prototype` and `/resolving-merge-conflicts` in place; the cost is that a merge conflict
+mid-rebase no longer pulls the skill in on its own.
+
+**Adopt when:** the next edit to either skill's frontmatter, or a session where one of them fires
+on its own.
+
 ## Finders and verifiers experiment in the live working tree
 
 In an apply-mode `/review-gate` run, a finder built its repro inside the target repo: it wrote
@@ -613,3 +637,15 @@ scratch copy (`git checkout-index -a --prefix=<tmp>/`), never in the target tree
 
 **Adopt when:** the next edit to a finder or verifier definition under `agents/`, or a second run
 where a reviewer's experiment lands in the target tree.
+
+## An advisor-mode round binds no meaning to "agree"
+
+In a `/grilling` run with the deputy in advisor mode, each round showed the interviewer's
+recommendation with the deputy's line under it, and the two departed in three rounds of ten
+(transcript `4be318a5-1877-4a89-9434-a539c612f6dd`). The user bound "agree" to the deputy's line
+by hand before the first round and disambiguated every answer; nothing in the skill says which of
+the two a bare "agree" takes. ROUNDS.md could bind it: render the deputy's advice as the round's
+recommendation where the two differ, or have the reply name the option.
+
+**Adopt when:** the next edit to ROUNDS.md's advisor-mode paragraph, or a run where an "agree"
+lands on the wrong line.
