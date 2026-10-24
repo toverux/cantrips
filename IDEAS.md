@@ -674,3 +674,15 @@ status flip.
 
 **Adopt when:** the next edit to compound's SKILL.md or to the setup-cantrips-loop template, or a
 second repo that hooks bookkeeping onto /compound through AGENTS.md.
+
+## `findings.ts start` faults outside the repository
+
+`findings.ts` runs git from the shell's working directory, and `start` faults where that is not
+inside the repository under review: `git rev-parse --git-path index` fails with "not a git
+repository" (transcript `449ee1b0-8f4e-4e34-a306-6263c9118606`: the session had `cd`'d into the
+skill's directory to read LOOP.md and called `scripts/findings.ts` from there). The skill names the
+script by the skill's directory and says nothing of the working directory. It could say to call the
+script from the repository root, or the script could take the root as an input.
+
+**Adopt when:** the next edit to how `findings.ts` locates the repository, or a second run faulting
+on its working directory.
