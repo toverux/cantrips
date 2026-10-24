@@ -631,6 +631,9 @@ In an apply-mode `/review-gate` run, a finder built its repro inside the target 
 scratch stylesheets and edited a tracked source file, then reverted them, while another finder read
 the tree mid-edit (transcript `bf2f47ce-2f5b-43ab-bec3-d33ad898d46b`). A reviewer that does this can
 report on code that is not the diff, and in apply mode a stray edit can ride into a fix batch.
+A finder in a later run tried `git checkout` on the target tree, which would have discarded its
+uncommitted edits (transcript `8e31f012-8921-47c8-8a78-f5f71ba9fc41`); it failed and the tree stayed
+intact, and the later briefs forbade checkout and stash.
 Briefs saying "experiment in a scratch copy only" kept later rounds clean, so the finder and
 verifier definitions under `agents/` could carry the rule themselves: any experiment runs in a
 scratch copy (`git checkout-index -a --prefix=<tmp>/`), never in the target tree.
