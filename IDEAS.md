@@ -686,3 +686,16 @@ script from the repository root, or the script could take the root as an input.
 
 **Adopt when:** the next edit to how `findings.ts` locates the repository, or a second run faulting
 on its working directory.
+
+## `/simplify` and `/review-gate` stage the tree before editing
+
+Both skills edit a working tree whose changes are usually unstaged, so once they are done `git diff`
+shows the user's work and the skill's edits as one hunk set, and telling them apart means reading
+the whole diff again (transcript `449ee1b0-8f4e-4e34-a306-6263c9118606`: the user invoked
+`/simplify` with "and stage current changes first" to get a separate view of what the pass
+brought). Each skill could stage the resolved scope before its first edit, unless the index already
+differs from HEAD, a sign the user staged by hand and the skill should leave the index as it found
+it. The pass's own edits then read in `git diff` alone, the user's work in `git diff --cached`.
+
+**Adopt when:** the next edit to simplify's Step 3 or review-gate's fix step, or a second run asked
+to stage first.
