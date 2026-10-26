@@ -7,6 +7,7 @@ import {
   INITIAL,
   chipText,
   formatDuration,
+  plural,
   railStops,
   reduceSkill,
   skillName,
@@ -118,6 +119,9 @@ test('chipText carries the stage and the lit ticket over the count', () => {
   assert.equal(chipText({ ...INITIAL, stage: 'implement', feature }), 'implement · 02/2')
   const unlit = { ...feature, litTicket: null }
   assert.equal(chipText({ ...INITIAL, feature: unlit }), 'cantrips · 2 tickets')
+  const one = { ...unlit, tickets: unlit.tickets.slice(0, 1) }
+  assert.equal(chipText({ ...INITIAL, feature: one }), 'cantrips · 1 ticket')
+  assert.equal(plural(0, 'annotation'), '0 annotations')
   const noTickets = { ...feature, tickets: [] }
   assert.equal(chipText({ ...INITIAL, stage: 'spec', feature: noTickets }), 'spec')
 })

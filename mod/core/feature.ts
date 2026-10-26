@@ -6,6 +6,9 @@ import type { FeatureView, Ticket } from '../types'
 /** One entry of a folder listing, as `$.fs.list` spells it. */
 export type Entry = { name: string; kind: 'file' | 'dir' | 'other'; mtimeMs: number }
 
+/** A folder under the scratch directory, with its listing. */
+export type ListedFolder = { slug: string; entries: readonly Entry[] }
+
 export const SCRATCH = '.scratch'
 export const SPEC_FILE = 'spec.md'
 export const LOOP_CONFIG = 'docs/agents/cantrips-loop.md'

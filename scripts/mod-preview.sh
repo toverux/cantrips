@@ -2,7 +2,9 @@
 #
 # Start the loop panel's preview: a detached tmux session running Claude Code on this working tree
 # with the plugin loaded from it and the project setting source only, so the installed cantrips
-# stays out and the engine hot-reloads the mod after each save. Arguments go to claude.
+# stays out and the engine hot-reloads the mod after each save. It runs on Haiku, since driving the
+# pane exercises the mod rather than the model; arguments go to claude, a `--model` among them
+# overriding it.
 #
 # Read the pane as text with `tmux capture-pane -p -t cantrips-mod`; type into it with
 # `tmux send-keys -t cantrips-mod -l '<text>'` and, after a pause, `tmux send-keys -t cantrips-mod
@@ -21,7 +23,7 @@ fi
 
 # 160 columns: wide enough for the engine to dock an unasked pane (144), and for a band beside it.
 tmux new-session -d -s "$session" -x 160 -y 48 -c "$repo" \
-  claude --plugin-dir "$repo" --setting-sources project "$@"
+  claude --plugin-dir "$repo" --setting-sources project --model haiku "$@"
 
 echo "started the preview session '$session' on $repo"
 echo "  attach: tmux attach -t $session"

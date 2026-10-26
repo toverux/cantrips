@@ -15,14 +15,20 @@ export const STAGES: readonly Stage[] = [
 ]
 
 export const INITIAL: LoopState = {
+  session: null,
   root: null,
   isLoopRepo: false,
   sawSkill: false,
   stage: null,
   stageSince: null,
   trail: [],
+  pending: [],
+  touched: null,
+  title: null,
   activity: null,
   feature: null,
+  inFlight: [],
+  resumeNote: null,
 }
 
 function isStage(name: string): name is Stage {
@@ -37,7 +43,8 @@ export function skillName(skill: string, plugin: string): string {
 
 /**
  * The state after one of the plugin's skills expanded: a stage lights the rail and joins the
- * trail, its clock starting now; any other skill is the current activity.
+ * trail, and the pending stages while no feature is selected, its clock starting now; any other
+ * skill is the current activity.
  */
 export function reduceSkill(
   state: LoopState,
@@ -48,7 +55,9 @@ export function reduceSkill(
   const name = skillName(skill, plugin)
   if (!isStage(name)) return { ...state, sawSkill: true, activity: name }
   const trail = state.trail.includes(name) ? state.trail : [...state.trail, name]
-  return { ...state, sawSkill: true, stage: name, stageSince: now, trail }
+  const isHeld = state.touched !== null || state.pending.includes(name)
+  const pending = isHeld ? state.pending : [...state.pending, name]
+  return { ...state, sawSkill: true, stage: name, stageSince: now, trail, pending }
 }
 
 /**
@@ -90,6 +99,11 @@ export function railStops(state: LoopState): RailStop[] {
   })
 }
 
+/** A count and its noun, in the singular at one. */
+export function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`
+}
+
 /** The band chip's words: the stage, then the lit ticket over the ticket count. */
 export function chipText(state: LoopState): string {
   const parts = [state.stage ?? 'cantrips']
@@ -97,7 +111,7 @@ export function chipText(state: LoopState): string {
   if (feature !== null && feature.tickets.length > 0) {
     const lit = feature.tickets.find(ticket => ticket.file === feature.litTicket)
     const count = feature.tickets.length
-    parts.push(lit === undefined ? `${count} tickets` : `${lit.number}/${count}`)
+    parts.push(lit === undefined ? plural(count, 'ticket') : `${lit.number}/${count}`)
   }
   return parts.join(' · ')
 }

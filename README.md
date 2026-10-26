@@ -172,22 +172,33 @@ The part that makes each unit of work easier than the last:
 
 ## The loop panel
 
-Claude Code 2.1.310 or later draws the loop beside the chat: cantrips ships a mod, a pane that
-opens on its own when a session starts in a repository that runs the loop (one holding the loop
-config or a feature under `.scratch/`), in a terminal wide enough for an unasked pane (144 columns).
-It shows the loop rail with the current stage lit and the stages visited marked, the feature the
-session works on with its spec, its annotation count and its ticket board (number, title, blockers,
-resolution, criteria ticked over all, the ticket touched last lit), and a reserved "Needs you" row
-that is not wired yet. A chip above the prompt carries the stage and the lit ticket over the ticket
-count; a click on it, its hotkey while the band has focus, or `/cantrips` opens the pane, and
-`/cantrips` toggles it. A pane you close stays closed for that session, through `/clear` and a
-resume; the next session opens it again.
+Claude Code 2.1.310 or later draws the loop beside the chat: cantrips ships a mod, a pane that opens
+on its own when a session starts in a repository that runs the loop (one holding the loop config or
+a feature under `.scratch/`), in a terminal wide enough for an unasked pane (144 columns). It shows
+the loop rail with the current stage lit and the stages visited marked, the feature the session
+works on with its spec, its annotation count and its ticket board (number, title, blockers,
+resolution, criteria ticked over all, the current ticket lit), and a reserved "Needs you" row that
+is not wired yet. Claude tells the mod which feature and ticket it is on through a tool the mod
+registers in a repository that runs the loop, `mcp__cantrips__loop`. The tool's description says
+when to call it, so no skill mentions it. Until the first call the pane shows no feature; a resumed
+session is the exception and gets back the feature and ticket it last held. A chip above the prompt
+carries the stage and the lit ticket over the ticket count; a click on it, its hotkey while the band
+has focus, or `/cantrips` opens the pane, and `/cantrips` toggles it. A pane you close stays closed
+for that session, through `/clear` and a resume; the next session opens it again.
 
-Everything the pane shows comes from the files the loop writes and the events the engine fires;
-it reads nothing from the chat, and a section nothing can fill stays absent. The mod reads files,
-listens to events and draws; it writes only its own store, registers no permission-deciding hook,
-fetches nothing and passes every tool call on. `claude plugin validate` lists every engine call it
-makes.
+The pane also lists the features in flight under `.scratch/`: the stage each reached, when it was
+last touched, whether its spec and tickets exist, and its last ticket while that one is still
+unresolved. A feature that another session worked on last has a Resume button, which runs `/resume`
+with that session's id; if Claude Code refuses the call, the command goes into the prompt instead.
+When Claude first reports a feature in a session, the mod names the session after it with `/rename`,
+unless you have named it already. It does this once per session, so a name you give later stays.
+
+Everything the pane shows comes from the files the loop writes, the events the engine fires and the
+calls to its tool; it reads nothing from the chat, and a section nothing can fill stays absent. The
+mod reads files, listens to events and draws. It acts on the session only when you press one of its
+buttons, and to name the session after its feature. It writes only its own store, registers no
+permission-deciding hook, fetches nothing, and passes on every tool call except those to its own
+tool. `claude plugin validate` lists every engine call it makes.
 
 The mod API is early access and changes between Claude Code releases. A release that breaks the
 pane leaves the skills loading, since the module loads apart from them, and the fix ships as a
@@ -536,9 +547,9 @@ flowchart TD
 **A stand-in that runs the loop in your place, or advises while you run it.**
 
 - **When to use** — before stepping away from a feature you have briefed: type it once, with
-  standing orders in free text or nothing at all, and every round, gate and closing a later skill
-  would put to you goes to the deputy for the rest of the session. `/deputy advise` keeps you in
-  the chair: the deputy recommends on each and you give every final answer.
+  standing orders in plain words or nothing at all, and every round, gate and closing a later skill
+  would put to you goes to the deputy for the rest of the session. Ask it to advise instead and you
+  stay in the chair: the deputy recommends on each and you give every final answer.
 - **The intent** — the loop stops for you at every decision round and every closing, so a feature
   you are not sitting beside stalls at the first one. The deputy is a plugin agent,
   `cantrips:deputy`, the product's CTO to your CEO on the harness's most capable model: it takes
@@ -557,9 +568,9 @@ flowchart TD
   round, gate or closing that needs you, onboarded with every round so far, and sits in the agent
   roster as `Deputy`; a context summary loses it, and the session dispatches afresh at its next
   gate. Where the next step it chose is one you type, the session notifies you and waits for the
-  keystroke. Answer a round yourself to override that round; `/deputy <orders>` reaches the deputy;
-  `/deputy off` dismisses it. Summoned from the agent roster instead, it answers one question in a
-  line without engaging.
+  keystroke. Answer a round yourself to override that round. A later `/deputy` takes plain words
+  too: new orders, a switch between deciding and advising, or a dismissal. Summoned from the agent
+  roster instead, it answers one question in a line without engaging.
 - **Next** — whatever the deputy chose at the last closing; the loop goes on as if you had
   answered. In advisor mode, the step you picked from its line.
 
