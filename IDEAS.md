@@ -699,3 +699,25 @@ it. The pass's own edits then read in `git diff` alone, the user's work in `git 
 
 **Adopt when:** the next edit to simplify's Step 3 or review-gate's fix step, or a second run asked
 to stage first.
+
+## A parked finding still takes an arbiter ruling
+
+`/review-gate --loop` parks a spec finding, or one whose fix reaches outside the boundary, for the
+user, yet the round's message still lists it to the arbiter, which answers "decline" since no ruling
+applies, and `report` then records the finding as skipped on that decline; the session had to park
+it again through `outcomes` (transcript `449ee1b0-8f4e-4e34-a306-6263c9118606`, twice in one run).
+Either the round message withholds a finding the session has already parked, ARBITER.md gives the
+arbiter a ruling for one, or `report` keeps a finding carrying options parked whatever the ruling.
+
+**Adopt when:** the next edit to ARBITER.md's Each round's message, or to how `report` dispositions
+a candidate with options.
+
+## Verify has no tally of the finders' candidates
+
+The gate warns finders that a silently dropped candidate bypasses verification, then lets the
+session's own dedup do the same: in a `medium` run, one of a reuse finder's candidates was merged
+away in round 1 and reached no verifier and no arbiter, resurfacing only in the certifying pass
+(transcript `449ee1b0-8f4e-4e34-a306-6263c9118606`). A tally, candidates in against verdicts plus
+explicit merges out, before the verifiers dispatch would catch it.
+
+**Adopt when:** the next edit to the Verify section of review-gate's SKILL.md.
