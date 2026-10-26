@@ -749,3 +749,13 @@ read as a list and harder to compare run to run (transcript
 question format is, would let the user read a breakdown at a glance.
 
 **Adopt when:** the next edit to step 4 of tickets' SKILL.md.
+
+## The arbiter's brief carries the spec but not the annotate-spec rule
+
+The arbiter's message carries the fetched spec and the scope block, never the loop config's verb
+rules, so it can rule a spec route the storage backend forbids: one run's arbiter advised sharpening
+a spec annotation in place, where the loop config has an annotation append without disturbing what
+is already there (transcript `dcdac79d-3961-4076-b9bb-5265196c1a09`, F27). The writer caught it and
+appended instead. The arbiter's message could carry the annotate-spec verb's line.
+
+**Adopt when:** another ruling's route breaks a storage verb, or a fix applies one unchecked.
