@@ -170,6 +170,30 @@ The part that makes each unit of work easier than the last:
   bloat and contradictions, plus `docs/solutions/` against the current code when that store is
   enabled. (`docs/adr/` needs no collection — supersession is its own hygiene.)
 
+## The loop panel
+
+Claude Code 2.1.310 or later draws the loop beside the chat: cantrips ships a mod, a pane that
+opens on its own when a session starts in a repository that runs the loop (one holding the loop
+config or a feature under `.scratch/`), in a terminal wide enough for an unasked pane (144 columns).
+It shows the loop rail with the current stage lit and the stages visited marked, the feature the
+session works on with its spec, its annotation count and its ticket board (number, title, blockers,
+resolution, criteria ticked over all, the ticket touched last lit), and a reserved "Needs you" row
+that is not wired yet. A chip above the prompt carries the stage and the lit ticket over the ticket
+count; a click on it, its hotkey while the band has focus, or `/cantrips` opens the pane, and
+`/cantrips` toggles it. A pane you close stays closed for that session, through `/clear` and a
+resume; the next session opens it again.
+
+Everything the pane shows comes from the files the loop writes and the events the engine fires;
+it reads nothing from the chat, and a section nothing can fill stays absent. The mod reads files,
+listens to events and draws; it writes only its own store, registers no permission-deciding hook,
+fetches nothing and passes every tool call on. `claude plugin validate` lists every engine call it
+makes.
+
+The mod API is early access and changes between Claude Code releases. A release that breaks the
+pane leaves the skills loading, since the module loads apart from them, and the fix ships as a
+plugin release. An older Claude Code loads the skills with no plugin error and draws nothing;
+Codex CLI has no mod API and gets the skills alone.
+
 ## Full roster
 
 Each skill name links to its section below; each skill's `SKILL.md` under
@@ -669,6 +693,9 @@ Register this repository as a plugin source once, then install cantrips from it.
 Or from your terminal: `claude plugin marketplace add …` / `claude plugin install …` with the same
 arguments.
 
+The [loop panel](#the-loop-panel) needs Claude Code 2.1.310 or later; an older release loads the
+skills and skips the panel.
+
 ### Codex CLI
 
 ```sh
@@ -707,8 +734,15 @@ codex plugin add cantrips@cantrips
 ## Development
 
 There is nothing to install and nothing to build — this repository is Markdown, a handful of JSON
-manifests, and a few dependency-free scripts; after touching the one `/review-gate` runs, run its
-tests with `mise run test`. Clone it and edit.
+manifests, a few dependency-free scripts, and the loop panel's TypeScript, which Claude Code loads
+as is. `mise run test` runs two runners: `node --test` over the scripts' tests and the panel's pure
+core, then `claude plugin test mod` over the panel's mounted scenarios, which load the module in a
+headless engine and need `claude` on PATH. Clone it and edit.
+
+To watch the panel while editing it, `mise run dev:mod-preview` starts a detached tmux session
+running Claude Code on the working tree with the mod loaded and the project settings only; the
+engine reloads the mod after each save, `tmux attach -t cantrips-mod` shows it, and
+`tmux capture-pane -p -t cantrips-mod` reads the pane as text.
 
 See [AGENTS.md](AGENTS.md) for the layout, the authoring standard, and the release process
 (release-please). Deferred ideas live in [IDEAS.md](IDEAS.md), and cantrips runs its own loop on

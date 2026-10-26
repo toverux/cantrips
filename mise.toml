@@ -26,7 +26,12 @@ description = "Report how far each forked skill has drifted from the upstream re
 shell = "bash -c"
 run = "./scripts/fork-diff.sh"
 
+[tasks."dev:mod-preview"]
+description = "Start a detached tmux session (cantrips-mod) running Claude Code on this working tree with the loop panel mod loaded and the project setting source only; the engine reloads the mod on each save, and tmux capture-pane reads the pane as text."
+shell = "bash -c"
+run = "./scripts/mod-preview.sh"
+
 [tasks.test]
-description = "Run the tests of the scripts shipped inside skills under node --test; they gate nothing."
+description = "Run the tests of the scripts shipped inside skills and of the mod's pure core under node --test, then the mod's mounted scenarios under claude plugin test; they gate nothing."
 shell = "bash -c"
 run = "./scripts/test.sh"

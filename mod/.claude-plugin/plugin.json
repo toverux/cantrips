@@ -1,0 +1,5 @@
+{
+  "name": "cantrips",
+  "description": "The test runner's manifest for the loop panel mod: `claude plugin test mod` names the plugin under test after it, so the state contract's owner matches. The plugin's own manifest is the repository's.",
+  "types": "./types/index.d.ts"
+}

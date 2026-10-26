@@ -17,5 +17,7 @@
     "code-review",
     "compound-engineering",
     "memory"
-  ]
+  ],
+  "hooks": "./mod/hooks/hooks.json",
+  "types": "./mod/types/index.d.ts"
 }

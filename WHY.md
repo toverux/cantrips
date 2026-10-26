@@ -164,8 +164,9 @@ discipline rather than optimism:
 ### No build
 
 No dependencies, no package manager, no build, no lint step. The repository is Markdown, a handful
-of JSON manifests, and a few dependency-free scripts, the one `/review-gate` runs carrying its own
-tests; you can read the whole thing before trusting it with your codebase.
+of JSON manifests, a few dependency-free scripts, the one `/review-gate` runs carrying its own
+tests, and the loop panel's TypeScript, which Claude Code loads as is; you can read the whole thing
+before trusting it with your codebase.
 
 The cost is real and worth naming: every invariant here is honored by hand, and nothing fails when
 one drifts. [AGENTS.md](AGENTS.md) lists them.

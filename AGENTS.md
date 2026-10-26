@@ -5,16 +5,19 @@
 `cantrips` is a multi-harness (Claude Code + Codex) plugin of curated agent skills: the core engineering loop (/grilling → /spec → /tickets → /implement + /tdd → /simplify → /review-gate → /commit → /compound) plus its supporting skills.
 A feature's spec and tickets are disposable working material under a gitignored `.scratch/`, deleted once the feature closes ([docs/agents/cantrips-loop.md](docs/agents/cantrips-loop.md)); what survives is the skills, git history, the decision records in `docs/adr/`, and the deferred ideas in [IDEAS.md](IDEAS.md).
 
-The repository **is** the plugin: the manifests, the skills tree, and the catalog files that publish it all sit at the root, and an install copies the whole checkout.
+The plugin also ships a Claude Code mod, the loop panel under `mod/`: a pane beside the chat that shows the loop's stage, the feature's spec and ticket board, and a band chip that opens it.
+The repository **is** the plugin: the manifests, the skills tree, the mod, and the catalog files that publish it all sit at the root, and an install copies the whole checkout.
 Everything else here (`docs/`, this file) therefore rides along into an install; keep it small and keep nothing secret in it.
 
 ## There is no build
 
-This repository is content, not code: no dependencies, no package manager, no build, no lint step, and no tests but those of the scripts skills ship, such as `skills/review-gate/scripts/findings.test.ts` over the script `/review-gate` reports through.
-`mise run test` runs every such file under `node --test` with node 22.18 or later on PATH and nothing else installed.
-Nothing needs installing to work on it, and nothing gates an edit: the tests are there to run when you touch a script, never a step an edit must pass.
+This repository is content, not code: no dependencies, no package manager, no build, no lint step, and no tests but those of the scripts skills ship, such as `skills/review-gate/scripts/findings.test.ts` over the script `/review-gate` reports through, and those of the mod.
+`mise run test` runs two runners: every such file and the mod's pure core (`tests/mod/`) under `node --test` with node 22.18 or later on PATH and nothing else installed, then the mod's mounted scenarios (`mod/*.test.tsx`) under `claude plugin test mod`, which loads the module in the headless engine and needs the `claude` binary on PATH; without it the script says the scenarios were skipped.
+Nothing needs installing to work on it, and nothing gates an edit: the tests are there to run when you touch a script or the mod, never a step an edit must pass.
+The mod loads as TypeScript with no build step too; `tsc -p .` type-checks it against the declarations the engine lays under `.claude-plugin/types/` (gitignored) once a session has loaded the mod from the tree, which [tsconfig.json](tsconfig.json) extends.
 The one mechanical convention is [.editorconfig](.editorconfig) (LF, UTF-8, two-space indent, trailing newline, 100-column guide).
-What tooling exists is convenience: [mise.toml](mise.toml) wraps the scripts in `scripts/`, `mise run dev:sync-install` mirroring the working tree over the local installs (Claude Code and Codex CLI) so unreleased edits are usable from other projects, and `mise run dev:fork-diff` reporting how far a fork has drifted from its upstream without ever asserting — it defines no expected state and exits zero whatever it finds.
+What tooling exists is convenience: [mise.toml](mise.toml) wraps the scripts in `scripts/`, `mise run dev:sync-install` mirroring the working tree over the local installs (Claude Code and Codex CLI) so unreleased edits are usable from other projects, `mise run dev:fork-diff` reporting how far a fork has drifted from its upstream without ever asserting — it defines no expected state and exits zero whatever it finds — and `mise run dev:mod-preview` starting a detached tmux session (`cantrips-mod`) that runs Claude Code on the working tree with the mod loaded and the project setting source only, so the installed cantrips stays out and the engine reloads the mod after each save.
+An agent editing the mod starts that session before its first edit, where none runs, so the maintainer can follow by attaching, and checks each save in it: `tmux capture-pane -p -t cantrips-mod` reads the pane as text; `tmux send-keys -t cantrips-mod -l '<text>'` then, after a pause, `tmux send-keys -t cantrips-mod Enter` submits a command, since text and Enter in one call land in the typeahead; the ctrl+x chords are out of its reach, and an SGR mouse sequence on the pane's ✕ or the chip stands in.
 
 Consequently the invariants below are honored by hand.
 Nothing fails when one drifts, so check them yourself whenever you touch the files they cover.
@@ -25,7 +28,14 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 - `agents/<role>.md`: the plugin agent definitions, one per role a skill dispatches, which Claude Code loads as `cantrips:<role>` (a subfolder joins the name with a colon); a definition is distributable like a skill, and a role's brief lives in its body and nowhere else.
   A definition's description says who summons the role, the user through the skill that dispatches it or by name, or the skill alone where the role takes only the message it composes, since no frontmatter field keeps a plugin agent out of automatic delegation and a description that reads as an open offer gets it dispatched unasked.
   A skill's own `agents/openai.yaml` is unrelated: that is the skill's Codex sidecar, and defines no agent.
-- `.claude-plugin/plugin.json` + `.codex-plugin/plugin.json`: the dual manifests; shared fields must stay identical.
+- `mod/`: the loop panel, the plugin's one hooks module, which the Claude Code manifest's `hooks` field names through `mod/hooks/hooks.json` (an empty `hooks` object beside the `modules` entry, so a Claude Code older than mods validates the file and loads the skills) and whose `$.state` contract the manifest's `types` field names at `mod/types/index.d.ts`.
+  `mod/core/` is the pure core — state functions and text, importing only its own files and types, no Node built-ins, enums or JSX — tested from `tests/mod/` under `node --test`; `mod/hooks/register.tsx` wires it to the engine; `mod/*.test.tsx` are the mounted scenarios `claude plugin test mod` runs, and `mod/.claude-plugin/plugin.json` is that runner's manifest, there so the plugin under test is named `cantrips` and may write its own state.
+  Its reach is a stated boundary: the mod reads files, listens to events, draws, and acts on the session only in answer to a press or to name it after the feature; it writes only its own store, registers no permission-deciding hook, fetches nothing, never answers a tool call without passing it on, and writes no file in the user's tree.
+  `claude plugin validate .` lists every engine call the module makes, which is how a reviewer checks the boundary; every hook but the Pane render, which returns its tree, and the `/cantrips` command, which answers its own run, passes its event on, and a guard that trips passes it on too, since the engine unloads every user-installed mod after repeated worker crashes.
+  The mod API is early access and moves between releases: README states the Claude Code version the mod needs, and a move that breaks the module is a `fix` release.
+  The pane's style: colors are the Nord palette (the `NORD` table in `register.tsx`) on strategic elements only, the rest plain or dim — frost cyan for what is live now, aurora green for what is done (a visited stage, a resolved ticket's tick), frost blue for the feature's name, aurora orange for what blocks, aurora purple for what waits on the user; a skipped stage and a resolved ticket's title are struck through, a coming stage is dim with no stroke, and counts and durations are dim.
+  A new section takes its colors from that table and adds a shade only for a meaning the table lacks.
+- `.claude-plugin/plugin.json` + `.codex-plugin/plugin.json`: the dual manifests; shared fields must stay identical, and the `hooks` and `types` fields are Claude-only.
 - `.claude-plugin/marketplace.json` + `.agents/plugins/marketplace.json`: the catalog files that publish this repo as an installable plugin (Claude Code takes a string `source`, Codex CLI the object form; both point at `./`).
 - `FORKS.md`: the fork divergence ledger — every upstream skill listed, forks with how they deliberately differ and a reason that stays true of the fork as it stands, the rest marked not ported; `/sync-upstream` and human readers both consult it.
 - `docs/agents/cantrips-loop.md`: the per-repo loop config — what the six storage verbs translate to here, and which knowledge stores are enabled (`docs/adr/` on, `docs/solutions/` off).
@@ -34,6 +44,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
   `.scratch/sync/` is not feature material but `dev:fork-diff`'s cache of upstream files, outliving any one feature and safe to delete wholesale.
 - `docs/adr/`: durable decision records with supersession chains, written only through `/compound`'s user gate and read back by `/spec`.
 - `docs/research/`: primary-source research notes, written by `/research`.
+- `tests/mod/`: the mod's pure core under `node --test`, outside `mod/` because `claude plugin test` runs every test file under the folder it is given and admits only files that import its own kit.
 - `scripts/`: repository tooling — the bodies `mise.toml`'s tasks wrap, kept in files so a task definition reads as what it runs.
   Root `scripts/` maintains this repository, unlike the `scripts/` directories inside skill folders, which are shipped assets an installed skill invokes; no skill in the plugin's tree may reference anything here.
   `mise.toml` runs these directly, so stage anything added here with `git add --chmod=+x` — a plain add records mode 100644 and the task then fails on a fresh Unix checkout.
@@ -94,7 +105,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 
 ## Dual-manifest and catalog sync
 
-The plugin has two `plugin.json` manifests (Claude Code + Codex CLI; the Codex schema is a superset) and two catalog files, because neither harness reads the other's.
+The plugin has two `plugin.json` manifests (Claude Code + Codex CLI; the Codex schema is a superset of the shared fields, while `hooks` and `types` are Claude-only, so the Codex manifest carries neither) and two catalog files, because neither harness reads the other's.
 Shared metadata is duplicated by necessity, and keeping the copies honest is a manual duty:
 
 - the shared plugin.json fields (`name`, `version`, `description`, `author`, `homepage`, `repository`, `license`, `keywords`) stay identical between the two manifests;

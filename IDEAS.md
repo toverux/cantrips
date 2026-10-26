@@ -14,9 +14,12 @@ costs, open questions) in
 [docs/research/multi-harness-plugins.md](docs/research/multi-harness-plugins.md). Ranked plan:
 
 1. **GitHub Copilot CLI** — reportedly reads the `.claude-plugin/` layout as-is; test
-   `copilot plugin marketplace add toverux/cantrips` (possibly zero-cost).
+   `copilot plugin marketplace add toverux/cantrips`, and check it ignores the manifest's `hooks`
+   and `types` fields and the mod module they name (possibly zero-cost).
 2. **Antigravity + Goose + Copilot** — one additive `plugin.json` at the repo root serves all
-   three; Goose also runs Claude-style `hooks/hooks.json`, should the plugin ever ship a hook.
+   three; Goose runs Claude-style `hooks/hooks.json`, but the plugin's hooks file is the
+   manifest-named `mod/hooks/hooks.json`, whose only content is a mod module no other harness
+   loads, so the loop panel stays Claude Code's.
 3. **Cursor** — `.cursor-plugin/` manifests (Claude-shaped), but distribution passes a
    human-reviewed central marketplace.
 4. **Gemini CLI** — document per-skill `gemini skills install --path` now; defer the

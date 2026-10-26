@@ -62,6 +62,10 @@ mirror() {
     cp -a "$entry" "$target/"
   done
 
+  # The engine lays its type declarations there once a session loads the mod from the tree; a
+  # clone has none.
+  rm -rf "$target/.claude-plugin/types"
+
   echo "$harness: synced working tree over $target."
 }
 
