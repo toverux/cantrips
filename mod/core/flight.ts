@@ -12,8 +12,6 @@ export type Records = Record<string, FeatureRecord>
 
 export type SessionRecord = {
   isPaneClosed?: boolean
-  /** Whether the session's name was settled: renamed after its feature, or named by the user. */
-  isRenamed?: boolean
   /** When the record was last written, in epoch milliseconds. */
   at?: number
 }

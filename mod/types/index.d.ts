@@ -1,6 +1,8 @@
 // The loop panel's state contract: the values the module keeps in `$.state`, declared under the
 // plugin's name, and the types the pure core and the module share.
 
+import type { AgentStatus } from 'claude-code'
+
 export type Stage =
   | 'grilling'
   | 'spec'
@@ -66,6 +68,34 @@ export type FlightRow = {
   resume: string | null
 }
 
+/** Where an agent's loop stands, as the engine's agent list says. */
+export type { AgentStatus }
+
+/** A cantrips sub-agent, known by its scoped plugin name on spawn. */
+export type AgentRole = 'finder' | 'verifier' | 'arbiter' | 'deputy'
+
+/** One cantrips sub-agent of the session, from its spawn on. */
+export type AgentRun = {
+  /** The id the engine's agent list gives it. */
+  id: string
+  role: AgentRole
+  /** The spawns of a group made while one of it had not ended share a batch. */
+  batch: number
+  /** The list's status at its last read; a run the list dropped is `completed`. */
+  status: AgentStatus
+  /** When its spawn was seen, in `$.clock.now()` milliseconds. */
+  startedAt: number
+  /** When it last began running; null while it does not run. */
+  runningSince: number | null
+  /** When it was first seen ended; null while it has not. */
+  endedAt: number | null
+  /** Whether the engine's agent list still holds it, which a view of it needs. */
+  isListed: boolean
+}
+
+/** The deputy's mode, as the model reports it through the loop tool. */
+export type DeputyMode = 'off' | 'deciding' | 'advisor'
+
 export type LoopState = {
   /** The session's id, as the store keys it. */
   session: string | null
@@ -84,8 +114,6 @@ export type LoopState = {
   pending: Stage[]
   /** The feature folder the session selected last, through the loop tool or its record. */
   touched: string | null
-  /** The name the session carries, as the classic hooks last said; null while it has none. */
-  title: string | null
   /** A plugin skill outside the eight stages, while its turn runs. */
   activity: string | null
   feature: FeatureView | null
@@ -93,6 +121,12 @@ export type LoopState = {
   inFlight: FlightRow[]
   /** What a rejected Resume press did instead, on its feature's row. */
   resumeNote: { slug: string; text: string } | null
+  /** The cantrips sub-agents of the session, in spawn order. */
+  agents: AgentRun[]
+  /** The deputy's mode as the model last reported it; null before a report. */
+  deputy: DeputyMode | null
+  /** Why the engine refused to show an agent's conversation, on that agent's row. */
+  viewNote: { id: string; text: string } | null
 }
 
 declare module 'claude-code' {

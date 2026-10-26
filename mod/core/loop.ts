@@ -1,7 +1,7 @@
 // The loop state and the words drawn from it: the stage and trail a skill expansion sets, the
 // rail's stops and the band chip. Pure: no engine, no clock of its own.
 
-import type { LoopState, Stage } from '../types'
+import type { AgentRun, LoopState, Stage } from '../types'
 
 export const STAGES: readonly Stage[] = [
   'grilling',
@@ -24,11 +24,13 @@ export const INITIAL: LoopState = {
   trail: [],
   pending: [],
   touched: null,
-  title: null,
   activity: null,
   feature: null,
   inFlight: [],
   resumeNote: null,
+  agents: [],
+  deputy: null,
+  viewNote: null,
 }
 
 function isStage(name: string): name is Stage {
@@ -104,7 +106,22 @@ export function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? '' : 's'}`
 }
 
-/** The band chip's words: the stage, then the lit ticket over the ticket count. */
+/**
+ * Running, as the chip counts it: a spawn not yet started is about to run, and one waiting on its
+ * own background work is still at it.
+ */
+export function isRunning(run: AgentRun): boolean {
+  return run.status === 'running' || run.status === 'pending' || run.status === 'waiting'
+}
+
+export function runningCount(state: LoopState): number {
+  return state.agents.filter(isRunning).length
+}
+
+/**
+ * The band chip's words: the stage, then the lit ticket over the ticket count, then the running
+ * agents.
+ */
 export function chipText(state: LoopState): string {
   const parts = [state.stage ?? 'cantrips']
   const feature = state.feature
@@ -113,5 +130,7 @@ export function chipText(state: LoopState): string {
     const count = feature.tickets.length
     parts.push(lit === undefined ? plural(count, 'ticket') : `${lit.number}/${count}`)
   }
+  const running = runningCount(state)
+  if (running > 0) parts.push(`${running} running`)
   return parts.join(' · ')
 }

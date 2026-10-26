@@ -31,6 +31,13 @@ description = "Start a detached tmux session (cantrips-mod) running Claude Code 
 shell = "bash -c"
 run = "./scripts/mod-preview.sh"
 
+[tasks."dev:mod-shot"]
+description = "Render the preview pane to the PNG at the path given; --full keeps the chat, --target names the session."
+shell = "bash -c"
+# uv runs the script, fetching the Pillow and fontTools its inline metadata names.
+tools = { uv = "0" }
+run = "./scripts/mod-shot.py"
+
 [tasks.test]
 description = "Run the tests of the scripts shipped inside skills and of the mod's pure core under node --test, then the mod's mounted scenarios under claude plugin test; they gate nothing."
 shell = "bash -c"

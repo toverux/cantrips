@@ -4,7 +4,7 @@
 
 import { expect, mock, test } from 'claude-code/testing'
 import type { Engine } from 'claude-code/testing'
-import type { On } from 'claude-code'
+import type { AgentStatus, On } from 'claude-code'
 
 const ROOT = '/repo'
 const FEATURE = `${ROOT}/.scratch/loop-panel`
@@ -76,7 +76,7 @@ const PANE = {
   requestId: 'cantrips',
   surface: 'terminal',
   props: {
-    title: '🪄 cantrips',
+    title: 'cantrips',
     isFocused: false,
     bodyColumns: 60,
     placement: 'dock',
@@ -109,7 +109,12 @@ const CANTRIPS_COMMAND = {
 /** The engine beneath the plugin: each hook here stands for it. */
 function world(
   on: On,
-  options: { root?: string; store?: Record<string, unknown>; isCommandRefused?: boolean } = {},
+  options: {
+    root?: string
+    store?: Record<string, unknown>
+    isCommandRefused?: boolean
+    isViewRefused?: boolean
+  } = {},
 ) {
   const calls = {
     opens: [] as string[],
@@ -117,7 +122,11 @@ function world(
     commands: [] as string[],
     fills: [] as string[],
     tools: [] as string[],
+    views: [] as string[],
+    lists: 0,
   }
+  // The engine's agent list: a scenario sets each agent's status the way its loop moves.
+  const agents = new Map<string, AgentStatus>()
   const store = new Map(Object.entries(options.store ?? {}))
   // The paths whose listing or read fails, and the store keys whose write fails: a scenario adds
   // one the way an error would.
@@ -138,7 +147,6 @@ function world(
   on('store.keys', () => ({ value: [...store.keys()] }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('classic.SessionStart', () => ({}))
-  on('classic.UserPromptSubmit', () => ({}))
   on('turn.complete', () => ({ text: '' }))
   on('command.run', (_, e) => {
     calls.commands.push(`/${e.command} ${e.args}`)
@@ -180,14 +188,28 @@ function world(
   on('ui.panes', () => ({
     value:
       calls.opens.length > calls.closes.length
-        ? [{ id: 'cantrips', title: '🪄 cantrips', isShown: true, isFocused: false, isPlaced: true }]
+        ? [{ id: 'cantrips', title: 'cantrips', isShown: true, isFocused: false, isPlaced: true }]
         : [],
   }))
+  on('agent.spawn', (_, e) => {
+    const agentId = `${e.subagentType.split(':').at(-1)}-${agents.size + 1}`
+    agents.set(agentId, 'running')
+    return { agentId, model: 'claude-haiku-5-5' }
+  })
+  on('agent.list', () => {
+    calls.lists++
+    return { value: [...agents].map(([id, status]) => ({ id, status, type: '', description: '' })) }
+  })
+  on('ui.view', (_, e) => {
+    calls.views.push(e.agentId ?? 'main')
+    return { value: options.isViewRefused === true ? { deny: 'not from a press' } : {} }
+  })
+  on('turn.start', (_, e) => ({ turnId: e.turnId }))
   on('ui.render', ($, e) => {
     const { Box } = $.ui.resolve(e)
     return <Box />
   })
-  return { calls, store, session, clock, refused }
+  return { calls, store, session, clock, refused, agents }
 }
 
 const start = ($: Engine) =>
@@ -195,7 +217,7 @@ const start = ($: Engine) =>
 const expand = ($: Engine, skill: string, text: string) =>
   $.skill.prompt({ skill, text, source: 'plugin', pluginName: 'cantrips' })
 // The kit's input types know the built-in tools alone.
-const select = ($: Engine, input: { feature?: string; ticket?: string }) =>
+const select = ($: Engine, input: { feature?: string; ticket?: string; deputy?: string }) =>
   $.tool.call({ tool: 'mcp__cantrips__loop', ...input } as never)
 const completeTurn = ($: Engine) =>
   $.turn.complete({
@@ -205,6 +227,16 @@ const completeTurn = ($: Engine) =>
     turnId: 'turn-1',
     reason: 'answer',
   })
+
+const spawn = ($: Engine, subagentType: string) =>
+  $.agent.spawn({
+    tool_use_id: 'tu-1',
+    prompt: 'Hunt.',
+    description: 'hunt',
+    subagentType,
+    provider: { plugin: 'cantrips', tier: 'user' },
+  } as never)
+const startTurn = ($: Engine) => $.turn.start({ text: 'Go.', turnId: 'turn-1' })
 
 const REPO = 'repo:/repo'
 const record = (
@@ -508,15 +540,13 @@ test('a stored ticket since resolved is neither lit nor on the row', async ($, o
   await pane.unmount()
 })
 
-test('a call lights, records and renames; a later read lights nothing', async ($, on) => {
-  const { calls, store, clock } = world(on)
+test('a call lights and records; a later read lights nothing', async ($, on) => {
+  const { calls, store } = world(on)
   await start($)
   await completeTurn($)
   expect(calls.tools).toEqual(['loop'])
   const answer = await select($, { feature: 'loop-panel', ticket: '01-mod-skeleton.md' })
   expect(answer.result).toBe('')
-  await clock.advance(0)
-  expect(calls.commands).toEqual(['/rename loop-panel'])
   expect(store.get(REPO)).toMatchObject({
     'loop-panel': { session: 'sid-1', ticket: '01-mod-skeleton.md' },
   })
@@ -528,45 +558,16 @@ test('a call lights, records and renames; a later read lights nothing', async ($
 })
 
 test('a call naming a missing feature or ticket errs and changes nothing', async ($, on) => {
-  const { calls, store, clock } = world(on)
+  const { store } = world(on)
   await start($)
   const noFeature = await select($, { feature: 'nowhere' })
   expect(noFeature.deny).toContain('.scratch/nowhere/ holds no spec and no ticket')
   const noTicket = await select($, { feature: 'loop-panel', ticket: '09-gone.md' })
   expect(noTicket.deny).toContain('01-mod-skeleton.md, 02-features.md')
-  await clock.advance(0)
-  expect(calls.commands).toEqual([])
   expect(store.has(REPO)).toBe(false)
   const band = await $.ui.mount(BAND)
   expect((await band.find({ key: 'chip' }))?.text).toBe('🪄 cantrips')
   await band.unmount()
-})
-
-test('the first call renames the session once, and a clear renames nothing', async ($, on) => {
-  const { calls, store, clock, session } = world(on)
-  await start($)
-  await select($, { feature: 'loop-panel' })
-  await clock.advance(0)
-  expect(calls.commands).toEqual(['/rename loop-panel'])
-  expect(store.get('session:sid-1')).toMatchObject({ isRenamed: true })
-
-  await select($, { feature: 'older' })
-  await select($, { feature: 'loop-panel' })
-  session.id = 'sid-2'
-  await $.classic.SessionStart({ source: 'clear', session_id: 'sid-2' })
-  await select($, { feature: 'loop-panel' })
-  await clock.advance(0)
-  expect(calls.commands).toEqual(['/rename loop-panel'])
-})
-
-test('a session the user named keeps its name', async ($, on) => {
-  const { calls, store, clock } = world(on)
-  await start($)
-  await $.classic.UserPromptSubmit({ prompt: 'Go.', session_title: 'my name' })
-  await select($, { feature: 'loop-panel' })
-  await clock.advance(0)
-  expect(calls.commands).toEqual([])
-  expect(store.get('session:sid-1')).toMatchObject({ isRenamed: true })
 })
 
 test('a listing that fails prunes no record', async ($, on) => {
@@ -613,4 +614,155 @@ test('a session start drops the records of gone features and stale sessions', as
   expect(Object.keys(store.get(REPO) as object)).toEqual(['older'])
   expect(store.has('session:sid-stale')).toBe(false)
   expect(store.has('session:sid-fresh')).toBe(true)
+})
+
+test('a gate run shows its finders and verifiers moving, and the arbiter sticky', async ($, on) => {
+  const { agents, clock } = world(on)
+  await start($)
+  await expand($, 'cantrips:review-gate', 'Gate it.')
+  await startTurn($)
+  const finder1 = await spawn($, 'cantrips:finder:diff-scan')
+  await spawn($, 'cantrips:finder:cross-file')
+  // A role pasted into a general-purpose dispatch is not recognized.
+  await spawn($, 'general-purpose')
+  const pane = await $.ui.mount(PANE)
+  expect((await pane.find({ type: 'Text', text: /^\d+\/\d+$/ }))?.text).toBe('0/2')
+
+  agents.set(finder1.agentId!, 'completed')
+  await spawn($, 'cantrips:verifier')
+  expect((await pane.find({ type: 'Text', text: /^1\/2$/ }))?.text).toBe('1/2')
+  expect((await pane.find({ type: 'Text', text: /^0\/1$/ }))?.text).toBe('0/1')
+  const band = await $.ui.mount(BAND)
+  expect((await band.find({ key: 'chip' }))?.text).toBe('🪄 review-gate · 2 running')
+  await band.unmount()
+
+  for (const id of agents.keys()) agents.set(id, 'completed')
+  const arbiter = await spawn($, 'cantrips:arbiter')
+  expect(await pane.find({ type: 'Text', text: /^\d+\/\d+$/ })).toBeUndefined()
+  expect((await pane.find({ key: `view:${arbiter.agentId}` }))?.text).toMatch(
+    /^arbiter +● running$/,
+  )
+  expect(await pane.find({ type: 'Text', text: '0s' })).toBeDefined()
+  await clock.advance(70_000)
+  agents.set(arbiter.agentId!, 'completed')
+  await completeTurn($)
+  expect((await pane.find({ key: `view:${arbiter.agentId}` }))?.text).toMatch(/^arbiter +✓ done$/)
+  expect(await pane.find({ type: 'Text', text: '1m' })).toBeDefined()
+  await pane.unmount()
+})
+
+test('a view press shows the agent, the way back returns, a refusal says why', async ($, on) => {
+  const { calls } = world(on)
+  await start($)
+  const arbiter = await spawn($, 'cantrips:arbiter')
+  const pane = await $.ui.mount(PANE)
+  await pane.press({ key: `view:${arbiter.agentId}` })
+  expect(calls.views).toEqual([arbiter.agentId])
+  expect(await pane.find({ type: 'Text', text: '▌' })).toBeUndefined()
+  await pane.unmount()
+
+  const viewed = await $.ui.mount({
+    ...PANE,
+    props: { ...PANE.props, view: { agentId: arbiter.agentId } },
+  })
+  // The row of the agent in view carries a bar in its margin.
+  expect(await viewed.find({ type: 'Text', text: '▌' })).toBeDefined()
+  await viewed.press({ key: 'view:main' })
+  expect(calls.views).toEqual([arbiter.agentId, 'main'])
+  expect(await viewed.find({ type: 'Text', text: /View refused/ })).toBeUndefined()
+  await viewed.unmount()
+})
+
+test('a refused view shows the engine\'s reason', async ($, on) => {
+  world(on, { isViewRefused: true })
+  await start($)
+  const deputy = await spawn($, 'cantrips:deputy')
+  const pane = await $.ui.mount(PANE)
+  await pane.press({ key: `view:${deputy.agentId}` })
+  expect((await pane.find({ type: 'Text', text: /View refused/ }))?.text).toBe(
+    'View refused: not from a press',
+  )
+  // The next prompt's turn takes the note away.
+  await startTurn($)
+  expect(await pane.find({ type: 'Text', text: /View refused/ })).toBeUndefined()
+  await pane.unmount()
+})
+
+test('an arbiter the engine no longer lists leaves; a deputy stays, unpressable', async ($, on) => {
+  const { agents } = world(on)
+  await start($)
+  const arbiter = await spawn($, 'cantrips:arbiter')
+  const deputy = await spawn($, 'cantrips:deputy')
+  await select($, { deputy: 'deciding' })
+  agents.delete(arbiter.agentId!)
+  agents.delete(deputy.agentId!)
+  await completeTurn($)
+  const pane = await $.ui.mount(PANE)
+  expect(await pane.find({ type: 'Text', text: /^arbiter / })).toBeUndefined()
+  expect(await pane.find({ key: `view:${arbiter.agentId}` })).toBeUndefined()
+  expect(await pane.find({ key: `view:${deputy.agentId}` })).toBeUndefined()
+  expect((await pane.find({ type: 'Text', text: /^deputy / }))?.text).toMatch(
+    /^deputy +◆ deciding mode$/,
+  )
+  await pane.unmount()
+})
+
+test('the deputy row words stance and activity apart, off again after a clear', async ($, on) => {
+  const { agents, clock, session } = world(on)
+  await start($)
+  const pane = await $.ui.mount(PANE)
+  // The row is always there, off until a deputy is engaged.
+  expect((await pane.find({ type: 'Text', text: /^deputy / }))?.text).toMatch(/^deputy +off$/)
+  await expand($, 'cantrips:deputy', 'Advise me.')
+  // The mode comes from the tool alone.
+  expect((await pane.find({ type: 'Text', text: /^deputy / }))?.text).toMatch(/^deputy +off$/)
+  expect((await select($, { deputy: 'advisor' })).result).toBe('')
+  expect((await pane.find({ type: 'Text', text: /^deputy / }))?.text).toMatch(
+    /^deputy +◆ advising mode$/,
+  )
+  expect(await pane.find({ type: 'Text', text: 'idle' })).toBeDefined()
+
+  const deputy = await spawn($, 'cantrips:deputy')
+  await clock.advance(10_000)
+  // Answering, the mark lights and the time with it.
+  expect((await pane.find({ key: `view:${deputy.agentId}` }))?.text).toMatch(
+    /^deputy +● advising mode$/,
+  )
+  expect((await pane.find({ type: 'Text', text: '10s' }))?.props).toMatchObject({
+    color: '#88C0D0',
+  })
+  agents.set(deputy.agentId!, 'completed')
+  await completeTurn($)
+  expect((await pane.find({ key: `view:${deputy.agentId}` }))?.text).toMatch(
+    /^deputy +◆ advising mode$/,
+  )
+  expect(await pane.find({ type: 'Text', text: 'idle' })).toBeDefined()
+  await select($, { deputy: 'off' })
+  expect((await pane.find({ key: `view:${deputy.agentId}` }))?.text).toMatch(
+    /^deputy +✓ dismissed$/,
+  )
+  expect(await pane.find({ type: 'Text', text: 'idle' })).toBeUndefined()
+
+  session.id = 'sid-2'
+  await $.classic.SessionStart({ source: 'clear', session_id: 'sid-2' })
+  expect((await pane.find({ type: 'Text', text: /^deputy / }))?.text).toMatch(/^deputy +off$/)
+  expect(await pane.find({ key: `view:${deputy.agentId}` })).toBeUndefined()
+  await pane.unmount()
+})
+
+test('the timer reads the list only while a turn or an agent runs', async ($, on) => {
+  const { agents, calls, clock } = world(on)
+  await start($)
+  await startTurn($)
+  const finder = await spawn($, 'cantrips:finder:low')
+  await completeTurn($)
+  const held = calls.lists
+  await clock.advance(10_000)
+  expect(calls.lists).toBe(held + 1)
+
+  agents.set(finder.agentId!, 'completed')
+  await clock.advance(10_000)
+  const after = calls.lists
+  await clock.advance(60_000)
+  expect(calls.lists).toBe(after)
 })

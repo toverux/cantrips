@@ -1,7 +1,8 @@
-// The loop panel: a pane with the loop rail, the feature's ticket board, the features in flight
-// and a reserved row, a band chip that opens it, and the loop tool through which the model
-// selects the feature and the ticket. Reach: it reads files, listens to events, draws, acts on
-// the session only in answer to a press or to name it after the feature, and writes only its own
+// The loop panel: a pane with the loop rail, the feature's ticket board, the features in flight,
+// the cantrips sub-agents at work, the deputy's mode and a reserved row, a band chip that opens it,
+// and the loop tool through which the model selects the feature and the ticket and reports the
+// deputy's mode. Reach: it reads files, listens to events, draws, acts on
+// the session only in answer to a press, and writes only its own
 // store; every hook but the Pane render, which returns its tree, and the command and the tool,
 // which answer their own runs and calls, passes its event on, a guard that trips too.
 
@@ -9,6 +10,16 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, ToolCallInput } from 'claude-code'
 
 import type { FeatureView, FlightRow, LoopState } from '../types'
+import type { AgentPhase, DeputyLine, Pip } from '../core/agents.ts'
+import {
+  agentLine,
+  agentRole,
+  agentsView,
+  deputyLine,
+  spawnAgent,
+  withAgentList,
+  withDeputy,
+} from '../core/agents.ts'
 import {
   LOOP_CONFIG,
   SCRATCH,
@@ -40,30 +51,38 @@ import {
   plural,
   railStops,
   reduceSkill,
+  runningCount,
   withFileTrail,
 } from '../core/loop.ts'
 import { LOOP_TOOL, findTicket, readCall } from '../core/tool.ts'
 
 const PANE = 'cantrips'
-const TITLE = '🪄 cantrips'
-// Nord (https://www.nordtheme.com); what each shade means is the style guide in AGENTS.md.
+const TITLE = 'cantrips'
+// Nord (https://www.nordtheme.com); what each shade means is the style guide in mod/CLAUDE.md.
 const NORD = {
   frostCyan: '#88C0D0',
   frostBlue: '#81A1C1',
   auroraGreen: '#A3BE8C',
   auroraOrange: '#D08770',
   auroraPurple: '#B48EAD',
+  auroraYellow: '#EBCB8B',
 }
 const TICK_MS = 10_000
+// The agent rows' name column, `verifiers` wide.
+const ROLE_WIDTH = 10
 // A pattern, since the hook filter's types admit the built-in tools' names alone.
 const TOOL = new RegExp(`^mcp__cantrips__${LOOP_TOOL.name}$`)
 
+// What a clear, a resume or a fork resets: the conversation it starts may hold agents and a deputy
+// the module never saw.
+const UNSEEN_AGENTS = { agents: [], deputy: null, viewNote: null }
+
 // Change the tag when LoopState's fields change: an earlier version's value outlives a reload
 // and is then declined.
-const loop = atom({ plugin: 'cantrips', key: 'loop' } as const, INITIAL, { shape: 'loop-3' })
+const loop = atom({ plugin: 'cantrips', key: 'loop' } as const, INITIAL, { shape: 'loop-6' })
 
 export const register: Register = on => {
-  let tick: { cancel: () => void } | null = null
+  const live: Live = { tick: null, isTurnRunning: false }
   // The id the session record is kept under: a clear or a fork mints a new one while the pane's
   // state carries on, so the record follows it.
   let sessionId: string | null = null
@@ -81,28 +100,16 @@ export const register: Register = on => {
 
   // `session.start` does not fire again after a clear, a resume or a fork, and those reset the
   // session state; the classic hook carries the source. A clear or a fork mints a new id with no
-  // record of its own, so the record follows; a resumed session keeps the record it made. The
-  // session's name, which a clear keeps, rides in on every source.
+  // record of its own, so the record follows; a resumed session keeps the record it made.
   on('classic.SessionStart', async ($, e, next) => {
-    const title = e.session_title ?? null
     if (e.source === 'clear' || e.source === 'resume' || e.source === 'fork') {
       const previous = sessionId
       sessionId = e.session_id
       const isMinted = e.source !== 'resume' && previous !== null && previous !== e.session_id
       if (isMinted) await carrySession($, previous, e.session_id)
-      hasTool = await refresh($, { session: e.session_id, title }, hasTool)
+      hasTool = await refresh($, { session: e.session_id, ...UNSEEN_AGENTS }, hasTool)
       await applyPaneRecord($, e.session_id)
-    } else {
-      await update($, loop, state => ({ ...state, title }))
     }
-    return next(e)
-  }).catch(($, e, next) => next(e))
-
-  // The one place a name the user gave shows: an unnamed session's prompt carries none.
-  on('classic.UserPromptSubmit', async ($, e, next) => {
-    const title = e.session_title ?? null
-    const state = await read($, loop)
-    if (state.title !== title) await update($, loop, held => ({ ...held, title }))
     return next(e)
   }).catch(($, e, next) => next(e))
 
@@ -128,20 +135,38 @@ export const register: Register = on => {
     return ran
   }).catch(($, e, next) => next(e))
 
-  on('turn.start', ($, e, next) => {
-    if (e.agentId === undefined && tick === null) {
-      tick = $.clock.every(TICK_MS, () => $.ui.invalidate('ui.render'))
+  on('agent.spawn', async ($, e, next) => {
+    const spawned = await next(e)
+    const role = agentRole(e.subagentType, $.plugin.name)
+    const id = spawned.agentId
+    if (role !== null && id !== undefined) {
+      const now = await $.clock.now()
+      await update($, loop, state => spawnAgent(state, id, role, now))
+      await refreshAgents($, live)
     }
+    return spawned
+  }).catch(($, e, next) => next(e))
+
+  on('turn.start', async ($, e, next) => {
+    if (e.agentId === undefined) {
+      live.isTurnRunning = true
+      // A refused view's reason answers one press; the next prompt moves on from it.
+      await update($, loop, state =>
+        state.viewNote === null ? state : { ...state, viewNote: null },
+      )
+    }
+    await refreshAgents($, live)
     return next(e)
   }).catch(($, e, next) => next(e))
 
   on('turn.complete', async ($, e, next) => {
+    const done = await next(e)
     if (e.agentId === undefined) {
-      tick?.cancel()
-      tick = null
+      live.isTurnRunning = false
       hasTool = await refresh($, { activity: null }, hasTool)
     }
-    return next(e)
+    await refreshAgents($, live)
+    return done
   }).catch(($, e, next) => next(e))
 
   on('ui.close', { id: PANE }, async ($, e, next) => {
@@ -184,6 +209,36 @@ export const register: Register = on => {
     const now = await $.clock.now()
     const feature = state.feature
     const flight = listedFlight(state)
+    const agents = agentsView(state)
+    const viewing = e.props.view.agentId
+    const deputy = deputyLine(state, agents.deputy, now)
+    // The deputy's row is always drawn, for its stance.
+    const rows = [
+      {
+        role: 'deputy',
+        run: agents.deputy,
+        mark: deputyMark(Text, deputy),
+        right:
+          deputy.activity === 'idle' ? (
+            <Text dimColor>idle</Text>
+          ) : (
+            runTime(Text, deputy.activity === 'running', deputy.time)
+          ),
+      },
+    ]
+    if (agents.arbiter !== null) {
+      const ruling = agentLine(agents.arbiter, now)
+      rows.unshift({
+        role: 'arbiter',
+        run: agents.arbiter,
+        mark: phaseMark(Text, ruling.phase),
+        right: runTime(Text, ruling.phase === 'running', ruling.time),
+      })
+    }
+    const groups = [
+      ['finders', agents.finders],
+      ['verifiers', agents.verifiers],
+    ] as const
     // The trailer's columns line up across rows: the count to its widest, the status to the
     // longest blocker list (the icon is two cells wide).
     const tickets = feature?.tickets ?? []
@@ -197,7 +252,7 @@ export const register: Register = on => {
     )
 
     return (
-      <Box flexDirection="column" gap={1}>
+      <Box flexDirection="column" gap={1} paddingRight={1}>
         <Box flexDirection="column">
           <Box flexWrap="wrap" columnGap={1}>
             {railStops(state).map(stop =>
@@ -311,6 +366,61 @@ export const register: Register = on => {
             ))}
           </Box>
         )}
+        <Box flexDirection="column">
+          <Box columnGap={1}>
+            <Box flexGrow={1}>
+              <Text dimColor>Agents</Text>
+            </Box>
+            {viewing !== undefined && (
+              <Button key="view:main" plain onPress={() => showAgent($, null)}>
+                <Text color={NORD.frostCyan}>◀ main</Text>
+              </Button>
+            )}
+          </Box>
+          {state.viewNote?.id === 'main' && <Text dimColor>{state.viewNote.text}</Text>}
+          {groups.map(
+            ([label, batch]) =>
+              batch !== null && (
+                <Box columnGap={1}>
+                  <Text> {label.padEnd(ROLE_WIDTH)}</Text>
+                  <Box flexGrow={1} flexShrink={1} columnGap={1}>
+                    <Text wrap="truncate-end">{batch.pips.map(pip => pipMark(Text, pip))}</Text>
+                    <Box flexShrink={0}>
+                      <Text dimColor>
+                        {batch.done}/{batch.pips.length}
+                      </Text>
+                    </Box>
+                  </Box>
+                  <Text color={NORD.frostCyan}>{formatDuration(now - batch.since)}</Text>
+                </Box>
+              ),
+          )}
+          {rows.map(({ role, run, mark, right }) => (
+            <Box flexDirection="column">
+              <Box>
+                <Text color={NORD.frostCyan}>{run !== null && run.id === viewing ? '▌' : ' '}</Text>
+                {run?.isListed === true ? (
+                  <Button key={`view:${run.id}`} plain onPress={() => showAgent($, run.id)}>
+                    {role.padEnd(ROLE_WIDTH)} {mark}
+                  </Button>
+                ) : (
+                  // The engine refuses to show an agent it no longer lists.
+                  <Text>
+                    {role.padEnd(ROLE_WIDTH)} {mark}
+                  </Text>
+                )}
+                <Box flexGrow={1} justifyContent="flex-end" paddingLeft={1}>
+                  {right}
+                </Box>
+              </Box>
+              {run !== null && state.viewNote?.id === run.id && (
+                <Box paddingLeft={1}>
+                  <Text dimColor>{state.viewNote.text}</Text>
+                </Box>
+              )}
+            </Box>
+          ))}
+        </Box>
         <Box columnGap={1}>
           <Text color={NORD.auroraPurple} weight="bold">
             Needs you
@@ -320,6 +430,75 @@ export const register: Register = on => {
       </Box>
     )
   }).catch(($, e, next) => next(e))
+}
+
+type Resolved = ReturnType<EngineInterface['ui']['resolve']>
+
+/** A batch run's pip: ticked once done, crossed once failed or killed, lit while not ended. */
+function pipMark(Text: Resolved['Text'], pip: Pip) {
+  if (pip === 'done') return <Text color={NORD.auroraGreen}>✓</Text>
+  if (pip === 'failed') return <Text color={NORD.auroraOrange}>✗</Text>
+  return <Text color={NORD.frostCyan}>●</Text>
+}
+
+/** The arbiter's phase. */
+function phaseMark(Text: Resolved['Text'], phase: AgentPhase) {
+  if (phase === 'running') return <Text color={NORD.frostCyan}>● running</Text>
+  if (phase === 'on call') return <Text color={NORD.auroraYellow}>◆ on call</Text>
+  return <Text color={NORD.auroraGreen}>✓ done</Text>
+}
+
+/** The deputy's mark: what it does now, the word its mode or stance. */
+function deputyMark(Text: Resolved['Text'], line: DeputyLine) {
+  if (line.activity === 'running') return <Text color={NORD.frostCyan}>● {line.word}</Text>
+  if (line.stance === 'standing') return <Text color={NORD.auroraYellow}>◆ {line.word}</Text>
+  if (line.stance === 'dismissed') return <Text color={NORD.auroraGreen}>✓ {line.word}</Text>
+  return <Text dimColor>{line.word}</Text>
+}
+
+/** A row's time: cyan while its agent works, dim once it is done. */
+function runTime(Text: Resolved['Text'], isWorking: boolean, time: string | null) {
+  if (isWorking) return <Text color={NORD.frostCyan}>{time}</Text>
+  return time !== null && <Text dimColor>{time}</Text>
+}
+
+/**
+ * Shows the agent's conversation in the main view, or the main one for null: the view call comes
+ * first, since the engine honours it only in direct answer to the press. A refusal shows its
+ * reason.
+ */
+async function showAgent($: EngineInterface, id: string | null): Promise<void> {
+  const shown = await $.ui.view(id === null ? {} : { agentId: id })
+  const note =
+    shown.deny === undefined ? null : { id: id ?? 'main', text: `View refused: ${shown.deny}` }
+  await update($, loop, state => ({ ...state, viewNote: note }))
+}
+
+/** The timer, and whether a main turn runs: what the timer's life hangs on. */
+type Live = { tick: { cancel: () => void } | null; isTurnRunning: boolean }
+
+/**
+ * Reads the engine's agent list into the runs, then keeps the timer running only while a turn or
+ * a listed agent runs; each tick reads the list again, since an agent that ends outside a turn
+ * fires nothing the module hears.
+ */
+async function refreshAgents($: EngineInterface, live: Live): Promise<void> {
+  let state = await read($, loop)
+  if (state.agents.length > 0) {
+    const listed = await $.agent.list()
+    const now = await $.clock.now()
+    state = await update($, loop, held => withAgentList(held, listed, now))
+  }
+  const isLive = live.isTurnRunning || runningCount(state) > 0
+  if (isLive && live.tick === null) {
+    live.tick = $.clock.every(TICK_MS, () => {
+      $.ui.invalidate('ui.render')
+      void refreshAgents($, live).catch(() => undefined)
+    })
+  } else if (!isLive && live.tick !== null) {
+    live.tick.cancel()
+    live.tick = null
+  }
 }
 
 /** The path a file tool's call touched. */
@@ -450,9 +629,8 @@ async function loadFeature(
 }
 
 /**
- * Serves a call of the loop tool: selects the feature and the ticket it names, records them and,
- * for the session's first feature, names the session; a name the folder lacks changes nothing
- * and answers why.
+ * Serves a call of the loop tool: selects the feature and the ticket it names and records them,
+ * and takes the deputy mode it reports; a name the folder lacks changes nothing and answers why.
  */
 async function select(
   $: EngineInterface,
@@ -462,6 +640,11 @@ async function select(
   const root = state.root ?? (await $.session.root())
   const call = readCall(input, state.feature?.slug ?? null)
   if ('error' in call) return { deny: call.error }
+  const mode = call.deputy
+  if (call.slug === null) {
+    if (mode !== null) await update($, loop, held => withDeputy(held, mode))
+    return { result: '' }
+  }
   const view = await loadFeature($, root, call.slug, null)
   if (view === null) {
     const where = `${SCRATCH}/${call.slug}/`
@@ -473,11 +656,17 @@ async function select(
     return { deny: `${SCRATCH}/${call.slug}/ has no ticket ${call.ticket}; its tickets: ${files}.` }
   }
   const stored = (await readRecords($, root))[call.slug]
-  const selected = await update($, loop, held =>
-    withFileTrail(selectFeature({ ...held, isLoopRepo: true }, view, ticket?.file ?? null, stored)),
-  )
+  const selected = await update($, loop, held => {
+    const reported = mode === null ? held : withDeputy(held, mode)
+    const chosen = selectFeature(
+      { ...reported, isLoopRepo: true },
+      view,
+      ticket?.file ?? null,
+      stored,
+    )
+    return withFileTrail(chosen)
+  })
   await recordTouch($, selected, await $.clock.now())
-  if (state.touched !== call.slug) await nameSession($, selected)
   return { result: '' }
 }
 
@@ -518,23 +707,6 @@ async function stampRecord($: EngineInterface, slug: string): Promise<void> {
   if (record === undefined) return
   const stamped = { ...record, touchedAt: await $.clock.now() }
   await $.store.set(repoKey(root), { ...records, [slug]: stamped })
-}
-
-/**
- * Names the session after the feature it selected first, once: the record settles it through a
- * clear or a resume, and a name the user gave stands. The rename is queued from a timer, outside
- * the tool call the turn waits on, and runs once the session is idle.
- */
-async function nameSession($: EngineInterface, state: LoopState): Promise<void> {
-  const { session, touched } = state
-  if (session === null || touched === null) return
-  const held = await readSession($, session)
-  if (held.isRenamed === true) return
-  await updateSession($, session, { isRenamed: true })
-  if (state.title !== null) return
-  $.clock.after(0, () => {
-    void $.command.run({ command: 'rename', args: touched }).catch(() => undefined)
-  })
 }
 
 /**

@@ -190,15 +190,25 @@ The pane also lists the features in flight under `.scratch/`: the stage each rea
 last touched, whether its spec and tickets exist, and its last ticket while that one is still
 unresolved. A feature that another session worked on last has a Resume button, which runs `/resume`
 with that session's id; if Claude Code refuses the call, the command goes into the prompt instead.
-When Claude first reports a feature in a session, the mod names the session after it with `/rename`,
-unless you have named it already. It does this once per session, so a name you give later stays.
+
+The pane shows the session's cantrips sub-agents. While a batch of finders or verifiers runs, it
+gets a row of one mark per agent, finished ones first, so the row fills up as the batch works, with
+a done count and the batch's elapsed time. Once spawned, the arbiter keeps a row with its elapsed
+time while it runs and its duration once done, until Claude Code stops listing it. The deputy always
+has a row. It reads `off` until `/deputy` engages one, then `deciding mode` or `advising mode`,
+which Claude reports through the same tool, and `dismissed` once sent away. Its right end says
+`idle` between answers and shows the elapsed time while it answers. Pressing a row opens that
+agent's conversation in the main view and marks the row, and `◀ main` brings you back. A deputy
+Claude Code no longer lists can't be pressed, and if Claude Code refuses a switch anyway, the pane
+says why under the row. The rows reset on `/clear` and on a resume. The chip adds the number of
+running agents.
 
 Everything the pane shows comes from the files the loop writes, the events the engine fires and the
 calls to its tool; it reads nothing from the chat, and a section nothing can fill stays absent. The
 mod reads files, listens to events and draws. It acts on the session only when you press one of its
-buttons, and to name the session after its feature. It writes only its own store, registers no
-permission-deciding hook, fetches nothing, and passes on every tool call except those to its own
-tool. `claude plugin validate` lists every engine call it makes.
+buttons. It writes only its own store, registers no permission-deciding hook, fetches nothing, and
+passes on every tool call except those to its own tool. `claude plugin validate` lists every engine
+call it makes.
 
 The mod API is early access and changes between Claude Code releases. A release that breaks the
 pane leaves the skills loading, since the module loads apart from them, and the fix ships as a
