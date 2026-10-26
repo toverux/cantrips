@@ -708,9 +708,23 @@ applies, and `report` then records the finding as skipped on that decline; the s
 it again through `outcomes` (transcript `449ee1b0-8f4e-4e34-a306-6263c9118606`, twice in one run).
 Either the round message withholds a finding the session has already parked, ARBITER.md gives the
 arbiter a ruling for one, or `report` keeps a finding carrying options parked whatever the ruling.
+Withholding alone does not settle it: a hands-off run that kept a spec finding from the arbiter and
+routed it itself had the report print that round as "unjudged" (same transcript, a later run), so the
+missing ruling reads as a fault where it was the rule.
 
 **Adopt when:** the next edit to ARBITER.md's Each round's message, or to how `report` dispositions
 a candidate with options.
+
+## The arbiter rules before the verifiers answer
+
+ARBITER.md dispatches the arbiter at the same time as the verifiers, over every candidate standing
+after inline triage, so it rules on findings the verifiers then refute: in one run it ruled "fix" on
+a docblock candidate the verifier refuted as a bug, and the drop-REFUTED rule left the ruling nowhere
+to land, the session folding the doc edit into a neighbouring fix (transcript
+`449ee1b0-8f4e-4e34-a306-6263c9118606`). Either Acting on what comes back says a ruling on a refuted
+finding is void, or the arbiter takes the candidates once their verdicts are in, a round later.
+
+**Adopt when:** the next edit to ARBITER.md's Dispatch or Acting on what comes back.
 
 ## Verify has no tally of the finders' candidates
 
