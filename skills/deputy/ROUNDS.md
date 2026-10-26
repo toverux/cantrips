@@ -12,7 +12,7 @@ A deputy dispatched after rounds were answered is onboarded with them, so one me
 
 The dispatch message carries, and only carries:
 
-- the mode, deciding or advisor, and the standing orders — whatever followed `/deputy` on invocation, free text — or none;
+- the mode, deciding or advisor, and the standing orders — in the user's words — or none;
 - every round this session has put so far: each question as it was asked, options and recommendation included, with its answer under it, labelled `User:` or `Deputy:` by who gave it;
 - the loop config's content — `docs/agents/cantrips-loop.md`, or [defaults.md](../setup-cantrips-loop/defaults.md) where the repo has none;
 - the repo's root, read-only;
