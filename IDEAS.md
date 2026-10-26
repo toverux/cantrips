@@ -721,3 +721,14 @@ away in round 1 and reached no verifier and no arbiter, resurfacing only in the 
 explicit merges out, before the verifiers dispatch would catch it.
 
 **Adopt when:** the next edit to the Verify section of review-gate's SKILL.md.
+
+## `/tickets` has no stable format for the list it puts to the user
+
+Step 4 names the three fields a proposed ticket shows (title, blocked by, what it delivers) and no
+format, so each run lays the list out its own way: in one session the breakdown of a five-ticket
+feature came out as a numbered list whose "delivers" field ran to a paragraph per ticket, hard to
+read as a list and harder to compare run to run (transcript
+`27b97b0a-597b-41be-bf81-a8ff7abd7881`). A fixed shape, kept word for word across runs the way the
+question format is, would let the user read a breakdown at a glance.
+
+**Adopt when:** the next edit to step 4 of tickets' SKILL.md.
