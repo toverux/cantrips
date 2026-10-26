@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[inline|low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop | --fsd]'
 disable-model-invocation: true
-version: 2.2.0
+version: 2.2.1
 source: mattpocock/skills@1.2.3 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 # `; exit $LASTEXITCODE`, unquoted, keeps node's exit 2 under PowerShell, where Claude Code runs hooks on Windows; bash and sh ignore it.
 hooks:
@@ -105,7 +105,7 @@ The boundary governs the session that applies fixes and stays out of the scope b
 ## Level inline — inline pass
 
 Scope runs inline, then two review turns, no sub-agents.
-Turn 1: read the diff and any new files from Scope (skip test/fixture hunks) and the diff scan's hunt list from [`diff-scan.md`](../../agents/finder/diff-scan.md), past its frontmatter.
+Turn 1 makes its reads as tool calls, whoever wrote the change: first [`diff-scan.md`](../../agents/finder/diff-scan.md) past its frontmatter, the hunt list turn 2 hunts by, then the diff and any new files from Scope (skip test/fixture hunks).
 Turn 2: flag the diff scan's bugs visible from the hunk alone, plus duplication of a helper visible in the diff context, dead code left behind, mismatches against the spec's requirements when a spec was fetched, and any matched learning the diff re-triggers.
 Where the run applies fixes, first rule on the findings as [ARBITER.md](ARBITER.md)'s At `inline` section says; a delta round in a run that holds a dispatched arbiter sends them to it instead, as Each round's message says.
 Hand the findings to `report` most-severe first.
