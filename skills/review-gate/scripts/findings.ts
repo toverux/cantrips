@@ -42,6 +42,8 @@ const LEGEND: [string, string][] = [
 type Level = 'inline' | 'low' | 'medium' | 'high';
 type Mode = 'report' | 'fix' | 'loop';
 type Handoff = 'fix' | 'round' | 'close';
+// What the run is doing as of its last save, which the loop panel mirrors rather than reading the order itself.
+type Phase = 'reviewing' | 'fixing' | 'waiting' | 'green' | 'stopped' | 'done';
 
 interface Option {
   choice: string;
@@ -114,6 +116,8 @@ interface State {
   level: Level;
   mode: Mode;
   target: string;
+  phase: Phase; // written at every save
+  due: boolean; // a certifying pass is due: at the start, where a stopped run is relaunched, once where the arbiter asks; a one-shot run's report clears it
   findings: Finding[];
   refuted: Refuted[];
   // A run applying fixes only: working-tree snapshots, as tree IDs
@@ -127,7 +131,6 @@ interface State {
   novel_rounds: number[];
   record: number[]; // the batch edits awaiting their delta round, kept until a gate call reviews them
   stop: Stop | null;
-  due: boolean; // a certifying pass is due: at the start, where a stopped run is relaunched, once where the arbiter asks
   recertified: boolean; // the arbiter's one extra certifying pass is spent
   stopped: boolean; // close ended the run on its stop
 }
@@ -307,6 +310,7 @@ function handoffPath(file: string, kind: string): string {
 }
 
 function save(file: string, state: State): void {
+  state.phase = phaseOf(state);
   claimStateDir();
   const temp = `${file}.${process.pid}.tmp`;
   fs.writeFileSync(temp, `${JSON.stringify(state, null, 1)}\n`, { mode: 0o600 });
@@ -511,10 +515,11 @@ function start(file: string, input: Json): Result {
     if (open.length) agent.push(`still parked: ${ids(open)}`);
     return { user: '', agent: [...agent, 'next: run Scope, then a certifying pass', ...ledgerLines(previous)] };
   }
-  save(file, {
+  const fresh: State = {
     level,
     mode,
     target,
+    phase: 'reviewing',
     findings: [],
     refuted: [],
     handed: mode === 'report' ? undefined : snapshot(file),
@@ -528,7 +533,8 @@ function start(file: string, input: Json): Result {
     due: true,
     recertified: false,
     stopped: false,
-  });
+  };
+  save(file, fresh);
   return { user: '', agent: [`state: ${file}`, 'next: run Scope and the gate, then call report'] };
 }
 
@@ -710,6 +716,7 @@ function report(file: string, input: Json): Result {
   const body = shown.map((f) => reportRow(state, f)).join('\n');
   const user = withLegend([body, footer.join(' · ')].filter(Boolean).join('\n\n'));
 
+  state.due = false;
   save(file, state);
   if (state.mode === 'report') {
     agent.push('next: nothing to apply; call outcomes when a finding gets fixed later in this session');
@@ -928,6 +935,24 @@ function blocked(state: State): string | undefined {
   if (unreviewed.length) return `${ids(unreviewed)} fixed but not yet re-reviewed`;
   if (state.due) return 'a certifying pass is due';
   if (state.rounds.at(-1)?.checks === 'red') return 'the checks are red';
+}
+
+// The run's phase after a call, in next()'s order: a one-shot run reviews, fixes what it showed, then waits on what
+// it parked; a --loop run re-reviews its fixes, applies its queue, settles a red, certifies, has the arbiter rule
+// its questions of worth under --fsd, then waits on what it parked.
+function phaseOf(state: State): Phase {
+  const waiting = openParked(state).some((f) => !forArbiter(state, f));
+  if (state.mode !== 'loop') {
+    if (state.due) return 'reviewing';
+    if (state.mode !== 'fix') return 'done';
+    if (state.findings.some((f) => !f.held && !f.outcome)) return 'fixing';
+    return waiting ? 'waiting' : 'done';
+  }
+  if (state.stopped) return 'stopped';
+  if (pendingRecord(state).length) return 'reviewing';
+  if (state.queue.length || state.rounds.at(-1)?.checks === 'red') return 'fixing';
+  if (state.due || unruledWorth(state).length) return 'reviewing';
+  return waiting ? 'waiting' : 'green';
 }
 
 // A routed finding's route may have changed the code, so it counts with the fixes wherever an edit does.

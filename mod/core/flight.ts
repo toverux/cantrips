@@ -12,6 +12,8 @@ export type Records = Record<string, FeatureRecord>
 
 export type SessionRecord = {
   isPaneClosed?: boolean
+  /** The gate's state file, as the script's start call printed it in the session. */
+  gate?: string
   /** When the record was last written, in epoch milliseconds. */
   at?: number
 }

@@ -19,7 +19,7 @@ The mod API is early access and moves between releases: README states the Claude
 
 ## Style
 
-Colors are the Nord palette (the `NORD` table in `register.tsx`) on strategic elements only, the rest plain or dim — frost cyan for what is live now, aurora green for what is done (a visited stage, a resolved ticket's tick), frost blue for the feature's name, aurora orange for what blocks or failed, aurora purple for what waits on the user, aurora yellow for an agent on call; a skipped stage and a resolved ticket's title are struck through, a coming stage is dim with no stroke, and counts and durations are dim, but for an agent's time while it works, which is cyan.
+Colors are the Nord palette (the `NORD` table in `register.tsx`) on strategic elements only, the rest plain or dim — frost cyan for what is live now, aurora green for what is done (a visited stage, a resolved ticket's tick), frost blue for the feature's name, aurora orange for what blocks or failed, aurora purple for what waits on the user, aurora yellow for an agent on call; a skipped stage and a resolved ticket's title are struck through, but for the lit ticket's while the stage is `/implement`, `/simplify` or `/review-gate`, a coming stage is dim with no stroke, and counts and durations are dim, but for an agent's time while it works, which is cyan.
 A new section takes its colors from that table and adds a shade only for a meaning the table lacks.
 
 ## Tests and type-checking

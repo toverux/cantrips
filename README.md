@@ -191,6 +191,23 @@ last touched, whether its spec and tickets exist, and its last ticket while that
 unresolved. A feature that another session worked on last has a Resume button, which runs `/resume`
 with that session's id; if Claude Code refuses the call, the command goes into the prompt instead.
 
+During a `/review-gate` run the pane shows what the run's state file holds. The headline gives the
+phase the script recorded (reviewing, fixing, waiting on you, green or stopped) and the round; a
+one-shot run that has finished reads reported, or, under `--fix`, fixed once a finding came out
+fixed, needing no change, or routed. Below it come the level, the flag the run was given and the
+target. In a run that applies fixes, a bar splits the findings by where they stand, and the counts
+under it read as its legend: done, skipped, open, queued, and the arbiter's declines last. Up to
+five findings parked for you are listed with their summaries and the rest counted, the queue shows
+as many ids as fit on one line, and the verdict counts close the section, so however many findings a
+run holds, the section never grows past five parked rows and one line of queue. When a stop trips,
+the pane says why in plain words, and once the run has stopped on it, the pane names the command
+that continues it. The mod takes the file's path from the line the script prints when the run starts
+and stores it, so a resume finds the run again. A session that joined a run midway, or was cleared
+after the run started, shows no gate. The status line under the prompt shows a run that has stopped
+or is waiting on you, and clears when the script records another phase. The chip adds one word on
+the gate: that the run stopped, how many findings are for you, that the run is green, or how many
+are queued or open.
+
 The pane shows the session's cantrips sub-agents. While a batch of finders or verifiers runs, it
 gets a row of one mark per agent, finished ones first, so the row fills up as the batch works, with
 a done count and the batch's elapsed time. Once spawned, the arbiter keeps a row with its elapsed

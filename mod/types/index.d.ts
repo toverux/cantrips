@@ -96,6 +96,46 @@ export type AgentRun = {
 /** The deputy's mode, as the model reports it through the loop tool. */
 export type DeputyMode = 'off' | 'deciding' | 'advisor'
 
+/** What a gate run is doing, as the script recorded it at its last save. */
+export type GatePhase = 'reviewing' | 'fixing' | 'waiting' | 'green' | 'stopped' | 'done'
+
+/** The findings by where they stand; each finding counts once. */
+export type GateCounts = {
+  /** Fixed, or settled with no change or by a spec route. */
+  done: number
+  skipped: number
+  declined: number
+  /** Parked for the user, a reverted batch counting once. */
+  forYou: number
+  queued: number
+  /**
+   * Shown with no outcome yet and not queued: a report's findings, a one-shot fix's pending ones;
+   * and under `--fsd` the questions of worth parked for the arbiter.
+   */
+  open: number
+  /** Held back over a report's cap. */
+  held: number
+}
+
+/** A `/review-gate` run, as its state file records it. */
+export type GateView = {
+  level: string
+  mode: string
+  /** A `--loop` run the user handed over with `--fsd`. */
+  isAutonomous: boolean
+  target: string
+  phase: GatePhase
+  /** The rounds a `--loop` run reported; 0 before its first and in any other mode. */
+  round: number
+  counts: GateCounts
+  verdicts: { confirmed: number; plausible: number; unverified: number; refuted: number }
+  /** The finding ids queued, the batch in flight at their head. */
+  queue: number[]
+  /** The parked findings waiting on the user, with their summaries, by id. */
+  forYou: { id: number; summary: string }[]
+  stop: { condition: string; tripped: string } | null
+}
+
 export type LoopState = {
   /** The session's id, as the store keys it. */
   session: string | null
@@ -127,6 +167,10 @@ export type LoopState = {
   deputy: DeputyMode | null
   /** Why the engine refused to show an agent's conversation, on that agent's row. */
   viewNote: { id: string; text: string } | null
+  /** The gate's state file, as the script's start call printed it; null before one was seen. */
+  gatePath: string | null
+  /** The run that file holds; null where it is unread, gone or lacks a field the pane reads. */
+  gate: GateView | null
 }
 
 declare module 'claude-code' {

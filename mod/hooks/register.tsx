@@ -1,15 +1,16 @@
 // The loop panel: a pane with the loop rail, the feature's ticket board, the features in flight,
-// the cantrips sub-agents at work, the deputy's mode and a reserved row, a band chip that opens it,
-// and the loop tool through which the model selects the feature and the ticket and reports the
-// deputy's mode. Reach: it reads files, listens to events, draws, acts on
-// the session only in answer to a press, and writes only its own
-// store; every hook but the Pane render, which returns its tree, and the command and the tool,
-// which answer their own runs and calls, passes its event on, a guard that trips too.
+// the gate run, the cantrips sub-agents at work, the deputy's mode and a reserved row, a band chip
+// that opens it, a status line while the gate run stops or waits on the user, and the loop tool
+// through which the model selects the feature and the ticket and reports the deputy's mode.
+// Reach: it reads files, listens to events, draws, acts on the session only in answer to a press,
+// and writes only its own store; every hook but the Pane render, which returns its tree, and the
+// command and the tool, which answer their own runs and calls, passes its event on, a guard that
+// trips too.
 
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, ToolCallInput } from 'claude-code'
 
-import type { FeatureView, FlightRow, LoopState } from '../types'
+import type { FeatureView, FlightRow, GatePhase, GateView, LoopState } from '../types'
 import type { AgentPhase, DeputyLine, Pip } from '../core/agents.ts'
 import {
   agentLine,
@@ -45,9 +46,26 @@ import {
 } from '../core/flight.ts'
 import type { Records, SessionRecord } from '../core/flight.ts'
 import {
+  barCells,
+  FOR_YOU_NAMED,
+  fitIds,
+  gateStatus,
+  headline,
+  isGateCall,
+  metaLine,
+  parseGate,
+  startPath,
+  stopText,
+  resumeCommand,
+  WAY_OUT_LEAD,
+  verdictParts,
+} from '../core/gate.ts'
+import type { BarKind } from '../core/gate.ts'
+import {
   INITIAL,
   chipText,
   formatDuration,
+  isStruck,
   plural,
   railStops,
   reduceSkill,
@@ -67,6 +85,26 @@ const NORD = {
   auroraPurple: '#B48EAD',
   auroraYellow: '#EBCB8B',
 }
+// The gate's headline by phase: live work cyan, what waits on the user purple, done green, a stop
+// orange.
+const PHASE_MARKS: Record<GatePhase, [string, string]> = {
+  reviewing: ['●', NORD.frostCyan],
+  fixing: ['●', NORD.frostCyan],
+  waiting: ['◆', NORD.auroraPurple],
+  green: ['✓', NORD.auroraGreen],
+  done: ['✓', NORD.auroraGreen],
+  stopped: ['⛔', NORD.auroraOrange],
+}
+// The bar's shades, which its legend's marks take: the skipped and declined segments dim, the open
+// one plain.
+const BAR_SHADES: Record<BarKind, { color?: string; isDim?: boolean }> = {
+  done: { color: NORD.auroraGreen },
+  skipped: { isDim: true },
+  forYou: { color: NORD.auroraPurple },
+  queued: { color: NORD.frostCyan },
+  open: {},
+  declined: { isDim: true },
+}
 const TICK_MS = 10_000
 // The agent rows' name column, `verifiers` wide.
 const ROLE_WIDTH = 10
@@ -79,7 +117,7 @@ const UNSEEN_AGENTS = { agents: [], deputy: null, viewNote: null }
 
 // Change the tag when LoopState's fields change: an earlier version's value outlives a reload
 // and is then declined.
-const loop = atom({ plugin: 'cantrips', key: 'loop' } as const, INITIAL, { shape: 'loop-6' })
+const loop = atom({ plugin: 'cantrips', key: 'loop' } as const, INITIAL, { shape: 'loop-8' })
 
 export const register: Register = on => {
   const live: Live = { tick: null, isTurnRunning: false }
@@ -92,6 +130,9 @@ export const register: Register = on => {
     sessionId = await $.session.id()
     await $.command.register({ name: 'cantrips', description: 'Toggle the cantrips loop pane' })
     hasTool = await refresh($, { session: sessionId }, hasTool)
+    // A reload keeps the path in the session state; a session opened anew finds it in its record.
+    const known = (await read($, loop)).gatePath
+    await readGate($, known ?? (await readSession($, sessionId)).gate ?? null)
     await applyPaneRecord($, sessionId)
     // Last, so a failed prune costs the prune alone.
     await pruneSessions($)
@@ -108,6 +149,9 @@ export const register: Register = on => {
       const isMinted = e.source !== 'resume' && previous !== null && previous !== e.session_id
       if (isMinted) await carrySession($, previous, e.session_id)
       hasTool = await refresh($, { session: e.session_id, ...UNSEEN_AGENTS }, hasTool)
+      // A resumed session's run is under its own id; a clear or a fork starts with none.
+      const resumed = e.source === 'resume' ? await readSession($, e.session_id) : {}
+      await readGate($, resumed.gate ?? null)
       await applyPaneRecord($, e.session_id)
     }
     return next(e)
@@ -132,6 +176,9 @@ export const register: Register = on => {
   on('tool.call', async ($, e, next) => {
     const ran = await next(e)
     if (e.agentId === undefined) await rereadBoard($, touchedPath(e))
+    if (e.tool === 'Bash' && e.agentId === undefined && isGateCall(e.command)) {
+      await rereadGate($, e.command, ran.text)
+    }
     return ran
   }).catch(($, e, next) => next(e))
 
@@ -311,7 +358,7 @@ export const register: Register = on => {
                       wrap="truncate-end"
                       weight={weight}
                       dimColor={ticket.isResolved}
-                      strikethrough={ticket.isResolved}
+                      strikethrough={isStruck(state, ticket)}
                     >
                       {ticket.title}
                     </Text>
@@ -366,6 +413,7 @@ export const register: Register = on => {
             ))}
           </Box>
         )}
+        {state.gate !== null && gateSection(Text, Box, state.gate, e.props.bodyColumns)}
         <Box flexDirection="column">
           <Box columnGap={1}>
             <Box flexGrow={1}>
@@ -439,6 +487,153 @@ function pipMark(Text: Resolved['Text'], pip: Pip) {
   if (pip === 'done') return <Text color={NORD.auroraGreen}>✓</Text>
   if (pip === 'failed') return <Text color={NORD.auroraOrange}>✗</Text>
   return <Text color={NORD.frostCyan}>●</Text>
+}
+
+/** The gate's headline, marked and colored by the phase the script recorded. */
+function gateHeadline(Text: Resolved['Text'], gate: GateView) {
+  const [mark, color] = PHASE_MARKS[gate.phase]
+  return (
+    <Text color={color} weight="bold">
+      {mark} {headline(gate)}
+    </Text>
+  )
+}
+
+/**
+ * The gate run: its headline and meta line, a stop, the bar and its legend, the parked findings,
+ * the queue and the verdicts, at one height whatever the count of findings.
+ */
+function gateSection(
+  Text: Resolved['Text'],
+  Box: Resolved['Box'],
+  gate: GateView,
+  bodyColumns: number,
+) {
+  // The gate's rows sit one column in, inside the pane's right padding.
+  const width = Math.max(10, bodyColumns - 2)
+  // A report-only run fixes nothing, so its bar would never move.
+  const bar = gate.mode === 'report' ? [] : barCells(gate.counts, width)
+  const stop = stopText(gate)
+  const verdicts = verdictParts(gate)
+  const queued = `${gate.counts.queued} queued`
+  return (
+    <Box flexDirection="column">
+      <Box columnGap={1}>
+        <Text dimColor>Gate</Text>
+        {gateHeadline(Text, gate)}
+      </Box>
+      <Text wrap="truncate-end" dimColor>
+        {' '}
+        {metaLine(gate)}
+      </Text>
+      {stop !== null && (
+        <Box paddingLeft={1} flexDirection="column">
+          {gate.phase === 'stopped' ? (
+            <Box flexDirection="column">
+              <Text wrap="wrap" color={NORD.auroraOrange}>
+                {stop}
+              </Text>
+              {/* The command stays whole where the sentence wraps. */}
+              <Box flexWrap="wrap" columnGap={1}>
+                <Text>{WAY_OUT_LEAD}</Text>
+                <Text>{resumeCommand(gate)}.</Text>
+              </Box>
+            </Box>
+          ) : (
+            // A stop tripped in a run still at work may lapse before it closes.
+            <Text wrap="wrap" color={NORD.auroraOrange} dimColor>
+              Stop tripped: {stop}
+            </Text>
+          )}
+        </Box>
+      )}
+      {bar.length > 0 && (
+        <Text>
+          {' '}
+          {bar.map(({ kind, cells }) => barSegment(Text, kind, cells))}
+        </Text>
+      )}
+      <Box paddingLeft={1} flexWrap="wrap" columnGap={2}>
+        {countTokens(Text, [
+          ['✓', gate.counts.done, 'done', 'done'],
+          ['⊘', gate.counts.skipped, 'skipped', 'skipped'],
+          ['○', gate.counts.open, 'open', 'open'],
+        ])}
+      </Box>
+      {gate.counts.forYou > 0 && (
+        // The parked count heads its findings, by name up to the cap: the bar's purple legend.
+        <Box flexDirection="column">
+          <Text>
+            {' '}
+            <Text color={BAR_SHADES.forYou.color}>◆</Text> {gate.counts.forYou} for you
+          </Text>
+          {gate.forYou.slice(0, FOR_YOU_NAMED).map(one => (
+            <Box columnGap={1} paddingLeft={3}>
+              <Box flexShrink={0}>
+                <Text color={BAR_SHADES.forYou.color}>F{one.id}</Text>
+              </Box>
+              <Box flexGrow={1} flexShrink={1}>
+                <Text wrap="truncate-end">{one.summary}</Text>
+              </Box>
+            </Box>
+          ))}
+          {gate.forYou.length > FOR_YOU_NAMED && (
+            <Text dimColor>
+              {'   '}+{gate.forYou.length - FOR_YOU_NAMED} more
+            </Text>
+          )}
+        </Box>
+      )}
+      {gate.counts.queued > 0 && (
+        // The queued count with its ids, the batch in flight first: the bar's cyan legend.
+        <Text wrap="truncate-end">
+          {' '}
+          <Text color={BAR_SHADES.queued.color}>●</Text> {queued}{' '}
+          <Text color={BAR_SHADES.queued.color}>
+            {fitIds(gate.queue, width - queued.length - 3)}
+          </Text>
+        </Text>
+      )}
+      <Box paddingLeft={1} flexWrap="wrap" columnGap={2}>
+        {countTokens(Text, [['⊘', gate.counts.declined, 'declined', 'declined']])}
+        {gate.counts.held > 0 && <Text dimColor>+{gate.counts.held} held</Text>}
+      </Box>
+      {verdicts.length > 0 && (
+        <Box paddingLeft={1} flexWrap="wrap" columnGap={2}>
+          {verdicts.map(part => (
+            <Text dimColor>{part}</Text>
+          ))}
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+/** One segment of the gate's bar. */
+function barSegment(Text: Resolved['Text'], kind: BarKind, cells: number) {
+  const { color, isDim } = BAR_SHADES[kind]
+  return (
+    <Text color={color} dimColor={isDim}>
+      {'━'.repeat(cells)}
+    </Text>
+  )
+}
+
+/**
+ * A row of the bar's legend: each count with its mark and word, a zero left out. The parked and
+ * the queued counts head their own lines, with the findings they name, and the declines come last.
+ */
+function countTokens(Text: Resolved['Text'], tokens: [string, number, string, BarKind][]) {
+  return tokens
+    .filter(([, n]) => n > 0)
+    .map(([mark, n, word, kind]) => (
+      <Text>
+        <Text color={BAR_SHADES[kind].color} dimColor={BAR_SHADES[kind].isDim}>
+          {mark}
+        </Text>{' '}
+        {n} {word}
+      </Text>
+    ))
 }
 
 /** The arbiter's phase. */
@@ -679,6 +874,34 @@ async function rereadBoard($: EngineInterface, path: string | null): Promise<voi
   await update($, loop, held => withFileTrail({ ...held, feature: view }))
 }
 
+/**
+ * Reads the gate's state file into the section and the status line, which holds the stop the file
+ * records and is cleared otherwise; a null path, a gone file or one lacking a field the pane reads
+ * leaves both empty.
+ */
+async function readGate($: EngineInterface, path: string | null): Promise<void> {
+  const text = path === null ? null : await $.fs.read(path).catch(() => null)
+  const gate = text === null ? null : parseGate(text)
+  await update($, loop, state => ({ ...state, gatePath: path, gate }))
+  $.ui.status(gateStatus(gate))
+}
+
+/**
+ * Once a call of the findings script returns: takes the path a start call printed, kept in the
+ * session's record for a resume, then re-reads the run from the path known.
+ */
+async function rereadGate(
+  $: EngineInterface,
+  command: string,
+  output: string | undefined,
+): Promise<void> {
+  const started = startPath(command, output ?? '')
+  const { session, gatePath } = await read($, loop)
+  if (started !== null && session !== null) await updateSession($, session, { gate: started })
+  const path = started ?? gatePath
+  if (path !== null) await readGate($, path)
+}
+
 /** The repository's feature records. */
 async function readRecords($: EngineInterface, root: string): Promise<Records> {
   return ((await $.store.get(repoKey(root))) ?? {}) as Records
@@ -752,10 +975,15 @@ async function updateSession(
   await $.store.set(sessionKey(id), { ...held, ...patch, at: await $.clock.now() })
 }
 
-/** Copies the session record to the id a clear or a fork minted. */
+/**
+ * Copies the session record to the id a clear or a fork minted, but for the gate's path: the
+ * script keys a run on the session id, so the new one starts with none.
+ */
 async function carrySession($: EngineInterface, from: string, to: string): Promise<void> {
   const held = await $.store.get(sessionKey(from))
-  if (held !== undefined) await updateSession($, to, held as SessionRecord)
+  if (held === undefined) return
+  const { gate: _, ...kept } = held as SessionRecord
+  await updateSession($, to, kept)
 }
 
 async function rememberPane($: EngineInterface, isClosed: boolean): Promise<void> {

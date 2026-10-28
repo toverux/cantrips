@@ -1,7 +1,8 @@
 // The loop state and the words drawn from it: the stage and trail a skill expansion sets, the
 // rail's stops and the band chip. Pure: no engine, no clock of its own.
 
-import type { AgentRun, LoopState, Stage } from '../types'
+import type { AgentRun, LoopState, Stage, Ticket } from '../types'
+import { gateChip } from './gate.ts'
 
 export const STAGES: readonly Stage[] = [
   'grilling',
@@ -31,6 +32,8 @@ export const INITIAL: LoopState = {
   agents: [],
   deputy: null,
   viewNote: null,
+  gatePath: null,
+  gate: null,
 }
 
 function isStage(name: string): name is Stage {
@@ -101,6 +104,16 @@ export function railStops(state: LoopState): RailStop[] {
   })
 }
 
+// The stages the lit ticket's work is still checked in once `/implement` resolved it.
+const REVIEW_TAIL: readonly Stage[] = ['implement', 'simplify', 'review-gate']
+
+/** Whether a ticket's title is struck: resolved, unless it is the lit one still under review. */
+export function isStruck(state: LoopState, ticket: Ticket): boolean {
+  if (!ticket.isResolved) return false
+  const isLit = ticket.file === state.feature?.litTicket
+  return !(isLit && state.stage !== null && REVIEW_TAIL.includes(state.stage))
+}
+
 /** A count and its noun, in the singular at one. */
 export function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? '' : 's'}`
@@ -119,8 +132,8 @@ export function runningCount(state: LoopState): number {
 }
 
 /**
- * The band chip's words: the stage, then the lit ticket over the ticket count, then the running
- * agents.
+ * The band chip's words: the stage, then the lit ticket over the ticket count, then the gate's
+ * word while a run is in view, then the running agents.
  */
 export function chipText(state: LoopState): string {
   const parts = [state.stage ?? 'cantrips']
@@ -130,6 +143,8 @@ export function chipText(state: LoopState): string {
     const count = feature.tickets.length
     parts.push(lit === undefined ? plural(count, 'ticket') : `${lit.number}/${count}`)
   }
+  const gate = state.gate === null ? null : gateChip(state.gate)
+  if (gate !== null) parts.push(gate)
   const running = runningCount(state)
   if (running > 0) parts.push(`${running} running`)
   return parts.join(' · ')

@@ -124,7 +124,12 @@ function world(
     tools: [] as string[],
     views: [] as string[],
     lists: 0,
+    // Every status line set, undefined for a clear.
+    statuses: [] as (string | undefined)[],
   }
+  // Files beyond the repository's, such as the gate's state file, and what a shell call prints.
+  const files = new Map<string, string>()
+  const shell = { output: '' }
   // The engine's agent list: a scenario sets each agent's status the way its loop moves.
   const agents = new Map<string, AgentStatus>()
   const store = new Map(Object.entries(options.store ?? {}))
@@ -165,8 +170,14 @@ function world(
     return { value: { tool: `mcp__cantrips__${e.name}` } }
   })
   on('skill.prompt', (_, e) => ({ text: e.text }))
-  on('tool.call', () => ({ result: {} }))
-  on('fs.exists', (_, e) => ({ value: e.path in FILES || e.path in DIRS }))
+  on('tool.call', (_, e) =>
+    e.tool === 'Bash' ? { result: {}, text: shell.output } : { result: {} },
+  )
+  on('ui.status', (_, e) => {
+    calls.statuses.push(e.text)
+    return { value: undefined }
+  })
+  on('fs.exists', (_, e) => ({ value: e.path in FILES || e.path in DIRS || files.has(e.path) }))
   on('fs.list', (_, e) => {
     if (refused.has(e.path)) return { deny: 'EIO' }
     const listed = DIRS[e.path]
@@ -174,7 +185,7 @@ function world(
   })
   on('fs.read', (_, e) => {
     if (refused.has(e.path)) return { deny: 'EACCES' }
-    const text = FILES[e.path]
+    const text = files.get(e.path) ?? FILES[e.path]
     return text === undefined ? { deny: 'ENOENT' } : { value: text }
   })
   on('ui.open', (_, e) => {
@@ -209,7 +220,7 @@ function world(
     const { Box } = $.ui.resolve(e)
     return <Box />
   })
-  return { calls, store, session, clock, refused, agents }
+  return { calls, store, session, clock, refused, agents, files, shell }
 }
 
 const start = ($: Engine) =>
@@ -765,4 +776,187 @@ test('the timer reads the list only while a turn or an agent runs', async ($, on
   const after = calls.lists
   await clock.advance(60_000)
   expect(calls.lists).toBe(after)
+})
+
+const GATE = '/tmp/cantrips-1000/review-gate/sid-1-0123456789ab.json'
+const SCRIPT = 'node "/plugins/cantrips/skills/review-gate/scripts/findings.ts"'
+const gateFinding = (id: number, over: Record<string, unknown> = {}) => ({
+  id,
+  held: false,
+  location: `a.ts:${id}`,
+  summary: `summary ${id}`,
+  category: 'correctness',
+  verdict: 'confirmed',
+  ...over,
+})
+const gateState = (over: Record<string, unknown> = {}) =>
+  JSON.stringify({
+    level: 'medium',
+    mode: 'loop',
+    target: 'the working tree against main',
+    phase: 'reviewing',
+    autonomous: false,
+    findings: [],
+    refuted: [],
+    queue: [],
+    rounds: [],
+    stop: null,
+    stopped: false,
+    ...over,
+  })
+/** A shell call of the findings script, its output as the script prints it. */
+const gateCall = (
+  $: Engine,
+  shell: { output: string },
+  subcommand: string,
+  agent = 'next: run Scope and the gate, then call report',
+) => {
+  shell.output = `── agent ──\n${agent}\n`
+  return $.tool.call({ tool: 'Bash', command: `${SCRIPT} ${subcommand} <<'EOF'\n{}\nEOF` })
+}
+
+test('the gate section and the status line follow the state file', async ($, on) => {
+  const { calls, files, shell, store } = world(on)
+  await start($)
+  await expand($, 'cantrips:review-gate', 'Gate it.')
+  files.set(GATE, gateState())
+  const started = `state: ${GATE}\nnext: run Scope and the gate, then call report`
+  await gateCall($, shell, 'start', started)
+  expect(store.get('session:sid-1')).toMatchObject({ gate: GATE })
+  const pane = await $.ui.mount(PANE)
+  expect((await pane.find({ type: 'Text', text: /reviewing/ }))?.text).toBe('● reviewing round 1')
+  expect((await pane.find({ type: 'Text', text: /--loop/ }))?.text).toBe(
+    ' medium · --loop · the working tree against main',
+  )
+  // Nothing found yet: no bar, no counts.
+  expect(await pane.find({ type: 'Text', text: /━/ })).toBeUndefined()
+
+  // The report lands: a batch queued, the bar and its legend drawn.
+  files.set(
+    GATE,
+    gateState({
+      phase: 'fixing',
+      findings: [gateFinding(1), gateFinding(2, { verdict: 'plausible' }), gateFinding(3)],
+      refuted: [{ location: 'b.ts:1', summary: 'R', reason: 'no' }],
+      queue: [1, 2, 3],
+      rounds: [{ n: 1 }],
+    }),
+  )
+  await gateCall($, shell, 'report')
+  expect((await pane.find({ type: 'Text', text: /fixing/ }))?.text).toBe('● fixing · round 1')
+  expect((await pane.find({ type: 'Text', text: /━/ }))?.text).toBe(` ${'━'.repeat(58)}`)
+  expect((await pane.find({ type: 'Text', text: /queued/ }))?.text).toBe(' ● 3 queued F1 F2 F3')
+  expect((await pane.find({ type: 'Text', text: /confirmed/ }))?.text).toBe('confirmed 2')
+  expect((await pane.find({ type: 'Text', text: /refuted/ }))?.text).toBe('refuted 1')
+  const band = await $.ui.mount(BAND)
+  expect((await band.find({ key: 'chip' }))?.text).toBe('🪄 review-gate · 3 queued')
+  expect(calls.statuses.at(-1)).toBeUndefined()
+
+  // A stop trips mid-run: drawn in the section, kept off the status line until the run closes.
+  const stop = { condition: 'fix_not_taking', tripped: 'F1' }
+  files.set(
+    GATE,
+    gateState({
+      phase: 'fixing',
+      findings: [gateFinding(1), gateFinding(2, { outcome: 'fixed' }), gateFinding(3)],
+      queue: [1, 3],
+      rounds: [{ n: 1 }, { n: 2 }],
+      stop,
+    }),
+  )
+  await gateCall($, shell, 'report')
+  expect((await pane.find({ type: 'Text', text: /Stop tripped/ }))?.text).toBe(
+    "Stop tripped: Fixes didn't hold for F1.",
+  )
+  expect(calls.statuses.at(-1)).toBeUndefined()
+
+  // The run closes on it: the queue parks for the user, and the status line speaks.
+  files.set(
+    GATE,
+    gateState({
+      phase: 'stopped',
+      findings: [
+        gateFinding(1, { outcome: 'parked', kind: 'user' }),
+        gateFinding(2, { outcome: 'fixed' }),
+        gateFinding(3, { outcome: 'parked', kind: 'user' }),
+      ],
+      rounds: [{ n: 1 }, { n: 2 }],
+      stop,
+      stopped: true,
+    }),
+  )
+  await gateCall($, shell, 'close')
+  expect((await pane.find({ type: 'Text', text: /stopped/ }))?.text).toBe('⛔ stopped · round 2')
+  const text = async (pattern: RegExp) => (await pane.find({ type: 'Text', text: pattern }))?.text
+  expect(await text(/^Fixes/)).toBe("Fixes didn't hold for F1.")
+  expect(await text(/^Settle/)).toBe("Settle what's for you, then")
+  expect(await text(/^\/review-gate/)).toBe('/review-gate --loop.')
+  expect((await pane.find({ type: 'Text', text: /for you$/ }))?.text).toBe(' ◆ 2 for you')
+  expect((await pane.find({ type: 'Text', text: /^F1$/ }))).toBeDefined()
+  expect((await pane.find({ type: 'Text', text: 'summary 3' }))).toBeDefined()
+  expect(calls.statuses.at(-1)).toBe(
+    "review gate stopped. Fixes didn't hold for F1. " +
+      "Settle what's for you, then /review-gate --loop.",
+  )
+  expect((await band.find({ key: 'chip' }))?.text).toBe('🪄 review-gate · gate stopped')
+
+  // Answers continue the run: the script clears the stop, and the status line with it.
+  const fixed = [gateFinding(2, { outcome: 'fixed' })]
+  files.set(GATE, gateState({ phase: 'reviewing', findings: fixed }))
+  await gateCall($, shell, 'answers')
+  expect(await pane.find({ type: 'Text', text: /Fixes didn't hold/ })).toBeUndefined()
+  expect(calls.statuses.at(-1)).toBeUndefined()
+  await band.unmount()
+  await pane.unmount()
+})
+
+test('a waiting run lists its parked findings, and the status line names them', async ($, on) => {
+  const { calls, files, shell } = world(on)
+  await start($)
+  const parked = Array.from({ length: 7 }, (_, i) => gateFinding(i + 1, { outcome: 'parked' }))
+  files.set(GATE, gateState({ phase: 'waiting', findings: parked, rounds: [{ n: 1 }] }))
+  await gateCall($, shell, 'start', `state: ${GATE}`)
+  const pane = await $.ui.mount(PANE)
+  const headline = await pane.find({ type: 'Text', text: /waiting/ })
+  expect(headline?.text).toBe('◆ waiting on you · round 1')
+  expect(await pane.find({ type: 'Text', text: /^F5$/ })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: /^F6$/ })).toBeUndefined()
+  expect((await pane.find({ type: 'Text', text: /more$/ }))?.text).toBe('   +2 more')
+  const named = 'F1, F2, F3, F4, F5 and 2 more'
+  expect(calls.statuses.at(-1)).toBe(`review gate waits on you: ${named} parked.`)
+  await pane.unmount()
+})
+
+test('a resume finds the stored run; a clear and an unseen start show none', async ($, on) => {
+  const { files, session, shell } = world(on, { store: { 'session:sid-old': { gate: GATE } } })
+  files.set(GATE, gateState())
+  await start($)
+  const pane = await $.ui.mount(PANE)
+  // This session saw no start call: a report names no run it knows.
+  await gateCall($, shell, 'report')
+  expect(await pane.find({ type: 'Text', text: /^Gate$/ })).toBeUndefined()
+
+  await $.classic.SessionStart({ source: 'resume', session_id: 'sid-old' })
+  session.id = 'sid-old'
+  expect(await pane.find({ type: 'Text', text: /^Gate$/ })).toBeDefined()
+
+  session.id = 'sid-2'
+  await $.classic.SessionStart({ source: 'clear', session_id: 'sid-2' })
+  expect(await pane.find({ type: 'Text', text: /^Gate$/ })).toBeUndefined()
+  // The record the clear carried over names no run, so resuming the new session shows none.
+  await $.classic.SessionStart({ source: 'resume', session_id: 'sid-2' })
+  expect(await pane.find({ type: 'Text', text: /^Gate$/ })).toBeUndefined()
+  await pane.unmount()
+})
+
+test('a state file lacking a field the pane reads draws no section', async ($, on) => {
+  const { calls, files, shell } = world(on)
+  await start($)
+  // A run the script started before it recorded its phase.
+  files.set(GATE, JSON.stringify({ ...JSON.parse(gateState()), phase: undefined }))
+  await gateCall($, shell, 'start', `state: ${GATE}`)
+  const pane = await $.ui.mount(PANE)
+  expect(await pane.find({ type: 'Text', text: /^Gate$/ })).toBeUndefined()
+  expect(calls.statuses.at(-1)).toBeUndefined()
+  await pane.unmount()
 })

@@ -1066,6 +1066,68 @@ withSandbox('close reaches WAITING with parked items open, and answering resumes
   assert.match(green.agent, /^pointer: \/commit \(user-invoked\), since every fix was re-reviewed$/m);
 });
 
+withSandbox('every save records the phase the run is in, for the loop panel to mirror', (s) => {
+  const phase = () => JSON.parse(fs.readFileSync(path.join(s.dir, `test-session-${s.hash}.json`), 'utf8')).phase;
+  s.call('start', { level: 'medium', mode: 'report', target: 't' });
+  assert.equal(phase(), 'reviewing');
+  s.call('report', { spec: true, verifiers: { count: 1, grouping: 'file' }, candidates: [bug(1)] });
+  assert.equal(phase(), 'done');
+
+  s.call('start', { level: 'medium', mode: 'fix', target: 't' });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
+  assert.equal(phase(), 'fixing');
+  s.call('outcomes', {
+    outcomes: [
+      { id: 'F1', outcome: 'fixed' },
+      { id: 'F2', outcome: 'parked', kind: 'user', options: OPTIONS },
+    ],
+  });
+  assert.equal(phase(), 'waiting');
+
+  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  assert.equal(phase(), 'reviewing');
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
+  assert.equal(phase(), 'fixing');
+  s.call('outcomes', {
+    outcomes: [
+      { id: 'F1', outcome: 'fixed' },
+      { id: 'F2', outcome: 'parked', kind: 'user', tried: 'no case goes red', options: OPTIONS },
+    ],
+  });
+  // F1's fix awaits its delta round.
+  assert.equal(phase(), 'reviewing');
+  s.call('report', { spec: true, level: 'low', checks: 'baseline', delta_over: ['F1'], candidates: [] });
+  assert.equal(phase(), 'waiting');
+  s.call('close');
+  assert.equal(phase(), 'waiting');
+  s.call('answers', { answers: [{ id: 'F2', action: 'skip', reason: 'you: rare' }] });
+  s.call('close');
+  assert.equal(phase(), 'green');
+});
+
+withSandbox('under --fsd a question of worth the arbiter rules keeps the run off waiting', (s) => {
+  const phase = () => JSON.parse(fs.readFileSync(path.join(s.dir, `test-session-${s.hash}.json`), 'utf8')).phase;
+  s.call('start', { level: 'medium', mode: 'loop', target: 't', autonomous: true });
+  s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
+  s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', kind: 'worth', options: OPTIONS }] });
+  assert.equal(phase(), 'reviewing');
+  s.call('answers', { answers: [{ id: 'F1', action: 'skip', reason: 'arbiter: rare' }] });
+  s.call('close');
+  assert.equal(phase(), 'green');
+});
+
+withSandbox('a run that closes on its stop records the phase stopped', (s) => {
+  const phase = () => JSON.parse(fs.readFileSync(path.join(s.dir, `test-session-${s.hash}.json`), 'utf8')).phase;
+  loopWithFix(s, 2);
+  s.call('outcomes', { outcomes: [{ id: 'F2', outcome: 'fixed' }] });
+  s.call('report', { ...VERIFIED, delta_over: ['F1', 'F2'], arbiter: {}, candidates: [] });
+  s.call('report', { ...VERIFIED, ...judged([{ ...bug(1), same_as: 'F1' }, fix(8)]) });
+  // Tripped, the run still works until it closes.
+  assert.notEqual(phase(), 'stopped');
+  s.call('close', { standing: [1, 3].map((n) => ({ id: `F${n}`, options: OPTIONS })) });
+  assert.equal(phase(), 'stopped');
+});
+
 withSandbox('a decline the user overruled rows at the close and leaves held', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
   s.call('report', { ...VERIFIED, ...judged([bug(1, { ruling: 'decline', opinion: 'rare' })]) });

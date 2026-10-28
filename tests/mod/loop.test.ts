@@ -7,13 +7,14 @@ import {
   INITIAL,
   chipText,
   formatDuration,
+  isStruck,
   plural,
   railStops,
   reduceSkill,
   skillName,
   withFileTrail,
 } from '../../mod/core/loop.ts'
-import type { FeatureView, Ticket } from '../../mod/types/index.d.ts'
+import type { FeatureView, Stage, Ticket } from '../../mod/types/index.d.ts'
 
 const ticket = (over: Partial<Ticket>): Ticket => ({
   file: '01-a.md',
@@ -92,6 +93,22 @@ test('railStops tells the current, visited, skipped and coming stages apart', ()
     isSkipped: false,
   })
   assert.equal(railStops(INITIAL).some(one => one.isSkipped), false)
+})
+
+test('isStruck spares the lit ticket while its work is still under review', () => {
+  const resolved = {
+    ...feature,
+    tickets: [ticket({ isResolved: true }), ticket({ file: '02-b.md', isResolved: true })],
+  }
+  const at = (stage: Stage | null) => ({ ...INITIAL, stage, feature: resolved })
+  const [other, lit] = resolved.tickets as [Ticket, Ticket]
+  for (const stage of ['implement', 'simplify', 'review-gate'] as const) {
+    assert.equal(isStruck(at(stage), lit), false)
+    assert.equal(isStruck(at(stage), other), true)
+  }
+  assert.equal(isStruck(at('commit'), lit), true)
+  assert.equal(isStruck(at(null), lit), true)
+  assert.equal(isStruck(at('simplify'), ticket({ file: '02-b.md' })), false)
 })
 
 test('withFileTrail seeds spec and tickets from the files, ahead of what the session saw', () => {
