@@ -837,3 +837,17 @@ an earlier call gets; a description change reaches a running session only on res
 `mod/CLAUDE.md` notes.
 
 **Adopt when:** the next edit to `mod/core/tool.ts`, or a second session trips on the refusal.
+
+## `findings.ts` reads a stdin it could not read as an empty input
+
+A `report` call piped from `jq -c -n --slurpfile … | node findings.ts report` (16 KB of JSON) was
+rejected with `input.spec: expected true or false`, though the JSON held `"spec":false`; the same
+bytes redirected from a file (`< report.json`) went through (transcript
+`9501cbac-b3ac-44d6-bff4-d869a9be1fbe`). The message fits `readInput()` taking the `EAGAIN` branch:
+it leaves `raw` empty, returns `{}`, and the first field `report` checks is `spec`. Five reruns of
+the same pipe into a `readFileSync(0)` reader read all 16 KB, so the trigger is unconfirmed. The
+`EAGAIN` catch, meant for a call that takes no input, turns any failed read into a silent empty
+input: a subcommand that needs input could say its stdin was unreadable instead, and SKILL.md's
+quoted-heredoc rule could add that a file redirect is the fallback.
+
+**Adopt when:** a second run hits it, or the next edit to `readInput()`.
