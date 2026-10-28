@@ -7,11 +7,13 @@
 # Render the loop panel's preview to a PNG, colours, dim, bold and strikethrough as the terminal
 # draws them: the screen `tmux capture-pane -e` reads from the cantrips-mod session, cropped to the
 # pane right of the chat's divider. uv fetches Pillow and fontTools on the first run; the font is
-# what fontconfig matches for Fira Code, its fallback for the glyphs that font lacks.
+# what fontconfig matches for Fira Code, and for a glyph that font lacks, the font fontconfig finds
+# holding it.
 #
 # usage: mod-shot.py <out.png> [--target <tmux-target>] [--full] [--scale <n>]
 
 import argparse
+import functools
 import re
 import subprocess
 import unicodedata
@@ -88,10 +90,13 @@ def width(char):
   return 2 if unicodedata.east_asian_width(char) in 'WF' else 1
 
 
+@functools.cache
 def font_file(pattern):
-  return subprocess.run(
-    ['fc-match', '-f', '%{file}', pattern], capture_output=True, text=True, check=True
-  ).stdout
+  """The file fontconfig matches for the pattern, and the face's index in it (a collection's)."""
+  file, index = subprocess.run(
+    ['fc-match', '-f', '%{file}\n%{index}', pattern], capture_output=True, text=True, check=True
+  ).stdout.split('\n')
+  return file, int(index)
 
 
 def main():
@@ -135,15 +140,31 @@ def main():
     grid.pop()
 
   size = 14 * args.scale
-  main_file, back_file = font_file('Fira Code'), font_file('DejaVu Sans Mono')
-  fonts = [ImageFont.truetype(font_file(f'Fira Code:{w}'), size) for w in ('regular', 'bold')]
-  backs = [
-    ImageFont.truetype(font_file(f'DejaVu Sans Mono:{w}'), size) for w in ('regular', 'bold')
-  ]
-  if back_file == main_file:
-    backs = fonts
-  glyphs = TTFont(main_file).getBestCmap()
-  cw, ch, pad = round(fonts[0].getlength('M')), round(size * 1.3), 8 * args.scale
+  loaded = {}
+
+  def load(pattern):
+    face = font_file(pattern)
+    if face not in loaded:
+      file, index = face
+      try:
+        font = ImageFont.truetype(file, size, index=index)
+        loaded[face] = (font, TTFont(file, fontNumber=index).getBestCmap())
+      except OSError:
+        # A bitmap font, such as a colour emoji's, that renders at its own sizes only.
+        loaded[face] = None
+    return loaded[face]
+
+  def font_for(char, bold):
+    # Fira Code where it has the glyph, else the font fontconfig finds holding it.
+    weight = 'bold' if bold else 'regular'
+    main, glyphs = load(f'Fira Code:{weight}')
+    if ord(char) in glyphs:
+      return main
+    back = load(f'DejaVu Sans Mono:{weight}:charset={ord(char):x}')
+    return back[0] if back is not None else load(f'DejaVu Sans Mono:{weight}')[0]
+
+  cw = round(load('Fira Code:regular')[0].getlength('M'))
+  ch, pad = round(size * 1.3), 8 * args.scale
   image = Image.new('RGB', (cw * (right - left) + 2 * pad, ch * len(grid) + 2 * pad), DEFAULT_BG)
   draw = ImageDraw.Draw(image)
   for y, row in enumerate(grid):
@@ -157,9 +178,8 @@ def main():
       px, py, w = pad + x * cw, pad + y * ch, cw * width(char)
       if bg:
         draw.rectangle([px, py, px + w - 1, py + ch - 1], fill=bg)
-      font = (fonts if ord(char) in glyphs else backs)[int(bold)]
-      draw.text((px, py + (ch - size) // 2), char, font=font, fill=fg)
-      if strike and char != ' ':
+      draw.text((px, py + (ch - size) // 2), char, font=font_for(char, bold), fill=fg)
+      if strike:
         draw.line([px, py + ch // 2, px + w, py + ch // 2], fill=fg, width=args.scale)
   image.save(args.out)
   print(args.out)
