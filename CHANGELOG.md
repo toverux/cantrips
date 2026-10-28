@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.2.0](https://github.com/toverux/cantrips/compare/v3.1.0...v3.2.0) (2026-10-28)
+
+
+### Features
+
+* **mod:** carry the loop's state through every compaction in place of a hand-copied keep list ([7db0e82](https://github.com/toverux/cantrips/commit/7db0e828daf6d4238721f7e0b74035a54ce5decf))
+* **mod:** list the features in flight and learn the current feature from a loop tool ([7f0d29f](https://github.com/toverux/cantrips/commit/7f0d29f515a2068861bd5a2d86835439ec1a490a))
+* **mod:** mirror the /review-gate run in the loop panel and flag one that stops or waits on you ([8471cb3](https://github.com/toverux/cantrips/commit/8471cb36ae69832f115b801e386535bc27a16541))
+* **mod:** show the cantrips agents at work and the deputy's mode in the loop panel ([f5ed1f0](https://github.com/toverux/cantrips/commit/f5ed1f0944eb7525546f6aad052ca0bdb1e17e24))
+* **mod:** show the loop's stage and ticket board in a pane beside the chat ([58c9f55](https://github.com/toverux/cantrips/commit/58c9f55b334247f2777274f77df677c8117ececa))
+
+
+### Bug Fixes
+
+* **deputy:** read the /deputy argument as the user's own words ([7a81a45](https://github.com/toverux/cantrips/commit/7a81a45e2d86ff679b71b8331457e7693f351a6f))
+* **mod:** name the way back into an unfinished --loop run in the compaction keep list ([c818bbc](https://github.com/toverux/cantrips/commit/c818bbca513199f2f905e65ae536d7be61718823))
+* **review-gate:** make the inline pass read the hunt list and the diff fresh ([358732c](https://github.com/toverux/cantrips/commit/358732ced302511eb02cf85482ed662db87289f7))
+* **review-gate:** pick up an unfinished --loop run instead of wiping it on a relaunch ([8f93b71](https://github.com/toverux/cantrips/commit/8f93b71a588a0b8f9b877fb410c6eca80daab904))
+
 ## [3.1.0](https://github.com/toverux/cantrips/compare/v3.0.0...v3.1.0) (2026-10-18)
 
 
