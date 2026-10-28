@@ -759,3 +759,16 @@ is already there (transcript `dcdac79d-3961-4076-b9bb-5265196c1a09`, F27). The w
 appended instead. The arbiter's message could carry the annotate-spec verb's line.
 
 **Adopt when:** another ruling's route breaks a storage verb, or a fix applies one unchecked.
+
+## A sentence in the loop panel on what the review has bought so far
+
+The gate section shows where a run's findings stand (the bar, the counts, the parked list) but not
+what the fixes changed: "12 done" says nothing of whether the run closed a real bug or wrapped long
+lines. A new field would hold one short sentence on what the review has bought up to this point,
+written by the main session or by the arbiter at each round and rewritten as the run goes; the
+arbiter's `trajectory` is close to it, but runs a paragraph and lives only in the transcript. The
+findings script would take the sentence through a call and keep it in the state file, which the mod
+already reads (asked for by the user during a `/review-gate high --fsd` run, transcript
+`be0ab4f2-76ff-4cab-bba8-3970d02ba578`).
+
+**Adopt when:** the gate section is next revised, or the arbiter's brief next changes.
