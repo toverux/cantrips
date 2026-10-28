@@ -786,3 +786,40 @@ plugin-level Stop hook that runs `resume` where a run's hand-off is pending coul
 skill's hooks.
 
 **Adopt when:** another `--loop` run stalls after a relaunch, or the manifest next gains a hook.
+
+## The loop panel offers the flow pointer's steps as buttons, compacting first
+
+A skill's closing names the next steps of the loop in prose, and the pane could offer them as
+buttons. One press would queue `/compact`, then the step's command (`/review-gate medium --fix`, for
+example), since the review tail starts best on a compacted context. The compaction already carries
+the mod's keep list, so the press costs no context. The spec lists the next step as a button among
+its later controls. The mod cannot read the chat, so the steps would reach it through the loop
+tool, the same way the deputy's mode does: a field the model fills when it closes a skill, with each
+step's command and its one-clause rationale. Not yet confirmed: whether two commands queued through
+`$.command.run` run in order, the second only once the compaction is done. A step marked
+`(user-invoked)` then becomes a press rather than something the user types (asked for by the user
+after ticket 06 of the loop panel, transcript `f6f568e2-2046-4491-879a-eca600f51b16`).
+
+**Adopt when:** the loop tool next gains a field, or the pane's "Needs you" row is wired.
+
+## The loop panel opens what it lists
+
+The pane lists the features in flight, a feature's spec and tickets, and a gate run's parked
+findings, but the only thing a feature row lets the user press is Resume, and nothing on a ticket
+or a finding can be pressed. Each row could open what it names: a feature row its spec, a ticket
+row its file, a parked finding its location and its options. The user would then move through the
+loop from the pane rather than hunting for a path in the chat. Not settled yet: what opening means
+in a terminal pane (a read-only view drawn in the pane, the file in the user's editor, or the path
+handed to the chat), and how the keyboard moves between rows (asked for by the user during ticket
+06's review of the loop panel, transcript `f6f568e2-2046-4491-879a-eca600f51b16`).
+
+**Adopt when:** the pane next gains a press, or a user reaches for a file the pane already names.
+
+## A visual redesign of the loop panel, after flightdeck
+
+A redesign pass would make the pane easier to scan at a glance and generally more polished,
+taking its cues from the flightdeck mod. Nothing here is designed yet; the entry records the
+intent (asked for by the user during ticket 06's review of the loop panel, transcript
+`f6f568e2-2046-4491-879a-eca600f51b16`).
+
+**Adopt when:** the loop-panel tickets are done and the pane's sections stop changing shape.
