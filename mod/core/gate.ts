@@ -274,7 +274,7 @@ function loopFlag(gate: GateView): string {
   return gate.isAutonomous ? '--fsd' : '--loop'
 }
 
-/** The command that continues a stopped run, as the script's closing pointer names it. */
+/** The command that continues a --loop run short of green. */
 export function resumeCommand(gate: GateView): string {
   return `/review-gate ${loopFlag(gate)}`
 }

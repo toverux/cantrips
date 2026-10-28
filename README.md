@@ -223,9 +223,9 @@ running agents.
 While the session works on a feature, the mod adds a keep list to the instructions of every
 compaction, automatic ones included, after anything you typed with `/compact`. The list gives the
 paths of the feature's spec and current ticket, the stage, any `/review-gate` run with the findings
-parked for you (and the command that continues the run once it has stopped), and the deputy's
-mode. It also asks the summary to keep your intent for the diff, the decisions and their reasons,
-what was ruled out, and the open questions.
+parked for you (and, until a `--loop` run is green, the command that continues it), and the
+deputy's mode. It also asks the summary to keep your intent for the diff, the decisions and their
+reasons, what was ruled out, and the open questions.
 
 Everything the pane shows comes from the files the loop writes, the events the engine fires and the
 calls to its tool; it reads nothing from the chat, and a section nothing can fill stays absent. The

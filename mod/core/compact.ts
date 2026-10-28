@@ -27,7 +27,7 @@ export function keepList(state: LoopState): string | null {
   return [...lines, ASK].join('\n')
 }
 
-/** The run: its command, target, round, phase and parked findings, then a stopped run's way out. */
+/** The run: its command, target, round, phase and parked findings, then the way on. */
 function gateLine(gate: GateView): string {
   const command = ['/review-gate', gate.level, modeFlag(gate)].filter(part => part !== null)
   const parts = [`${command.join(' ')} on ${gate.target}`]
@@ -36,10 +36,9 @@ function gateLine(gate: GateView): string {
   const parked = gate.forYou.map(one => `F${one.id} (${one.summary})`).join(', ')
   if (gate.phase === 'waiting') parts.push(`waiting on the user${parked ? ` for ${parked}` : ''}`)
   else parts.push(parked ? `${gate.phase}, parked for the user: ${parked}` : gate.phase)
-  // Named once the run stopped, as the status line does: a --loop start before then wipes the run
-  // or restarts its round.
-  const isStopped = gate.mode === 'loop' && gate.phase === 'stopped'
-  return `${parts.join(', ')}${isStopped ? `; then ${resumeCommand(gate)}` : ''}`
+  // A --loop start continues any run short of green where it stands.
+  const isOn = gate.mode === 'loop' && gate.phase !== 'green'
+  return `${parts.join(', ')}${isOn ? `; then ${resumeCommand(gate)}` : ''}`
 }
 
 /** The keep list after the instructions typed with the compaction, or alone. */

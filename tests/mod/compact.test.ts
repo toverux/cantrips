@@ -61,7 +61,7 @@ test('a waiting gate run lists its arguments, round and parked findings', () => 
         ' .scratch/csv-export/03-header-row.md',
       '- /review-gate high --loop on the staged changes, round 2, waiting on the user for' +
         ' F4 (an empty report exports no header row), F7 (the delimiter setting is ignored on' +
-        ' re-export)',
+        ' re-export); then /review-gate --loop',
       '- Deputy: advisor',
       ASK,
     ].join('\n'),
@@ -83,16 +83,17 @@ test('a feature alone: no stage, no ticket, no gate, no deputy reported or one d
   )
 })
 
-test('the gate line words each phase, the way out only once the run stopped', () => {
+test('the gate line words each phase, the way on until a --loop run is green', () => {
   const line = (over: Partial<GateView>) =>
     keepList(state({ gate: { ...gate, forYou: [], ...over } }))?.split('\n')[2]
   assert.equal(
     line({ phase: 'reviewing' }),
-    '- /review-gate high --loop on the staged changes, round 3, reviewing',
+    '- /review-gate high --loop on the staged changes, round 3, reviewing;' +
+      ' then /review-gate --loop',
   )
   assert.equal(
     line({ phase: 'fixing' }),
-    '- /review-gate high --loop on the staged changes, round 2, fixing',
+    '- /review-gate high --loop on the staged changes, round 2, fixing; then /review-gate --loop',
   )
   assert.equal(
     line({ phase: 'green', isAutonomous: true }),
@@ -115,9 +116,9 @@ test('the gate line words each phase, the way out only once the run stopped', ()
 test('every parked finding is kept with its summary', () => {
   const forYou = Array.from({ length: 7 }, (_, i) => ({ id: i + 1, summary: `s${i + 1}` }))
   const line = keepList(state({ gate: { ...gate, forYou } }))?.split('\n')[2]
-  assert.match(line ?? '', /waiting on the user for F1 \(s1\), .*F6 \(s6\), F7 \(s7\)$/)
+  assert.match(line ?? '', /waiting on the user for F1 \(s1\), .*F6 \(s6\), F7 \(s7\); then/)
   const fixing = keepList(state({ gate: { ...gate, phase: 'fixing', forYou: forYou.slice(0, 1) } }))
-  assert.match(fixing ?? '', /round 2, fixing, parked for the user: F1 \(s1\)$/m)
+  assert.match(fixing ?? '', /round 2, fixing, parked for the user: F1 \(s1\); then/)
 })
 
 test('the keep list follows the instructions typed, or stands alone', () => {
