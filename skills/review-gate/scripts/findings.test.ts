@@ -1169,7 +1169,7 @@ withSandbox('answering after WAITING keeps the stop counts; after a STOP they st
   assert.doesNotMatch(novel().agent, /stops/);
 });
 
-withSandbox('a --loop start over a stopped run continues it; over any other run it starts afresh', (s) => {
+withSandbox('a --loop start over a stopped run continues it; over a green one it starts afresh', (s) => {
   loopWithFix(s, 2);
   s.call('report', { ...VERIFIED, arbiter: {}, candidates: [{ ...bug(1), same_as: 'F1' }] });
   s.call('close', {
@@ -1185,9 +1185,71 @@ withSandbox('a --loop start over a stopped run continues it; over any other run 
   const round = s.call('report', { ...VERIFIED, ...judged([fix(9)]) });
   assert.match(round.user, /^\*\*R3\*\* 🔎 certifying · high · /m);
   assert.match(round.user, /^- \*\*F3\*\* /m);
+  s.write('src/a.ts', 'export const a = 3;\n');
+  s.call('outcomes', { outcomes: [{ id: 'F3', outcome: 'fixed' }] });
+  s.call('report', { ...VERIFIED, delta_over: ['F3'], arbiter: {}, candidates: [] });
+  s.call('answers', { answers: [{ id: 'F1', action: 'skip', reason: 'r' }, { id: 'F2', action: 'skip', reason: 'r' }] });
+  assert.match(s.call('close').user, /^`GREEN: /);
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
   const fresh = s.call('report', { ...VERIFIED, ...judged([fix(9)]) });
   assert.match(fresh.user, /^\*\*R1\*\* .*\n\n- \*\*F1\*\* /);
+});
+
+withSandbox('a --loop start over a run still at work or waiting picks it up where it stands; fresh: true starts over', (s) => {
+  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.call('report', { ...VERIFIED, ...judged([fix(1), fix(2)]) });
+  const fixing = s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  assert.match(fixing.agent, /^continuing this session's unfinished run \(fixing, 1 round reported, at medium over t\)/m);
+  assert.match(fixing.agent, /^next: apply F1, F2$/m);
+  s.write('src/a.ts', 'export const a = 2;\n');
+  s.call('outcomes', {
+    outcomes: [
+      { id: 'F1', outcome: 'fixed' },
+      { id: 'F2', outcome: 'parked', kind: 'user', options: OPTIONS },
+    ],
+  });
+  s.call('report', { ...VERIFIED, delta_over: ['F1'], arbiter: {}, candidates: [] });
+  assert.match(s.call('close').user, /^`WAITING: /);
+  const waiting = s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  assert.match(waiting.agent, /^continuing this session's unfinished run \(waiting, 2 rounds reported, at medium over t\)/m);
+  assert.match(waiting.agent, /^still parked: F2$/m);
+  assert.match(waiting.agent, /^next: hand answers the user's replies to F2/m);
+  assert.match(s.call('answers', { answers: [{ id: 'F2', action: 'queue' }] }).agent, /^next: apply F2$/m);
+  s.call('start', { level: 'medium', mode: 'loop', target: 't', fresh: true });
+  const fresh = s.call('report', { ...VERIFIED, ...judged([fix(9)]) });
+  assert.match(fresh.user, /^\*\*R1\*\* .*\n\n- \*\*F1\*\* /);
+});
+
+withSandbox('a pickup hands a waiting run its close where a stop tripped, and names the level and target it keeps', (s) => {
+  s.call('start', { level: 'low', mode: 'loop', target: 't-old' });
+  s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
+  const other = s.call('start', { level: 'high', mode: 'loop', target: 't-new' });
+  assert.match(other.agent, /^continuing this session's unfinished run \(fixing, 1 round reported, at low over t-old\)/m);
+  s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', kind: 'user', options: OPTIONS }] });
+  s.call('answers', { answers: [{ id: 'F1', action: 'queue' }] });
+  s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', kind: 'user', tried: 'the fix broke `f1.test.ts`' }] });
+  const tripped = s.call('start', { level: 'low', mode: 'loop', target: 't-old' });
+  assert.match(tripped.agent, /the run stops on asked_twice — F1$/m);
+  assert.doesNotMatch(tripped.agent, /hand answers/);
+});
+
+withSandbox('a --fsd pickup switches the run hands off first: a question of worth goes to the arbiter, a novelty stop lifts', (s) => {
+  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
+  s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', kind: 'worth', options: OPTIONS }] });
+  const worth = s.call('start', { level: 'medium', mode: 'loop', target: 't', autonomous: true });
+  assert.match(worth.agent, /^next: put F1 to the arbiter/m);
+
+  s.call('start', { level: 'medium', mode: 'loop', target: 't', fresh: true });
+  const { certifying, delta } = rounds(s);
+  certifying([fix(1)]);
+  delta(1, [fix(2)]);
+  delta(2, [fix(3)]);
+  delta(3, [fix(4)]);
+  assert.match(delta(4, [fix(5)]).agent, /the run stops on fourth_novel_round — R2–R5$/m);
+  const lifted = s.call('start', { level: 'medium', mode: 'loop', target: 't', autonomous: true });
+  assert.match(lifted.agent, /^next: apply F5$/m);
+  assert.doesNotMatch(lifted.agent, /stops on/);
 });
 
 withSandbox('ledger prints the finder-brief block for the agent only', (s) => {
@@ -1303,7 +1365,7 @@ withSandbox('answers names the overrule route for a finding the arbiter declined
 
 withSandbox("at every level, a delta round with a candidate is reported with the arbiter's reply", (s) => {
   assert.match(loopWithFix(s).agent, /; call report with delta_over \["F1"\] and that level and, where it has a candidate, the arbiter's reply$/m);
-  s.call('start', { level: 'inline', mode: 'loop', target: 't' });
+  s.call('start', { level: 'inline', mode: 'loop', target: 't', fresh: true });
   s.call('report', { spec: false, checks: 'baseline', candidates: [bug(1)] });
   s.write('src/a.ts', 'export const a = 3;\n');
   assert.match(s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] }).agent, /; call report with delta_over \["F1"\] and that level and, where it has a candidate, the arbiter's reply$/m);
@@ -1355,6 +1417,8 @@ withSandbox('--fsd is a --loop argument: start records it, a relaunch keeps it, 
   s.call('answers', { answers: [{ id: 'F1', action: 'queue' }] });
   const again = s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', kind: 'user', tried: 'the fix broke `f1.test.ts`' }] });
   assert.match(again.agent, /the run stops on asked_twice — F1$/m);
+  // A stop tripped and not yet closed keeps the run at work: a start hands back the close, the stop standing.
+  assert.match(s.call('start', { level: 'medium', mode: 'loop', target: 't' }).agent, /the run stops on asked_twice — F1$/m);
   const closed = s.call('close', { standing: [{ id: 'F2', options: OPTIONS }] });
   assert.match(closed.agent, /^pointer: \/review-gate --fsd \(user-invoked\) once the standing findings are settled/m);
   const continued = s.call('start', { level: 'medium', mode: 'loop', target: 't' });
@@ -1362,7 +1426,7 @@ withSandbox('--fsd is a --loop argument: start records it, a relaunch keeps it, 
   // The stop parked F2 as the user's: it waits on them rather than holding the close for the arbiter.
   s.call('report', { ...VERIFIED, arbiter: {}, candidates: [] });
   assert.match(s.call('close').user, /^`WAITING: nothing left to fix or re-review, checks at baseline; 2 parked — F1, F2`\\$/m);
-  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.call('start', { level: 'medium', mode: 'loop', target: 't', fresh: true });
   s.call('report', { ...VERIFIED, ...judged([fix(1)]) });
   const fresh = s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'parked', kind: 'worth', options: OPTIONS }] });
   assert.match(fresh.user, /❓ Options:/);
@@ -1477,7 +1541,7 @@ withSandbox('under --fsd a spec finding takes its recommended route: the advice 
   const flagged = s.call('report', { ...VERIFIED, ...judged([{ ...SPEC, ruling: 'fix', opinion: 'ok', options: ANNOTATE }, fix(2)]) });
   assert.match(flagged.agent, /^next: apply F2\nnext: take the recommended route of F1 \(B: annotate the spec\), as LOOP\.md's Hands off says\nthen: call outcomes over F1, F2$/m);
 
-  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.call('start', { level: 'medium', mode: 'loop', target: 't', fresh: true });
   const parked = s.call('report', {
     ...VERIFIED,
     ...judged([{ ...SPEC, ruling: 'fix', opinion: 'ok', options: ROUTES }, { ...SPEC, section: 'Quotas §4', ruling: 'fix', opinion: 'ok', options: ANNOTATE }, fix(3)]),
@@ -1525,7 +1589,7 @@ withSandbox('a WAITING close lists the spec revisions and still renders no point
   assert.match(waiting.user, /^`WAITING: /);
   assert.match(waiting.user, /📝 \*\*\/compound material\*\*/);
   assert.equal(waiting.agent.split('\n').at(-1), 'pointer: none until the user answers F2; answers resumes this run');
-  s.call('start', { level: 'medium', mode: 'loop', target: 't' });
+  s.call('start', { level: 'medium', mode: 'loop', target: 't', fresh: true });
   s.call('report', { ...VERIFIED, ...judged([{ ...SPEC, ruling: 'fix', opinion: 'ok', options: ROUTES }]) });
   s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'routed', route: 'A', reason: 'code aligned' }] });
   s.call('report', { ...VERIFIED, delta_over: ['F1'], arbiter: {}, candidates: [] });

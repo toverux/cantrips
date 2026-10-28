@@ -495,14 +495,15 @@ function start(file: string, input: Json): Result {
   const target = text(input, 'target', 'input') as string;
   const autonomous = optionalTrue(input, 'autonomous', 'input');
   if (autonomous && mode !== 'loop') throw new InputError('input.autonomous: a --loop argument, so --fsd implies --loop');
+  const fresh = optionalTrue(input, 'fresh', 'input');
   prune();
   let previous: State | undefined;
   try {
-    previous = mode === 'loop' ? load(file) : undefined;
+    previous = mode === 'loop' && !fresh ? load(file) : undefined;
   } catch {
     // A missing or corrupt state starts a fresh run.
   }
-  if (previous?.mode === 'loop' && previous.stop) {
+  if (previous?.mode === 'loop' && previous.stopped) {
     // A --loop start over a stopped run continues it, IDs, ledgers and flag kept, stop counts fresh.
     resume(previous);
     Object.assign(previous, { level, target, due: true, handed: snapshot(file), autonomous: autonomous ?? previous.autonomous ?? false });
@@ -515,7 +516,12 @@ function start(file: string, input: Json): Result {
     if (open.length) agent.push(`still parked: ${ids(open)}`);
     return { user: '', agent: [...agent, 'next: run Scope, then a certifying pass', ...ledgerLines(previous)] };
   }
-  const fresh: State = {
+  if (previous?.mode === 'loop' && phaseOf(previous) !== 'green') {
+    // A --loop start over a run still at work or waiting on the user picks it up where it stands, since starting
+    // over would discard its findings, IDs and ledgers; a stop tripped in it still waits for its round to end.
+    return { user: '', agent: [`state: ${file}`, ...pickedUp(file, previous, autonomous)] };
+  }
+  const run: State = {
     level,
     mode,
     target,
@@ -534,8 +540,28 @@ function start(file: string, input: Json): Result {
     recertified: false,
     stopped: false,
   };
-  save(file, fresh);
+  save(file, run);
   return { user: '', agent: [`state: ${file}`, 'next: run Scope and the gate, then call report'] };
+}
+
+// The unfinished run's next step, recomputed from its state, since a step handed over before the --fsd switch may no
+// longer hold: the replies its parked findings wait on, else the one next() leads to.
+function pickedUp(file: string, state: State, autonomous: true | undefined): string[] {
+  // The switch comes first, so the phase reads the run as it now goes on.
+  if (autonomous) goHandsOff(state);
+  const phase = phaseOf(state);
+  const lines = [
+    `continuing this session's unfinished run (${phase}, ${plural(state.rounds.length, 'round')} reported, at ${state.level} over ${state.target}) rather than starting over; where the user asked for a new review, call start again with fresh: true`,
+  ];
+  // A stop tripped in a waiting run is owed its close, which next() hands back.
+  if (phase === 'waiting' && !state.stop) {
+    const open = openParked(state).filter((f) => !forArbiter(state, f));
+    lines.push(`still parked: ${ids(open)}`, `next: hand answers the user's replies to ${ids(open)}, asking for them where the user gave none`);
+  } else {
+    lines.push(...next(state, roundEnded(state), () => state.handed ?? snapshot(file)).lines);
+  }
+  save(file, state);
+  return lines;
 }
 
 function resume(state: State): void {
@@ -543,6 +569,13 @@ function resume(state: State): void {
   state.novel_rounds = [];
   state.stop = null;
   state.stopped = false;
+}
+
+// The --fsd switch hands the arbiter the parked questions of worth for the rest of the run, and lifts the one stop the
+// flag never trips; a churn stop stands.
+function goHandsOff(state: State): void {
+  state.autonomous = true;
+  if (state.stop?.condition === 'fourth_novel_round') state.stop = null;
 }
 
 // A reverted batch's other findings wait under the finding it parked as, so only that one is open.
@@ -1121,12 +1154,7 @@ function answers(file: string, input: Json): Result {
   if (!replies.length && !autonomous) throw new InputError('input.answers: give at least one answer');
   // Answering after a STOP continues the run with fresh stop counts; after WAITING it resumes with its counts.
   if (state.stopped) resume(state);
-  // The switch hands the arbiter the parked questions of worth for the rest of the run, and lifts the one stop the
-  // flag never trips; a churn stop stands.
-  if (autonomous) {
-    state.autonomous = true;
-    if (state.stop?.condition === 'fourth_novel_round') state.stop = null;
-  }
+  if (autonomous) goHandsOff(state);
   replies.forEach((raw, i) => {
     const where = `input.answers[${i}]`;
     const o = object(raw, where);
@@ -1315,15 +1343,19 @@ function handOver(file: string, result: Result): void {
 
 // The agent's own call, where the user resumed the run in place of the Stop hook.
 function resumed(file: string): Result {
+  return { user: '', agent: collect(file) ?? ['nothing handed over: no step is pending'] };
+}
+
+// The step a call handed over and no Stop hook delivered, removed as it is read.
+function collect(file: string): string[] | undefined {
   claimStateDir();
   for (const kind of HANDOFFS) {
     const pending = handoffPath(file, kind);
     if (!fs.existsSync(pending)) continue;
     const lines = fs.readFileSync(pending, 'utf8').trimEnd().split('\n');
     fs.rmSync(pending);
-    return { user: '', agent: lines };
+    return lines;
   }
-  return { user: '', agent: ['nothing handed over: no step is pending'] };
 }
 
 // A hand-off is collected at the turn end that follows its call within seconds; one older than this was
