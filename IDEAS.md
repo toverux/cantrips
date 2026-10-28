@@ -772,3 +772,17 @@ already reads (asked for by the user during a `/review-gate high --fsd` run, tra
 `be0ab4f2-76ff-4cab-bba8-3970d02ba578`).
 
 **Adopt when:** the gate section is next revised, or the arbiter's brief next changes.
+
+## A relaunched session loses the Stop hooks that pace a `/review-gate --loop` run
+
+`/review-gate` registers its Stop hooks in its own frontmatter, so they live only while the skill is
+loaded in the session. When the session process died mid-run (an out-of-memory kill elsewhere on the
+machine) and the user relaunched it, the conversation came back without them: the state file and its
+pending hand-off were intact, but no hook woke the agent for the next round, and the run sat idle
+until the user typed "continue" (transcript `746f8666-f9c9-44e9-bac4-249bcb894c48`, after
+`be0ab4f2-76ff-4cab-bba8-3970d02ba578`). The agent then drove the remaining rounds through
+`findings.ts resume` by hand. The plugin manifest's own hooks would survive a relaunch, so a
+plugin-level Stop hook that runs `resume` where a run's hand-off is pending could take over from the
+skill's hooks.
+
+**Adopt when:** another `--loop` run stalls after a relaunch, or the manifest next gains a hook.
