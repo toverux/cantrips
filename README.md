@@ -92,9 +92,8 @@ flowchart TD
   learning at commit time.
 - `/deputy` carries any tier through its rounds, gates and closings while you are away.
 - `/handoff` breaks context at any tier (compaction for resuming — never a substitute for a spec).
-- A closing that points into `/simplify` or `/review-gate` hands you a keep-list to compact the
-  conversation with first: a full pass rarely fits one context window, and only you can see how
-  full yours is.
+- A closing that points into `/simplify` or `/review-gate` recommends compacting the conversation
+  first: a full pass rarely fits one context window, and only you can see how full yours is.
 
 ## Pluggable storage
 
@@ -188,8 +187,9 @@ for that session, through `/clear` and a resume; the next session opens it again
 
 The pane also lists the features in flight under `.scratch/`: the stage each reached, when it was
 last touched, whether its spec and tickets exist, and its last ticket while that one is still
-unresolved. A feature that another session worked on last has a Resume button, which runs `/resume`
-with that session's id; if Claude Code refuses the call, the command goes into the prompt instead.
+unresolved or its review is under way. A feature that another session worked on last has a Resume
+button, which runs `/resume` with that session's id; if Claude Code refuses the call, the command
+goes into the prompt instead.
 
 During a `/review-gate` run the pane shows what the run's state file holds. The headline gives the
 phase the script recorded (reviewing, fixing, waiting on you, green or stopped) and the round; a
@@ -220,12 +220,19 @@ Claude Code no longer lists can't be pressed, and if Claude Code refuses a switc
 says why under the row. The rows reset on `/clear` and on a resume. The chip adds the number of
 running agents.
 
+While the session works on a feature, the mod adds a keep list to the instructions of every
+compaction, automatic ones included, after anything you typed with `/compact`. The list gives the
+paths of the feature's spec and current ticket, the stage, any `/review-gate` run with the findings
+parked for you (and the command that continues the run once it has stopped), and the deputy's
+mode. It also asks the summary to keep your intent for the diff, the decisions and their reasons,
+what was ruled out, and the open questions.
+
 Everything the pane shows comes from the files the loop writes, the events the engine fires and the
 calls to its tool; it reads nothing from the chat, and a section nothing can fill stays absent. The
 mod reads files, listens to events and draws. It acts on the session only when you press one of its
-buttons. It writes only its own store, registers no permission-deciding hook, fetches nothing, and
-passes on every tool call except those to its own tool. `claude plugin validate` lists every engine
-call it makes.
+buttons, except for the keep list it adds to each compaction. It writes only its own store,
+registers no permission-deciding hook, fetches nothing, and passes on every tool call except those
+to its own tool. `claude plugin validate` lists every engine call it makes.
 
 The mod API is early access and changes between Claude Code releases. A release that breaks the
 pane leaves the skills loading, since the module loads apart from them, and the fix ships as a

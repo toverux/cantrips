@@ -1,11 +1,12 @@
 // The loop panel: a pane with the loop rail, the feature's ticket board, the features in flight,
 // the gate run, the cantrips sub-agents at work, the deputy's mode and a reserved row, a band chip
 // that opens it, a status line while the gate run stops or waits on the user, and the loop tool
-// through which the model selects the feature and the ticket and reports the deputy's mode.
-// Reach: it reads files, listens to events, draws, acts on the session only in answer to a press,
-// and writes only its own store; every hook but the Pane render, which returns its tree, and the
-// command and the tool, which answer their own runs and calls, passes its event on, a guard that
-// trips too.
+// through which the model selects the feature and the ticket and reports the deputy's mode, and a
+// keep list every compaction carries.
+// Reach: it reads files, listens to events, draws, acts on the session only in answer to a press
+// but for the keep list it adds to a compaction's instructions, and writes only its own store;
+// every hook but the Pane render, which returns its tree, and the command and the tool, which
+// answer their own runs and calls, passes its event on, a guard that trips too.
 
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, ToolCallInput } from 'claude-code'
@@ -21,6 +22,7 @@ import {
   withAgentList,
   withDeputy,
 } from '../core/agents.ts'
+import { keepList, withKeepList } from '../core/compact.ts'
 import {
   LOOP_CONFIG,
   SCRATCH,
@@ -180,6 +182,12 @@ export const register: Register = on => {
       await rereadGate($, e.command, ran.text)
     }
     return ran
+  }).catch(($, e, next) => next(e))
+
+  // An auto-compaction takes no argument, so the keep list rides the event, after what was typed.
+  on('session.compact', async ($, e, next) => {
+    const list = e.agentId === undefined ? keepList(await read($, loop)) : null
+    return next(list === null ? e : { ...e, instructions: withKeepList(e.instructions, list) })
   }).catch(($, e, next) => next(e))
 
   on('agent.spawn', async ($, e, next) => {
@@ -344,11 +352,13 @@ export const register: Register = on => {
             {feature.tickets.map(ticket => {
               const isLit = ticket.file === feature.litTicket
               const weight = isLit ? 'bold' : 'regular'
+              const isDim = ticket.isResolved && !isLit
+              const isTitleStruck = isStruck(state, ticket)
               return (
                 <Box columnGap={1}>
                   <Box flexShrink={0}>
                     <Text color={NORD.frostCyan}>{isLit ? '▶' : ' '}</Text>
-                    <Text weight={weight} dimColor={ticket.isResolved}>
+                    <Text weight={weight} dimColor={isDim}>
                       {' '}
                       {ticket.number}
                     </Text>
@@ -357,8 +367,8 @@ export const register: Register = on => {
                     <Text
                       wrap="truncate-end"
                       weight={weight}
-                      dimColor={ticket.isResolved}
-                      strikethrough={isStruck(state, ticket)}
+                      dimColor={isDim}
+                      strikethrough={isTitleStruck}
                     >
                       {ticket.title}
                     </Text>
@@ -370,8 +380,10 @@ export const register: Register = on => {
                       </Text>
                     </Box>
                     <Box width={statusWidth}>
-                      {ticket.isResolved ? (
+                      {isTitleStruck ? (
                         <Text color={NORD.auroraGreen}>✓</Text>
+                      ) : ticket.isResolved ? (
+                        <Text color={NORD.frostCyan}>◐</Text>
                       ) : ticket.blockedBy.length > 0 ? (
                         <Text color={NORD.auroraOrange}>⛔{ticket.blockedBy.join(',')}</Text>
                       ) : (

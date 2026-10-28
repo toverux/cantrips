@@ -95,6 +95,16 @@ test('railStops tells the current, visited, skipped and coming stages apart', ()
   assert.equal(railStops(INITIAL).some(one => one.isSkipped), false)
 })
 
+test('railStops leaves a stage after the current one coming, though a past run visited it', () => {
+  const trail: Stage[] = ['spec', 'tickets', 'implement', 'simplify', 'review-gate', 'commit']
+  const visited = (stage: Stage | null) =>
+    railStops({ ...INITIAL, stage, trail })
+      .filter(one => one.isVisited)
+      .map(one => one.stage)
+  assert.deepEqual(visited('simplify'), ['spec', 'tickets', 'implement'])
+  assert.deepEqual(visited(null), trail)
+})
+
 test('isStruck spares the lit ticket while its work is still under review', () => {
   const resolved = {
     ...feature,

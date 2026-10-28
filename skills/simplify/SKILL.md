@@ -3,7 +3,7 @@ name: simplify
 description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, and efficiency lenses. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify current branch changes, or describe what to simplify]"
 disable-model-invocation: true
-version: 1.9.0
+version: 1.10.0
 source: EveryInc/compound-engineering-plugin@3.27.0 (ce-simplify-code)
 ---
 
@@ -84,5 +84,5 @@ Report fixes applied per lens (reuse, simplification, efficiency), findings skip
 The measure is what improved and that the contract held — many clarity and safety fixes preserve or add lines.
 
 Close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash): `/review-gate [--fix | --loop]` (user-invoked) — the gate that hunts for bugs and spec drift, in this session; suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise; pair any level with `--fix` to apply the findings once, or with `--loop` to converge the gate to green.
-Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.
+Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first.
 Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.

@@ -21,7 +21,7 @@ import type { Records } from '../../mod/core/flight.ts'
 import { buildFeatureView, parseTicket } from '../../mod/core/feature.ts'
 import type { Entry } from '../../mod/core/feature.ts'
 import { INITIAL, reduceSkill } from '../../mod/core/loop.ts'
-import type { FeatureRecord, FlightRow } from '../../mod/types/index.d.ts'
+import type { FeatureRecord, FlightRow, Stage } from '../../mod/types/index.d.ts'
 
 const file = (name: string, mtimeMs = 0): Entry => ({ name, kind: 'file', mtimeMs })
 
@@ -87,7 +87,7 @@ test('featureRecord keeps the stored stage while the session has none, and the l
   assert.equal(featureRecord('sid-new', committing, record(), 900).stage, 'commit')
 })
 
-test('a call lights the ticket it names, else the stored one while it stands unresolved', () => {
+test('a call lights the ticket it names, else the stored one while open or under review', () => {
   const specced = reduceSkill(INITIAL, 'cantrips:spec', 'cantrips', 1)
   const named = selectFeature(specced, view, '02-done.md', record({ ticket: '01-open.md' }))
   assert.equal(named.feature?.litTicket, '02-done.md')
@@ -95,14 +95,19 @@ test('a call lights the ticket it names, else the stored one while it stands unr
   assert.deepEqual(named.trail, ['grilling', 'spec', 'tickets', 'implement'])
   assert.deepEqual(named.pending, [])
 
-  const bare = (ticket?: string | null) => selectFeature(INITIAL, view, null, record({ ticket }))
+  const bare = (ticket?: string | null, stage: Stage | null = 'commit') =>
+    selectFeature(INITIAL, view, null, record({ ticket, stage }))
   assert.equal(bare('01-open.md').feature?.litTicket, '01-open.md')
   assert.equal(bare('02-done.md').feature?.litTicket, null)
-  assert.equal(bare('09-gone.md').feature?.litTicket, null)
+  // `/implement` resolves its ticket before the review tail works on it.
+  for (const stage of ['implement', 'simplify', 'review-gate'] as const) {
+    assert.equal(bare('02-done.md', stage).feature?.litTicket, '02-done.md')
+  }
+  assert.equal(bare('09-gone.md', 'review-gate').feature?.litTicket, null)
   // A record written before the ticket was kept has none.
   assert.equal(bare(undefined).feature?.litTicket, null)
-  assert.equal(liveTicket('01-open.md', view.tickets), '01-open.md')
-  assert.equal(liveTicket(null, view.tickets), null)
+  assert.equal(liveTicket('01-open.md', view.tickets, null), '01-open.md')
+  assert.equal(liveTicket(null, view.tickets, 'implement'), null)
 })
 
 test('recordedFeature finds the feature a resumed session last selected', () => {
@@ -176,12 +181,13 @@ test('flightRows reads stage, last touch, spec and tickets, and offers Resume el
   ])
 })
 
-test('a row shows the stored ticket while it stands unresolved', () => {
+test('a row shows the stored ticket while it stands unresolved or under review', () => {
   const entries = [file('spec.md'), file('01-open.md'), file('02-done.md')]
-  const row = (stored: ReturnType<typeof parseTicket> | null) =>
-    flightRows([{ slug: 'alpha', entries, stored }], {}, null)[0]?.ticket
+  const row = (stored: ReturnType<typeof parseTicket> | null, stage: Stage | null = 'commit') =>
+    flightRows([{ slug: 'alpha', entries, stored }], { alpha: record({ stage }) }, null)[0]?.ticket
   assert.equal(row(parseTicket('01-open.md', OPEN)), '01')
   assert.equal(row(parseTicket('02-done.md', DONE)), null)
+  assert.equal(row(parseTicket('02-done.md', DONE), 'review-gate'), '02')
   assert.equal(row(null), null)
 })
 

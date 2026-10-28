@@ -1,7 +1,7 @@
 ---
 name: diagnosing-bugs
 description: Diagnosis loop for hard bugs and performance regressions. Use when the user says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
-version: 1.5.0
+version: 1.6.0
 source: mattpocock/skills@1.2.3 (diagnosing-bugs)
 ---
 
@@ -151,5 +151,5 @@ Bug fixed → close with a flow pointer (the message's final paragraph, a blockq
 - `/review-gate [--fix | --loop]` (user-invoked) the fix — suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise; pair any level with `--fix` to apply the findings once, or with `--loop` to converge the gate to green.
 - `/commit` (user-invoked), stating the winning hypothesis in the commit message — its opening `/compound` scan is where the root cause, the gotchas, and what didn't work become a durable learning, a `docs/solutions/` entry where that store is enabled.
 
-Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.
+Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first.
 Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.

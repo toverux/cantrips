@@ -23,7 +23,7 @@ A closing whose message flagged `/compound` material adds `/compound` as a step 
 
 A closing that can point into `/simplify` or `/review-gate` carries this line after its steps:
 
-> Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.
+> Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first.
 
 ## The closing's deputy step
 
@@ -45,11 +45,7 @@ One step, from a skill invoked as `/compound`:
 
 A chain with a hint due, from a skill invoked as `/cantrips:implement`:
 
-Compact the conversation before the review tail, keeping:
-
-```
-the spec at .scratch/export/spec.md; the diff adds CSV export behind the existing report seam; open: whether empty reports export a header row
-```
+Compact the conversation before the review tail.
 
 > _Next steps:_
 >

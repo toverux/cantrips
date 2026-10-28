@@ -123,6 +123,8 @@ function world(
     fills: [] as string[],
     tools: [] as string[],
     views: [] as string[],
+    // The instructions each compaction reached the engine with.
+    compactions: [] as (string | undefined)[],
     lists: 0,
     // Every status line set, undefined for a clear.
     statuses: [] as (string | undefined)[],
@@ -216,6 +218,10 @@ function world(
     return { value: options.isViewRefused === true ? { deny: 'not from a press' } : {} }
   })
   on('turn.start', (_, e) => ({ turnId: e.turnId }))
+  on('session.compact', (_, e) => {
+    calls.compactions.push(e.instructions)
+    return { messages: e.messages }
+  })
   on('ui.render', ($, e) => {
     const { Box } = $.ui.resolve(e)
     return <Box />
@@ -538,17 +544,58 @@ test('a fresh session shows no feature, the resumed one its feature and ticket',
 })
 
 test('a stored ticket since resolved is neither lit nor on the row', async ($, on) => {
-  const stored = record('sid-old', 'implement', 900_000, ['implement'], '02-features.md')
+  const stored = record('sid-old', 'commit', 900_000, ['commit'], '02-features.md')
   world(on, { store: { [REPO]: { 'loop-panel': stored } } })
   await start($)
   const pane = await $.ui.mount(PANE)
-  expect((await pane.find({ type: 'Text', text: /^implement · / }))?.text).toBe(
-    'implement · 1m ago · spec ✓ · 2 tickets',
+  expect((await pane.find({ type: 'Text', text: /^commit · / }))?.text).toBe(
+    'commit · 1m ago · spec ✓ · 2 tickets',
   )
   await $.classic.SessionStart({ source: 'resume', session_id: 'sid-old' })
   expect((await pane.find({ type: 'Text', text: /annotations/ }))).toBeDefined()
   expect((await pane.find({ type: 'Text', text: /^▶$/ }))).toBeUndefined()
   await pane.unmount()
+})
+
+test('a resumed review lights the ticket /implement resolved, and records it', async ($, on) => {
+  const stored = record('sid-old', 'review-gate', 900_000, ['review-gate'], '02-features.md')
+  const { store } = world(on, { store: { [REPO]: { 'loop-panel': stored } } })
+  await start($)
+  const pane = await $.ui.mount(PANE)
+  await $.classic.SessionStart({ source: 'resume', session_id: 'sid-old' })
+  expect((await pane.find({ type: 'Text', text: /^▶$/ }))).toBeDefined()
+  // The lit ticket's row stays undimmed though resolved, past its review tail too; its mark is
+  // pending while the tail runs, then the tick.
+  expect((await pane.find({ type: 'Text', text: /^ 02$/ }))?.props.dimColor).toBe(false)
+  await expand($, 'cantrips:review-gate', 'Review.')
+  expect(await pane.find({ type: 'Text', text: /^◐$/ })).toBeDefined()
+  await expand($, 'cantrips:commit', 'Commit.')
+  expect(await pane.find({ type: 'Text', text: /^◐$/ })).toBeUndefined()
+  const title = await pane.find({ type: 'Text', text: /Features in flight/ })
+  expect(title?.props).toMatchObject({ dimColor: false, strikethrough: true })
+  expect((store.get(REPO) as Record<string, { ticket: string }>)['loop-panel']?.ticket).toBe(
+    '02-features.md',
+  )
+  await pane.unmount()
+})
+
+test('a compaction carries the keep list once a feature is selected', async ($, on) => {
+  const { calls } = world(on)
+  const messages = [{ role: 'user' as const, text: 'Go.', toolUses: [] }]
+  await start($)
+  await $.session.compact({ trigger: 'auto', messages })
+  await select($, { feature: 'loop-panel', ticket: '01-mod-skeleton.md' })
+  await $.session.compact({ trigger: 'auto', messages })
+  await $.session.compact({ trigger: 'manual', instructions: 'for code review', messages })
+  // A sub-agent's own compaction is not the loop's.
+  await $.session.compact({ trigger: 'auto', agentId: 'finder-1', messages })
+  const [before, auto, typed, agent] = calls.compactions
+  expect(before).toBeUndefined()
+  expect(auto).toContain(
+    '- loop-panel; .scratch/loop-panel/spec.md, .scratch/loop-panel/01-mod-skeleton.md\n',
+  )
+  expect(typed?.startsWith('for code review\n\nCopy these cantrips loop lines')).toBe(true)
+  expect(agent).toBeUndefined()
 })
 
 test('a call lights and records; a later read lights nothing', async ($, on) => {

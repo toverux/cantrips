@@ -190,8 +190,12 @@ export function headline(gate: GateView): string {
 
 /** The run's level, the flag it was given, where it was given one, and its target. */
 export function metaLine(gate: GateView): string {
-  const flag = gate.mode === 'loop' ? loopFlag(gate) : gate.mode === 'fix' ? '--fix' : null
-  return [gate.level, flag, gate.target].filter(part => part !== null).join(' · ')
+  return [gate.level, modeFlag(gate), gate.target].filter(part => part !== null).join(' · ')
+}
+
+/** The flag the run was launched with; null for a report. */
+export function modeFlag(gate: GateView): string | null {
+  return gate.mode === 'loop' ? loopFlag(gate) : gate.mode === 'fix' ? '--fix' : null
 }
 
 /** The verdicts as counts, a zero left out, each kept whole where the line wraps. */

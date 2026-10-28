@@ -93,12 +93,13 @@ export type RailStop = { stage: Stage; isCurrent: boolean; isVisited: boolean; i
 
 /**
  * The eight stops in loop order: the current one, the ones visited, the ones skipped (before the
- * current one and never visited), and the ones still to come.
+ * current one and never visited), and the ones still to come, which is every one after the current
+ * one, since an earlier ticket's run left them on the feature's trail.
  */
 export function railStops(state: LoopState): RailStop[] {
   const current = state.stage === null ? -1 : STAGES.indexOf(state.stage)
   return STAGES.map((stage, index) => {
-    const isVisited = state.stage !== stage && state.trail.includes(stage)
+    const isVisited = (current === -1 || index < current) && state.trail.includes(stage)
     const isSkipped = index < current && !isVisited
     return { stage, isCurrent: state.stage === stage, isVisited, isSkipped }
   })
@@ -107,11 +108,16 @@ export function railStops(state: LoopState): RailStop[] {
 // The stages the lit ticket's work is still checked in once `/implement` resolved it.
 const REVIEW_TAIL: readonly Stage[] = ['implement', 'simplify', 'review-gate']
 
+/** Whether the stage is in the review tail of the lit ticket's work. */
+export function isUnderReview(stage: Stage | null): boolean {
+  return stage !== null && REVIEW_TAIL.includes(stage)
+}
+
 /** Whether a ticket's title is struck: resolved, unless it is the lit one still under review. */
 export function isStruck(state: LoopState, ticket: Ticket): boolean {
   if (!ticket.isResolved) return false
   const isLit = ticket.file === state.feature?.litTicket
-  return !(isLit && state.stage !== null && REVIEW_TAIL.includes(state.stage))
+  return !(isLit && isUnderReview(state.stage))
 }
 
 /** A count and its noun, in the singular at one. */

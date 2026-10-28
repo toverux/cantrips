@@ -1,7 +1,7 @@
 ---
 name: sync-upstream
 description: Reconcile this repo's forked skills with a new upstream release. Use when the user says an upstream (compound-engineering, mattpocock/skills) was updated, asks to merge/sync upstream changes into the forks, or wants the forks' divergence audited.
-version: 1.4.0
+version: 1.5.0
 ---
 
 Reconcile the forked skills with a new upstream release: disposition every upstream delta, gate every disposition on the user's approval, audit the whole divergence surface, and record the new sync point.
@@ -119,4 +119,4 @@ Close with a flow pointer (the message's final paragraph, a blockquote in full i
 
 This skill is invoked bare while its targets are the plugin's, so render each target under the plugin's namespace (`/cantrips:commit`).
 
-Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first, and give them the keep-list to compact with as a code block: what the steps ahead need from this session — the spec or ticket path, the intent behind the diff, the decisions still open.
+Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first.

@@ -5,7 +5,7 @@
 import type { FeatureRecord, FeatureView, FlightRow, LoopState, Stage, Ticket } from '../types'
 import { SPEC_FILE, isTicketFile, newestMtime } from './feature.ts'
 import type { ListedFolder } from './feature.ts'
-import { formatDuration, plural } from './loop.ts'
+import { formatDuration, isUnderReview, plural } from './loop.ts'
 
 /** A repository's feature records, by slug. */
 export type Records = Record<string, FeatureRecord>
@@ -56,14 +56,27 @@ export function touchFeature(
   return { ...state, touched: slug, pending: [], trail: joinTrails(stored?.trail ?? [], pending) }
 }
 
-/** The ticket file while it is one of the tickets and stands unresolved; else null. */
-export function liveTicket(file: string | null, tickets: readonly Ticket[]): string | null {
-  return tickets.some(ticket => ticket.file === file && !ticket.isResolved) ? file : null
+/**
+ * The ticket file while it is one of the tickets and stands unresolved, or resolved while the
+ * stage is still in the review tail of its work; else null.
+ */
+export function liveTicket(
+  file: string | null,
+  tickets: readonly Ticket[],
+  stage: Stage | null,
+): string | null {
+  const ticket = tickets.find(one => one.file === file)
+  if (ticket === undefined) return null
+  return isLive(ticket, stage) ? ticket.file : null
+}
+
+function isLive(ticket: Ticket, stage: Stage | null): boolean {
+  return !ticket.isResolved || isUnderReview(stage)
 }
 
 /**
  * The state once the session selected the feature of `view`: the ticket named lit, else the
- * stored one while it stands unresolved.
+ * stored one while it stands unresolved or under review.
  */
 export function selectFeature(
   state: LoopState,
@@ -71,7 +84,8 @@ export function selectFeature(
   ticket: string | null,
   stored: FeatureRecord | undefined,
 ): LoopState {
-  const litTicket = ticket ?? liveTicket(stored?.ticket ?? null, view.tickets)
+  const litTicket =
+    ticket ?? liveTicket(stored?.ticket ?? null, view.tickets, stored?.stage ?? null)
   return touchFeature({ ...state, feature: { ...view, litTicket } }, view.slug, stored)
 }
 
@@ -122,8 +136,8 @@ export function staleSessions(entries: readonly [string, unknown][], now: number
 
 /**
  * The features in flight, the last touched first: the stage the store recorded, else the one the
- * files prove, the stored ticket while it stands unresolved, and a Resume for a recorded session
- * other than this one.
+ * files prove, the stored ticket while it stands unresolved or under review, and a Resume for a
+ * recorded session other than this one.
  */
 export function flightRows(
   folders: readonly (ListedFolder & { stored: Ticket | null })[],
@@ -143,7 +157,7 @@ export function flightRows(
         touchedAt: Math.max(record?.touchedAt ?? 0, newestMtime(entries)),
         hasSpec,
         tickets,
-        ticket: stored?.isResolved === false ? stored.number : null,
+        ticket: stored !== null && isLive(stored, record?.stage ?? null) ? stored.number : null,
         resume: record !== undefined && record.session !== session ? record.session : null,
       }
     })

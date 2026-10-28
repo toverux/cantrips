@@ -13,13 +13,14 @@ The plugin's one hooks module: a pane beside the chat that shows the loop, a ban
 
 ## Reach
 
-The mod's reach is a stated boundary: it reads files, listens to events, draws, and acts on the session only in answer to a press; it writes only its own store, registers no permission-deciding hook, fetches nothing, answers no tool call but its own tool's without passing it on, and writes no file in the user's tree.
+The mod's reach is a stated boundary: it reads files, listens to events, draws, and acts on the session only in answer to a press, but for the keep list it adds to a compaction's instructions; it writes only its own store, registers no permission-deciding hook, fetches nothing, answers no tool call but its own tool's without passing it on, and writes no file in the user's tree.
+The keep list (`mod/core/compact.ts`) rides every compaction of the main conversation while a feature is selected, after any instructions typed, since an auto-compaction takes no argument: the feature's paths, its stage, the gate run with every parked finding and, once it stopped, the command that continues it, the deputy's mode, and an ask for what only the chat holds.
 `claude plugin validate .` lists every engine call the module makes, which is how a reviewer checks the boundary; every hook but the Pane render, which returns its tree, and the `/cantrips` command and the loop tool, which answer their own runs and calls, passes its event on, and a guard that trips passes it on too, since the engine unloads every user-installed mod after repeated worker crashes.
 The mod API is early access and moves between releases: README states the Claude Code version the mod needs, and a move that breaks the module is a `fix` release.
 
 ## Style
 
-Colors are the Nord palette (the `NORD` table in `register.tsx`) on strategic elements only, the rest plain or dim — frost cyan for what is live now, aurora green for what is done (a visited stage, a resolved ticket's tick), frost blue for the feature's name, aurora orange for what blocks or failed, aurora purple for what waits on the user, aurora yellow for an agent on call; a skipped stage and a resolved ticket's title are struck through, but for the lit ticket's while the stage is `/implement`, `/simplify` or `/review-gate`, a coming stage is dim with no stroke, and counts and durations are dim, but for an agent's time while it works, which is cyan.
+Colors are the Nord palette (the `NORD` table in `register.tsx`) on strategic elements only, the rest plain or dim — frost cyan for what is live now, aurora green for what is done (a visited stage, a resolved ticket's tick), frost blue for the feature's name, aurora orange for what blocks or failed, aurora purple for what waits on the user, aurora yellow for an agent on call; a skipped stage and a resolved ticket's title are struck through, but for the lit ticket's while the stage is `/implement`, `/simplify` or `/review-gate`, whose tick is then a cyan ◐, a coming stage is dim with no stroke, and counts and durations are dim, but for an agent's time while it works, which is cyan.
 A new section takes its colors from that table and adds a shade only for a meaning the table lacks.
 
 ## Tests and type-checking
