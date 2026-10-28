@@ -823,3 +823,17 @@ intent (asked for by the user during ticket 06's review of the loop panel, trans
 `f6f568e2-2046-4491-879a-eca600f51b16`).
 
 **Adopt when:** the loop-panel tickets are done and the pane's sections stop changing shape.
+
+## The loop tool refuses a feature whose spec is not written yet
+
+The loop tool's description asks the model to call it "when you take up a feature folder under
+`.scratch/`: writing or revising its spec", so a `/spec` run calls it before the spec file exists
+and the tool answers "`.scratch/<feature>/` holds no spec and no ticket; call again once it does."
+(seen in another session creating the `usage-analytics` spec; reported in transcript
+`0829ed9e-48dc-43ba-b319-4c533b407f07`). The refusal is right, since the pane has nothing to draw,
+but the description sends the model into it. It should say to call the tool once the folder holds
+a spec or a ticket, which for `/spec` is after the publish-spec verb, and name the refusal as what
+an earlier call gets; a description change reaches a running session only on restart, as
+`mod/CLAUDE.md` notes.
+
+**Adopt when:** the next edit to `mod/core/tool.ts`, or a second session trips on the refusal.
