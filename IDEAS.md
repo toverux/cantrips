@@ -851,3 +851,17 @@ input: a subcommand that needs input could say its stdin was unreadable instead,
 quoted-heredoc rule could add that a file redirect is the fallback.
 
 **Adopt when:** a second run hits it, or the next edit to `readInput()`.
+
+## `report` takes a whole round in one heredoc
+
+SKILL.md pipes each call "straight in through a quoted heredoc", but a `high` round's `report`
+carries every candidate and the arbiter's reply retyped in full: 34 candidates and 34 rulings with
+their opinions and the trajectory, about 20 KB. The first heredoc was rejected (`failure_scenario:
+missing`, and a path placeholder a quoted heredoc cannot expand), so the agent wrote the candidates
+and the rulings to JSON files with the Write tool, plus a Python script to join them and expand the
+paths, and piped that (transcript `528a3a22-985b-4236-a20e-4af980157ac5`). The user wants no file
+writes on the way to the script. `findings.ts` could take a round piece by piece as it arrives: the
+arbiter's reply as returned, each verifier's verdicts against the finders' candidates, so that
+`report` itself takes little more than the rank order.
+
+**Adopt when:** now; the user ranked it high priority.
