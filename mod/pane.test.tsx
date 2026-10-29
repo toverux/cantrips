@@ -957,6 +957,20 @@ test('the gate section and the status line follow the state file', async ($, on)
   await pane.unmount()
 })
 
+test('a start through a shell variable still finds the run', async ($, on) => {
+  const { files, shell, store } = world(on)
+  await start($)
+  await expand($, 'cantrips:review-gate', 'Gate it.')
+  files.set(GATE, gateState())
+  shell.output = `── agent ──\nstate: ${GATE}\nnext: run Scope and the gate, then call report\n`
+  const command = `S=/plugins/cantrips/skills/review-gate/scripts/findings.ts; node $S start <<'EOF'\n{}\nEOF`
+  await $.tool.call({ tool: 'Bash', command })
+  expect(store.get('session:sid-1')).toMatchObject({ gate: GATE })
+  const pane = await $.ui.mount(PANE)
+  expect((await pane.find({ type: 'Text', text: /reviewing/ }))?.text).toBe('● reviewing round 1')
+  await pane.unmount()
+})
+
 test('a waiting run lists its parked findings, and the status line names them', async ($, on) => {
   const { calls, files, shell } = world(on)
   await start($)

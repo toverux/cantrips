@@ -56,7 +56,7 @@ import {
   isGateCall,
   metaLine,
   parseGate,
-  startPath,
+  statePath,
   stopText,
   resumeCommand,
   WAY_OUT_LEAD,
@@ -179,7 +179,7 @@ export const register: Register = on => {
     const ran = await next(e)
     if (e.agentId === undefined) await rereadBoard($, touchedPath(e))
     if (e.tool === 'Bash' && e.agentId === undefined && isGateCall(e.command)) {
-      await rereadGate($, e.command, ran.text)
+      await rereadGate($, ran.text)
     }
     return ran
   }).catch(($, e, next) => next(e))
@@ -899,18 +899,14 @@ async function readGate($: EngineInterface, path: string | null): Promise<void> 
 }
 
 /**
- * Once a call of the findings script returns: takes the path a start call printed, kept in the
+ * Once a call of the findings script returns: takes the path the call printed, kept in the
  * session's record for a resume, then re-reads the run from the path known.
  */
-async function rereadGate(
-  $: EngineInterface,
-  command: string,
-  output: string | undefined,
-): Promise<void> {
-  const started = startPath(command, output ?? '')
+async function rereadGate($: EngineInterface, output: string | undefined): Promise<void> {
+  const printed = statePath(output ?? '')
   const { session, gatePath } = await read($, loop)
-  if (started !== null && session !== null) await updateSession($, session, { gate: started })
-  const path = started ?? gatePath
+  if (printed !== null && session !== null) await updateSession($, session, { gate: printed })
+  const path = printed ?? gatePath
   if (path !== null) await readGate($, path)
 }
 

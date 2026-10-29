@@ -1,10 +1,10 @@
-// The `/review-gate` run: the state file's path a start call prints, the view its content gives,
+// The `/review-gate` run: the state file's path the script prints, the view its content gives,
 // and the words drawn from it. Pure: it takes commands, outputs and file text. The script records
 // the run's phase and its stops, so nothing here reads the loop's order.
 
 import type { GateCounts, GatePhase, GateView } from '../types'
 
-// The line the script's agent lines open under, which a start call's `state:` line follows.
+// The line the script's agent lines open under, which the `state:` line follows.
 const DELIMITER = '── agent ──'
 const PHASES: readonly GatePhase[] = ['reviewing', 'fixing', 'waiting', 'green', 'stopped', 'done']
 const VERDICTS = ['confirmed', 'plausible'] as const
@@ -18,9 +18,11 @@ export function isGateCall(command: string): boolean {
   return /(^|[\s/\\"'])findings\.ts\b/.test(command)
 }
 
-/** The state file's path a start call printed; null for any other call or an output without it. */
-export function startPath(command: string, output: string): string | null {
-  if (!/findings\.ts["']?\s+start\b/.test(command)) return null
+/**
+ * The state file's path a call printed, whatever spelling ran the script; null for an output
+ * without it. A fault prints it on any call, and it is the file a start in the session writes.
+ */
+export function statePath(output: string): string | null {
   const agent = output.split(new RegExp(`${DELIMITER}\\r?\\n`)).slice(1).join('\n')
   return /^state: (.+\.json)\r?$/m.exec(agent)?.[1] ?? null
 }

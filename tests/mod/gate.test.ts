@@ -13,7 +13,7 @@ import {
   metaLine,
   parseGate,
   resumeCommand,
-  startPath,
+  statePath,
   stopText,
   verdictParts,
   wayOut,
@@ -83,25 +83,23 @@ test('isGateCall knows a shell command naming the findings script', () => {
   assert.equal(isGateCall('node scripts/my-findings.tsx start'), false)
 })
 
-test('startPath takes the state line a start call prints after the delimiter', () => {
+test('statePath takes the state line the script prints after the delimiter', () => {
   const output = `── agent ──\nstate: ${PATH}\nnext: run Scope and the gate, then call report\n`
-  assert.equal(startPath(`${SCRIPT} start <<'EOF'\n{"level":"low"}\nEOF`, output), PATH)
+  assert.equal(statePath(output), PATH)
   // A path with a space in the temporary directory holds whole.
   const spaced = output.replace('/tmp/', '/tmp dir/')
-  assert.equal(startPath(`${SCRIPT} start`, spaced), PATH.replace('/tmp/', '/tmp dir/'))
+  assert.equal(statePath(spaced), PATH.replace('/tmp/', '/tmp dir/'))
   // A shell that hands the output over with CRLF line ends.
-  assert.equal(startPath(`${SCRIPT} start`, output.replaceAll('\n', '\r\n')), PATH)
+  assert.equal(statePath(output.replaceAll('\n', '\r\n')), PATH)
+  // A fault prints the line on any call, and it names the file a start in that session writes.
+  assert.equal(statePath(`── agent ──\nfault: Error: boom\nstate: ${PATH}\n`), PATH)
 })
 
-test('startPath answers null for any other call or output', () => {
-  const output = `── agent ──\nstate: ${PATH}\n`
-  // A fault prints the line too, on a call that is not a start.
-  assert.equal(startPath(`${SCRIPT} report`, output), null)
-  assert.equal(startPath('echo start', output), null)
+test('statePath answers null for an output without the line', () => {
   const failed = '── agent ──\ninput error: input.level: missing\n'
-  assert.equal(startPath(`${SCRIPT} start`, failed), null)
+  assert.equal(statePath(failed), null)
   // The line counts only below the delimiter, where the script's agent lines go.
-  assert.equal(startPath(`${SCRIPT} start`, `state: ${PATH}\n`), null)
+  assert.equal(statePath(`state: ${PATH}\n`), null)
 })
 
 test('parseGate reads the run as the script recorded it', () => {
