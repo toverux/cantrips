@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.1](https://github.com/toverux/cantrips/compare/v3.2.0...v3.2.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **mod:** find the gate run whatever spelling started the findings script ([a857682](https://github.com/toverux/cantrips/commit/a857682c472760b2aa1787822aee47e61c79185f))
+
 ## [3.2.0](https://github.com/toverux/cantrips/compare/v3.1.0...v3.2.0) (2026-10-28)
 
 
