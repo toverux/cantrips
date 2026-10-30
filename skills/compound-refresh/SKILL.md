@@ -3,7 +3,7 @@ name: compound-refresh
 description: Garbage-collect the knowledge stores — audit AGENTS.md, and docs/solutions/ where that store is enabled, against the current code.
 argument-hint: '[optional: scope — directory, module, or keyword; blank audits everything]'
 disable-model-invocation: true
-version: 1.4.1
+version: 1.5.0
 source: EveryInc/compound-engineering-plugin@3.33.2 (ce-compound-refresh)
 ---
 
@@ -44,6 +44,10 @@ Judgment rules:
   A claim the repo cannot corroborate — a schema fact, an operational practice, an environment behavior — is not thereby wrong; repos rarely witness their own operations.
   Never delete content, or strip it during a merge, solely because no in-repo artifact confirms it.
   Act only on contradiction, where the code demonstrably does otherwise; an unverifiable-but-plausible claim is a Keep with the verification gap noted in the report.
+- **A met retirement condition is contradicting evidence, not age.**
+  Where a doc declares `retire_when`, check the condition through the source it names; the result and the date checked land in the report, never in the doc.
+  A met condition reaches the gate as a contradiction, and while the code still carries the workaround the verdict is Update: the doc rewritten to say its premise is gone.
+  An unmet condition decides nothing on its own; one whose source cannot be reached is recorded as unchecked, a Keep with the gap noted.
 - **Redundant needs a quoted artifact.**
   A doc is fully redundant only when a named in-repo artifact states its reasoning in its own text — a test, a code comment, `AGENTS.md`, a sibling doc — and the verdict quotes it; topical overlap is not coverage.
   Reasoning only partly recoverable → Update instead: cut what the artifact states, point at it in one line, and keep the measured facts, cross-file invariants, and rejected alternatives nothing else records.

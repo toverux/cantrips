@@ -19,12 +19,14 @@ symptoms: # how the problem announced itself — error messages verbatim
   - '401 after switching teams, session still valid'
 tags: [jwt, caching] # lowercase kebab-case search keywords
 updated: 2026-08-03 # only on docs revised after creation
+retire_when: 'example-org/sdk#1234 closed as fixed in a release; check the issue and the release notes' # optional
 ---
 ```
 
 `date`, `area`, and `tags` are always present.
 `symptoms` is present whenever the problem was observable — verbatim error text is what a future grep finds.
-Quote any value containing `: ` or starting with a YAML indicator character.
+`retire_when` is the change outside the repo that would retire this learning and how a refresh can check for it without changing the repo, set only while the guidance holds because of something outside the repo (an open upstream bug, a tool or platform version, a dependency's behavior) and omitted otherwise; a doc without it stays valid.
+Quote any value containing `: ` or ` #`, or starting with a YAML indicator character.
 
 ## Body
 

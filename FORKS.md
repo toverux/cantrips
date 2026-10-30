@@ -29,15 +29,12 @@ Differences every fork shares, recorded once; per-skill sections list only what 
   The parameter is named because the degradation is invisible from inside the skill and no harness-neutral wording reaches it; the model-selection paragraph `/spec` carries from compound-engineering's `/simplify` for its rereader, and the fallback clause a step dispatching a plugin agent definition carries, are the only other harness-specific settings a skill body names.
 - Upstream's v1.3.x "call the Skill tool with "x"" pointers stay written as `/x` skill references — the Skill tool is Claude Code's name for the primitive, the plugin ships on Codex CLI too, and AGENTS.md rule 5 keeps harness-specific names out of skill bodies.
 - Every gate that puts a decision to the user carries the routing clause from [flow-pointers.md](skills/writing-for-agents/flow-pointers.md) word for word, sending what the gate would put to the user to a deputy the session engaged through `/deputy` instead — upstream has no stand-in to route to, and one identical clause lets an agent read where a round goes rather than weigh it.
+- The domain glossary is the `AGENTS.md` glossary section graduating to `CONCEPTS.md`, compound-engineering's name, owned by `/compound`, its writer; mattpocock's `GLOSSARY.md` and `GLOSSARY-MAP.md` are not ported — two upstreams name the one artifact differently, so AGENTS.md rule 2's "take upstream's name" leaves the choice to the owner.
 
 ## Deferred to the next `/spec`
 
 Findings a sync set aside for a product decision, the questions the annotated stamps below count; a `/spec` that settles one deletes it here and clears the stamps it annotates.
 
-- **Glossary file name** (v1.3.2 sync; `/codebase-design`, `/diagnosing-bugs`, `/improve-codebase-architecture`, `/tdd`, `/wait-what`): upstream renamed its `CONTEXT.md` to `GLOSSARY.md` (with `GLOSSARY-MAP.md` for a repo holding several), while this repo's glossary is an `AGENTS.md` section or `CONCEPTS.md`, graduated by `/compound` and named at nine sites.
-  Rule 2's "take upstream's name" now points at `GLOSSARY.md`; adopting it is a rename across `/compound`, `/compound-refresh`, the five forks and the loop docs.
-- **A `retire_when` line in the solutions format** (compound-engineering-v3.33.2 sync; `/compound-refresh`): upstream's field names the outside change that would retire a learning and how to check it, and its refresh reads a met condition as contradiction rather than age.
-  The deputy's lean at the sync: adopt it as one optional line in [solutions-format.md](skills/compound/solutions-format.md), a workaround for an outside bug being the commonest learning the store holds and the one whose expiry the repo cannot show.
 - **What `/simplify` may do to tests and comments after `/implement`** (compound-engineering-v3.33.2 sync; `/simplify`): upstream added a test-value reviewer and a comment reviewer, protects the tests the current work relied on in pipeline mode, and moved the pre-release scaffolding rule into a persona.
   To weigh together: a test-value lens, a guard for the tests the implementation relied on (today the fork guards tests only on the failure path), whether a comment lens with upstream's delete-by-default posture belongs in the Simplification finder, and whether the scaffolding paragraph belongs in that lens too.
 
@@ -45,13 +42,13 @@ Findings a sync set aside for a product decision, the questions the annotated st
 
 ### /codebase-design (codebase-design)
 
-Verified against `v1.3.2`. — `1 finding unresolved`.
+Verified against `v1.3.2`.
 
 - DESIGN-IT-TWICE.md step 2 asks for "the project's domain glossary (the `AGENTS.md` glossary section or `CONCEPTS.md`, where present)" in the sub-agent brief instead of upstream's bare "GLOSSARY.md vocabulary" (`CONTEXT.md` before v1.3.0) — `GLOSSARY.md` is an upstream-only file convention this repo lacks.
 
 ### /diagnosing-bugs (diagnosing-bugs)
 
-Verified against `v1.3.2`. — `1 finding unresolved`.
+Verified against `v1.3.2`.
 
 - "Phase 0 — Search past learnings and decisions" added ahead of Phase 1 — its solutions search has no upstream counterpart, opening the loop on `/compound`'s `docs/solutions/` store so a recorded root cause can short-circuit the diagnosis before any harness gets built.
 - Upstream's opening `GLOSSARY.md`-and-ADRs sentence (`CONTEXT.md` before v1.3.0) is adapted into Phase 0 rather than carried: its `GLOSSARY.md` mental-model read is dropped outright, not retargeted — `GLOSSARY.md` is an upstream-only file convention this repo lacks — and the ADR check becomes a read of the loop-config-gated ADR store, so the fix is designed against the standing decisions without a phantom read where the store is off.
@@ -95,7 +92,7 @@ Verified against `v1.3.2`.
 
 ### /improve-codebase-architecture (improve-codebase-architecture)
 
-Verified against `v1.3.2`. — `1 finding unresolved`.
+Verified against `v1.3.2`.
 
 - The inline vocabulary enumeration — the seven terms and the three principles — not carried; the fork points at `/codebase-design` instead, since restating a referenced skill's glossary duplicates both the file the reader is about to load and HTML-REPORT.md's own "Use exactly" list.
 - `GLOSSARY.md` (`CONTEXT.md` before v1.3.0) replaced throughout by the project's domain glossary (an `AGENTS.md` glossary section or `CONCEPTS.md`) — this pipeline's knowledge stores, set by `/compound` and echoed by `/tdd` and `/codebase-design`, have no `GLOSSARY.md`.
@@ -228,7 +225,7 @@ Verified against `v1.3.2`.
 
 ### /tdd (tdd)
 
-Verified against `v1.3.2`. — `1 finding unresolved`.
+Verified against `v1.3.2`.
 
 - Domain-vocabulary sentence rewritten to point at the `AGENTS.md` glossary section or `CONCEPTS.md` — `GLOSSARY.md` (`CONTEXT.md` before v1.3.0) is an upstream-only file convention this repo lacks.
 - Upstream's "respect ADRs in the area you're touching" is carried in substance rather than in text, scoped to the case where nothing upstream of this skill has read those records — a spec that folded them in, as `/spec` step 2 does, stands in for the read.
@@ -268,7 +265,7 @@ Verified against `v1.3.2`.
 
 ### /wait-what (wait-what)
 
-Verified against `v1.3.2`. — `1 finding unresolved`.
+Verified against `v1.3.2`.
 
 - The body is carried byte-identical but for its closing clause: "use the ubiquitous language from `GLOSSARY.md` (follow `GLOSSARY-MAP.md` to the right one if the repo has more than one)" (`CONTEXT.md` before v1.3.0) becomes "use the project's ubiquitous language", naming no file.
   The other forks point at a domain glossary because they are composing something; this one re-says a message already on screen, where a file read would cost the interrupt the speed that is its whole value.
@@ -404,7 +401,7 @@ Verified against `compound-engineering-v3.33.2`.
 
 ### /compound-refresh (ce-compound-refresh)
 
-Verified against `compound-engineering-v3.33.2`. — `1 finding unresolved`.
+Verified against `compound-engineering-v3.33.2`.
 
 - The body is an original-words reimplementation rather than carried text, and the bullets below record the divergences worth naming rather than every one there is.
   The two judgment rules merged at v3.21.2 are the exception: "Unverifiable is not false" keeps upstream's wording nearly intact and "Shared code is not shared problem" condenses upstream's clause, so a future sync reconciles those two against upstream and the rest against this entry.
@@ -427,7 +424,8 @@ Verified against `compound-engineering-v3.33.2`. — `1 finding unresolved`.
   Naming a harness tool is outside what the systematic conventions permit a skill body, and the fork's own "Act only on contradiction, where the code demonstrably does otherwise" already keeps a memory note from carrying a verdict.
 - Upstream's broad-sweep triage not carried — past a doc-count threshold it clusters, works the highest-impact cluster first, and confirms continuation between batches.
   The fork investigates every doc in scope before a single gate, so there is no batch to order and no continuation to confirm.
-- Upstream's `retire_when` field (v3.33.x: the schema field, the investigate check, and the classify rule reading a met condition as contradiction) not carried — [solutions-format.md](skills/compound/solutions-format.md) defines no such field, and adding one is `/compound`'s format decision, deferred to a `/spec`.
+- Upstream's `retire_when` (v3.33.x) carried as one optional line in [solutions-format.md](skills/compound/solutions-format.md) and one judgment rule, "A met retirement condition", in upstream's phrases, so a future sync reconciles that rule against `references/classify.md` and `references/investigate.md`.
+  Upstream's recommendation to remove the workaround from the code not carried, nor its Keep beside that recommendation: "whether the code should have changed is outside this skill" stands here, so while the code carries the workaround the verdict is Update, the doc saying its premise is gone so a reader stops believing the outside bug live.
 - Upstream's `assets/` and `references/` not bundled — they encode a richer doc schema (`problem_type`, `component`, `severity` enums, resolution templates) that [solutions-format.md](skills/compound/solutions-format.md) supersedes.
 - Upstream's `scripts/` not bundled — the two Python validators would reintroduce a dependency and a check step this repo deliberately lacks, and there is no enum schema left to validate.
 
