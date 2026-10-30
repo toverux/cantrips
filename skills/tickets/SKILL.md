@@ -2,13 +2,13 @@
 name: tickets
 description: Break a spec, plan, or the current conversation into tracer-bullet tickets, each declaring its blocking edges.
 disable-model-invocation: true
-version: 1.3.0
-source: mattpocock/skills@1.2.3 (to-tickets)
+version: 1.3.1
+source: mattpocock/skills@1.3.2 (to-tickets)
 ---
 
 # Tickets
 
-Break a plan, spec, or conversation into a set of **tickets** — tracer-bullet vertical slices, each declaring the tickets that **block** it.
+Break a plan, spec, or conversation into a set of **tickets**: tracer-bullet vertical slices, each declaring the tickets that **block** it.
 
 ## Process
 
@@ -29,16 +29,16 @@ Break the work into **tracer bullet** tickets.
 
 <vertical-slice-rules>
 
-- Each slice cuts a narrow but COMPLETE path through every layer (schema, API, UI, tests) — vertical, NOT a horizontal slice of one layer
+- Each slice cuts a narrow but COMPLETE path through every layer (schema, API, UI, tests): vertical, NOT a horizontal slice of one layer
 - A completed slice is demoable or verifiable on its own
 - Each slice is sized to fit in a single fresh context window — one ticket, one `/implement` run; a first cut underestimates what one window carries, so prefer fewer, larger slices
 - Any prefactoring should be done first
 
 </vertical-slice-rules>
 
-Give each ticket its **blocking edges** — the other tickets that must complete before it can start. A ticket with no blockers can start immediately.
+Give each ticket its **blocking edges**: the other tickets that must complete before it can start. A ticket with no blockers can start immediately.
 
-**Wide refactors are the exception to vertical slicing.** A **wide refactor** is one mechanical change — rename a column, retype a shared symbol — whose **blast radius** fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand–contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own ticket blocked by the expand, keeping CI green batch to batch because the old form still exists. Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch. When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket — green is promised only there.
+**Wide refactors are the exception to vertical slicing.** A **wide refactor** is one mechanical change (rename a column, retype a shared symbol) whose **blast radius** fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand–contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own ticket blocked by the expand, keeping CI green batch to batch because the old form still exists. Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch. When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket; green is promised only there.
 
 ### 4. Quiz the user
 
@@ -51,7 +51,7 @@ Present the proposed breakdown as a numbered list. For each ticket, show:
 Ask the user:
 
 - Does the granularity feel right? (too coarse / too fine)
-- Are the blocking edges correct — does each ticket only depend on tickets that genuinely gate it?
+- Are the blocking edges correct: does each ticket only depend on tickets that genuinely gate it?
 - Should any tickets be merged or split further?
 
 Iterate until the user approves the breakdown.
@@ -66,18 +66,18 @@ Do NOT close or modify the parent spec.
 
 <ticket-template>
 
-# <NN> — <Ticket title>
+# <NN>: <Ticket title>
 
-**What to build:** the end-to-end behaviour this ticket makes work, from the user's perspective — not a layer-by-layer implementation list.
+**What to build:** the end-to-end behaviour this ticket makes work, from the user's perspective, not a layer-by-layer implementation list.
 
-**Blocked by:** the numbers/titles of the tickets that gate this one, or "None — can start immediately".
+**Blocked by:** the numbers/titles of the tickets that gate this one, or "None (can start immediately)".
 
 - [ ] Acceptance criterion 1
 - [ ] Acceptance criterion 2
 
 </ticket-template>
 
-Avoid specific file paths or code snippets in tickets — they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts — not a working demo, just the important bits.
+Avoid specific file paths or code snippets in tickets: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
 
 Tickets published → close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash): `/implement` (user-invoked), one ticket per fresh context window, working the **frontier** — any ticket whose blockers are all done (for a purely linear chain, top to bottom).
 Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.

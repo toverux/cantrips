@@ -158,7 +158,6 @@ authoritative source. 🧑 you type it; 🤖 the agent loads it on its own when 
 | [`/prototype`](#prototype)                                         | 🧑🤖       | Throwaway prototype to answer a design question empirically.               |
 | [`/research`](#research)                                           | 🧑🤖       | Background primary-source research, captured in the repo.                  |
 | [`/questionnaire`](#questionnaire)                                 | 🧑         | Draft a questionnaire pulling knowledge out of another person.             |
-| [`/resolving-merge-conflicts`](#resolving-merge-conflicts)         | 🧑🤖       | Principled merge/rebase conflict resolution.                               |
 | [`/codebase-design`](#codebase-design)                             | 🧑🤖       | Deep-module vocabulary other skills lean on.                               |
 | [`/improve-codebase-architecture`](#improve-codebase-architecture) | 🧑         | Scan for module-deepening opportunities.                                   |
 | [`/teach`](#teach)                                                 | 🧑         | Learn a concept from this workspace, tutor-style.                          |
@@ -360,13 +359,6 @@ where the repo keeps such notes, while the session keeps working.
 facts for: it interviews you about the _send_ (who receives it, what you need back), then writes a
 Markdown questionnaire aimed at that gap, most-important-first, one idea per question, answer stubs
 inline.
-
-### `/resolving-merge-conflicts`
-
-**Principled conflict resolution.** Reads the primary sources behind each conflicting change
-(commit messages, PRs, the specs fetched through the storage contract), resolves each hunk
-preserving both intents where possible, never inventing behavior and never aborting, then runs the
-project's checks and finishes the merge or rebase.
 
 ### `/codebase-design`
 

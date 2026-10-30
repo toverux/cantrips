@@ -6,6 +6,18 @@ when it becomes worth adopting, naming the step or line its concern sits in so a
 whether an edit fired it; an edit that fires such a trigger adopts the entry or re-defers it under
 a new one in the same change.
 
+## Questions a sync set aside, standing
+
+Keep this entry: adopting it is reading the section, and an edit that fires it re-defers it here
+unchanged rather than retiring it. `/sync-upstream` records the findings it defers for a product
+decision under FORKS.md's "Deferred to the next `/spec`" section rather than in the
+conversation that raised them, and the stamps it annotates count them. Each `/spec` that settles one
+deletes its entry there and clears the stamps. The section is what to read when picking the next
+feature on this plugin, and a sync that annotates a stamp without an entry under it has lost a
+question.
+
+**Adopt when:** the section holds an entry.
+
 ## More harnesses beyond Claude Code and Codex CLI
 
 SKILL.md is now an open standard with wide adoption, so the skills tree is already portable; only
@@ -622,16 +634,13 @@ that it still holds.
 
 **Adopt when:** the next edit to an agent file's frontmatter under `agents/`.
 
-## Unused skills stay model-invocable
+## An unused skill stays model-invocable
 
-`prototype` and `resolving-merge-conflicts` had no invocation in 60 days of transcripts (Token
-Optimizer audit, transcript `39d0e12c-5c7a-4b9d-a982-8f65fcf87b39`), yet their descriptions sit in
-every session's skill listing. `disable-model-invocation: true` would drop them from the listing
-and leave `/prototype` and `/resolving-merge-conflicts` in place; the cost is that a merge conflict
-mid-rebase no longer pulls the skill in on its own.
+`prototype` had no invocation in 60 days of transcripts (Token Optimizer audit, transcript
+`39d0e12c-5c7a-4b9d-a982-8f65fcf87b39`), yet its description sits in every session's skill listing.
+`disable-model-invocation: true` would drop it from the listing and leave `/prototype` in place.
 
-**Adopt when:** the next edit to either skill's frontmatter, or a session where one of them fires
-on its own.
+**Adopt when:** the next edit to its frontmatter, or a session where it fires on its own.
 
 ## Finders and verifiers experiment in the live working tree
 
@@ -648,20 +657,6 @@ scratch copy (`git checkout-index -a --prefix=<tmp>/`), never in the target tree
 
 **Adopt when:** the next edit to a finder or verifier definition under `agents/`, or a second run
 where a reviewer's experiment lands in the target tree.
-
-## An advisor-mode round shows two answers where one is wanted
-
-In a `/grilling` run with the deputy in advisor mode, every round printed the session's own
-recommendation under the question and the deputy's line under that, and the two departed in three
-rounds of ten, so each answer had to be disambiguated by hand (transcript
-`4be318a5-1877-4a89-9434-a539c612f6dd`). The user's direction: the session still sends its
-recommendation to the deputy, since the round reaches the deputy as the skill would have put it to
-the user, but renders only the deputy's reply as the round's answer, and never its own. One answer
-on screen also makes a bare "agree" unambiguous. The change sits in ROUNDS.md's advisor-mode
-paragraph, which today prints the deputy's line verbatim under the question's recommendation.
-
-**Adopt when:** the next edit to ROUNDS.md's advisor-mode paragraph, or the next advisor-mode run
-where the two answers differ.
 
 ## A project-defined compound step
 

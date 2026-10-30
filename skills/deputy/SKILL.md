@@ -3,7 +3,7 @@ name: deputy
 description: Engage a stand-in that answers every later round, gate and closing in your place for the rest of the session, handing back only the decisions you kept, or that recommends on each while you decide.
 argument-hint: '[what you want of your deputy, in your own words: orders, advise or decide, off]'
 disable-model-invocation: true
-version: 1.2.0
+version: 1.3.0
 ---
 
 Engage a **deputy** for the rest of this session: the plugin agent `cantrips:deputy`, whose definition is its brief, answering in the user's place every round, gate and closing a later skill would put to them, under the per-gate procedure in [ROUNDS.md](ROUNDS.md).

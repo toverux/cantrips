@@ -34,7 +34,7 @@ Flag it only where the special case will recur, or already has — a one-off tha
 - **Repeated Switches** — the same `switch`/`if`-cascade on the same type recurring across the change. → polymorphism, or one shared map.
 - **Shotgun Surgery** — one logical change forcing scattered edits across many files. → gather what changes together into one module.
 - **Divergent Change** — one module edited for several unrelated reasons. → split so each module changes for one reason.
-- **Message Chains** — long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
+- **Message Chains**: long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
 - **Middle Man** — a class or function that mostly delegates onward. → cut it, call the real target direct.
 - **Refused Bequest** — an implementer ignoring or overriding most of what it inherits. → drop the inheritance, use composition.
 

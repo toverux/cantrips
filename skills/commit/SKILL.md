@@ -2,8 +2,8 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.3.0
-source: EveryInc/compound-engineering-plugin@3.27.0 (ce-commit)
+version: 1.4.0
+source: EveryInc/compound-engineering-plugin@3.33.2 (ce-commit)
 ---
 
 Close the loop: harvest the session's learnings first, then create well-crafted git commits from the working tree — learning writes included, so the tree is clean when the loop ends.
@@ -62,6 +62,7 @@ Message discipline, whatever the convention:
   The body records _why_ the code is now this way; the diff already shows _how_, and the process — attempts, dead ends, how the change was verified — dies with the session.
   Write it plain and self-contained: direct declarative sentences a stranger can skim years later, each claim one that stays true about the code; non-obvious trade-offs and costs qualify, the story of the work does not.
   Omit for obvious single-purpose changes.
+- **Credit**: When the commit carries someone else's work that will not otherwise land under their name (ported from their branch or PR, or applied from their patch), end the message with a `Co-authored-by: Name <email>` trailer for each person that work credits: its commit authors and anyone their `Co-authored-by` trailers name. Copy each identity exactly from those commits or the patch. Never guess an email: when none is recorded, name them in the message body instead.
 - **Formatting details** (wrapping, trailers, sign-offs) follow the repo's documented rules and the user's own global instructions; where neither says anything, keep the message plain prose.
 
 ## Step 5: Group, stage, and commit

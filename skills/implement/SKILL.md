@@ -3,12 +3,12 @@ name: implement
 description: Implement a spec or a single ticket, driving TDD at the seams agreed in the spec.
 argument-hint: '[spec or ticket; blank asks]'
 disable-model-invocation: true
-version: 1.5.0
-source: mattpocock/skills@1.2.3 (implement)
+version: 1.6.0
+source: mattpocock/skills@1.3.2 (implement)
 ---
 
 Implement the work in the spec or the ticket the user names.
-Fetch it in full first — the fetch-spec or fetch-ticket verb — and for a ticket, fetch its parent spec too.
+Fetch it in full first — the fetch-spec or fetch-ticket verb — and for a ticket, fetch its parent spec too; state its title before starting, and where the reference is ambiguous, ask.
 The loop config translates the storage verbs: it is `docs/agents/cantrips-loop.md`, and when that doc is absent the plugin defaults ([defaults.md](../setup-cantrips-loop/defaults.md)) govern.
 
 Where the spec agreed a **test seam**, drive `/tdd` at that seam — the seams are already approved, so test at them without re-asking.

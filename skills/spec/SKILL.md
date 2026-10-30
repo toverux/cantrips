@@ -2,8 +2,8 @@
 name: spec
 description: Synthesize the current conversation into a published spec, test seams included.
 disable-model-invocation: true
-version: 1.3.0
-source: mattpocock/skills@1.2.3 (to-spec)
+version: 1.4.0
+source: mattpocock/skills@1.3.2 (to-spec)
 ---
 
 Produce a spec from the current conversation and codebase understanding.
@@ -24,13 +24,21 @@ Where the conversation holds nothing the user decided or approved about the desi
 
 Put the seams and step 2's ADR questions to the user as one numbered round, and wait for the answers before drafting.
 Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
-Each question should be formatted like so:
+Format a round like so:
 
 ```
 ❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
 
 ➡️ <your recommended answer>
+
+---
+
+❓ **Q2** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
+
+➡️ <your recommended answer>
 ```
+
+Word each question so "yes" accepts your recommended answer.
 
 Number on from the conversation's last question where an interview preceded, so an answer naming a number points at one question.
 
@@ -113,7 +121,7 @@ A list of implementation decisions that were made. This can include:
 
 Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
 
-Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts — not a working demo, just the important bits.
+Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
 
 ## Test Seams
 

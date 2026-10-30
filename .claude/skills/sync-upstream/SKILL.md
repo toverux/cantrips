@@ -1,7 +1,7 @@
 ---
 name: sync-upstream
 description: Reconcile this repo's forked skills with a new upstream release. Use when the user says an upstream (compound-engineering, mattpocock/skills) was updated, asks to merge/sync upstream changes into the forks, or wants the forks' divergence audited.
-version: 1.5.0
+version: 1.6.0
 ---
 
 Reconcile the forked skills with a new upstream release: disposition every upstream delta, gate every disposition on the user's approval, audit the whole divergence surface, and record the new sync point.
@@ -87,7 +87,7 @@ Verdicts by section:
 The audit findings are every local divergence no bullet covers, every bullet describing a difference that no longer exists, and every divergence justified by house formatting alone (a reflow, a restructure, a reordering, a gloss), ranked by what leaving them costs — behavior above maintenance.
 The house-formatting class travels as one grouped block with each divergence listed, one verdict covering the class.
 An apply-now lands this run under Step 4's rules — the restores and bullet deletions AGENTS.md rule 2 orders included.
-A defer travels to the `/spec` the closing flow pointer names; the edit an adjustment asks for travels the same way unless the user orders it applied now, the bullet recording the intent.
+A defer travels to the `/spec` the closing flow pointer names as an entry in the ledger's "Deferred to the next `/spec`" section — the question, the forks it touches, the sync that raised it, and the user's or deputy's lean where one was given — since a question held only in this conversation reaches no later session; the edit an adjustment asks for travels the same way unless the user orders it applied now, the bullet recording the intent.
 A keep is the user's explicit answer to a presented finding, and what it writes depends on the finding's class.
 A kept uncovered divergence gets one ledger bullet per divergence, in its section, recording the user's reason; a kept house-formatting divergence gets its bullet rewritten around that reason, which then justifies more than formatting, so neither the audit's classes nor rule 2 match it again.
 A kept stale-bullet proposal — the user declining a deletion — leaves the bullet standing and writes nothing new.
@@ -101,7 +101,7 @@ Apply only what a verdict ordered: approved dispositions and apply-now findings.
 - An apply-now audit finding lands with its ledger edit — a bullet written, rewritten or deleted — in the same edit.
 - Refresh the `Verified against <tag>.` line of every section the run measured — under the full audit, every fork section, whether or not anything changed — to the newest tag it was fully compared against: the new tag for the updated upstream's forks, the pinned tag for the rest, always the full prefixed tag the stamps already use.
   A section merely consulted keeps its old stamp untouched.
-- A section whose findings the run deferred to the `/spec` takes the annotated stamp the ledger's preamble defines, reason `<n> findings unresolved`, so the stamp does not read as a clean verification.
+- A section whose findings the run deferred to the `/spec` takes the annotated stamp the ledger's preamble defines, reason `<n> findings unresolved`, so the stamp does not read as a clean verification; each counted finding has its entry under "Deferred to the next `/spec`", written in the same edit.
   A measurement the run could not complete — a fork skipped at the new tag, or a file still unread after the retry — adds the reason `not fully compared: <what>` to that same stamp, so the failure survives in the ledger rather than only in this session.
 - Advance the updated upstream's pin in the ledger's preamble and set each of its forks' `source:` to the new version, including forks where nothing merged — never one not fully compared at the new tag, which keeps its own `source:` and parks as a question — so the next sync starts from the right baseline.
   A secondary pin — the updated upstream's version recorded inside the `source:` of a fork whose primary upstream is the other one — advances the same way once the passage it names has been compared at the new tag, read from the two cached tags under `.scratch/sync/` since the tool measures a fork against its primary upstream only; one not compared keeps its version and parks as a question.
