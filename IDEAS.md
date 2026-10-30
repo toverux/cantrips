@@ -714,6 +714,16 @@ it. The pass's own edits then read in `git diff` alone, the user's work in `git 
 **Adopt when:** the next edit to `/simplify`'s or `/review-gate`'s SKILL.md, or a second run asked
 to stage first.
 
+## `/simplify`'s prose verify takes `HEAD` for the pre-pass state
+
+Step 4 diffs a tracked file against `HEAD`, while the default scope includes uncommitted work. A
+directive that work removed reads as a pass cut and gets restored; one it added and the pass cut
+is in no diff, since Step 1 snapshots only untracked files (transcript
+`2b1edf5b-4e2c-4b15-bd1e-f3413030e627`, found by `/review-gate`). Step 1 could snapshot tracked
+files with uncommitted changes too; staging first, above, would also hold the pre-pass text.
+
+**Adopt when:** the next edit to `/simplify`'s SKILL.md, with the entry above.
+
 ## A parked finding still takes an arbiter ruling
 
 `/review-gate --loop` parks a spec finding, or one whose fix reaches outside the boundary, for the
