@@ -2,9 +2,12 @@
 
 Analyzed during the design of the loop and deliberately deferred. Most of these earn their keep at
 team scale or on big, long-running projects; cantrips targets a solo workflow. An entry may note
-when it becomes worth adopting, naming the step or line its concern sits in so a diff settles
-whether an edit fired it; an edit that fires such a trigger adopts the entry or re-defers it under
-a new one in the same change.
+when it becomes worth adopting. Keep that trigger wide: an improvement's names the file its fix
+lands in, never a step or a line inside it, so a diff settles whether an edit fired it, and never a
+recurrence alone, since a recurrence goes unreported and the entry then rots. A recurrence may
+stand beside the file. An entry deferring a whole feature may wait on its own condition. An edit
+that fires a trigger proposes the entry to the user as a related change, and one left out keeps
+its trigger for the next edit.
 
 ## Questions a sync set aside, standing
 
@@ -133,7 +136,7 @@ lineStart/lineEnd range is capped at 400 lines", pinning an unconditional cap on
 Candidate rule for Pruning: re-verify a compressed claim against its source, not against the
 sentence being compressed.
 
-**Adopt when:** the next edit to `/writing-for-agents`' Pruning section lands.
+**Adopt when:** the next edit to `/writing-for-agents`' SKILL.md lands.
 
 ## Closure claims that were never true
 
@@ -148,8 +151,8 @@ short list tells `/sync-upstream` that an unlisted divergence is drift to merge 
 for Pruning: count an exhaustive claim as you write it, or phrase it so counting is unnecessary —
 "recorded below" cannot be off by one.
 
-**Adopt when:** the next edit to `/writing-for-agents`' Pruning section lands, with "Compression
-that falsifies" above — the same defect one step earlier.
+**Adopt when:** the next edit to `/writing-for-agents`' SKILL.md lands, with "Compression that
+falsifies" above — the same defect one step earlier.
 
 ## /setup-cantrips-loop writes without interviewing
 
@@ -174,8 +177,8 @@ task is broken…"). And under a `/goal` Stop hook, an agent routed around
 `disable-model-invocation` by replicating the whole gate workflow by hand ("The stop hook is the
 user's explicit invocation — I'll run the gate by its files"), forty-seven nag cycles deep.
 
-**Adopt when:** the next edit to a skill's trigger phrases lands, or the next `/review-gate` edit
-for the gate lock, which needs wording that survives hook pressure.
+**Adopt when:** the next edit to a skill's trigger phrases lands, or the next edit to
+`/review-gate`'s SKILL.md for the gate lock, which needs wording that survives hook pressure.
 
 ## /compound-refresh's judgment rules guard only the audit that never runs here
 
@@ -187,7 +190,7 @@ true but uncorroborated claim can still be stripped, the outcome the restoration
 prevent. The fix is hoisting the store-neutral rules above both audits; it restructures a body the
 fork-divergence spec kept out of bounds, which is why it waits here.
 
-**Adopt when:** the next edit to `/compound-refresh`'s audit sections lands, or a run strips a true
+**Adopt when:** the next edit to `/compound-refresh`'s SKILL.md lands, or a run strips a true
 AGENTS.md line.
 
 ## The redaction discipline lives in one skill
@@ -201,8 +204,8 @@ rules in two skills and none elsewhere. The section is carried upstream bytes an
 byte-identical where it is; the honest home for a plugin-wide rule is a shared reference the other
 skills point at, reconciling the two wordings on the way.
 
-**Adopt when:** the next edit touching `/commit`'s context-gathering step or `/handoff` lands, or a
-secret reaches a gate dispatch.
+**Adopt when:** the next edit to `/commit`'s or `/handoff`'s SKILL.md lands, or a secret reaches a
+gate dispatch.
 
 ## /setup-cantrips-loop sets up model-tier preferences
 
@@ -233,7 +236,8 @@ never flagged. The arbiter's brief weighs a fix's cost against its failure's and
 criterion for which of code and spec is wrong. A carve-out would send spec findings past the
 arbiter to the user, as before it existed.
 
-**Adopt when:** a run's ledger shows a declined spec finding the user would have wanted to route.
+**Adopt when:** the next edit to ARBITER.md, or a run's ledger shows a declined spec finding the
+user would have wanted to route.
 
 ## `/review-gate`'s default target is empty once the work is committed
 
@@ -243,7 +247,8 @@ the run fails or the agent picks a fixed point itself: twice in one session it s
 `main...HEAD` and said so. Scope could propose the default branch as the fixed point when the tree
 is clean and the branch is ahead of it.
 
-**Adopt when:** a run on a clean tree fails, or picks its own fixed point, again.
+**Adopt when:** the next edit to `/review-gate`'s SKILL.md, or a run on a clean tree fails, or picks
+its own fixed point, again.
 
 ## A widened mutation boundary leaves earlier fixes shaped by the narrow one
 
@@ -253,7 +258,8 @@ signed number because the symbol table was out of reach; one round later the bou
 add other symbol keys, and the arrows stayed gone until the user asked why. `answers` could
 re-queue the applied fixes whose record names the boundary as their constraint.
 
-**Adopt when:** a fix shaped by the narrow boundary survives a widening again.
+**Adopt when:** the next edit to `findings.ts`, or a fix shaped by the narrow boundary survives a
+widening again.
 
 ## The deputy's closing weighs no active `/goal`
 
@@ -264,7 +270,7 @@ had covered, and the next delta round its follow-up race (transcript
 `bef994d4-be89-4e6f-9887-7638ca1ab771`). `--fsd` now lifts the novelty stop; the deputy's
 closing could still weigh an active `/goal`, which is neither a plugin skill nor a user skill here.
 
-**Adopt when:** a run closes under an active `/goal` again.
+**Adopt when:** the next edit to `agents/deputy.md`, or a run closes under an active `/goal` again.
 
 ## A spec finding is parked even when a sibling fix already settled its route
 
@@ -274,7 +280,8 @@ its route, so it was recorded `no_change_needed` by hand (transcript
 `a7963c1a-809b-41c7-b381-eb3563cc3309`). The script could drop a spec finding's park once another
 fix in the batch leaves no mismatch to route.
 
-**Adopt when:** a second run parks, or hand-settles, a spec finding another fix made moot.
+**Adopt when:** the next edit to `findings.ts`, or a second run parks, or hand-settles, a spec
+finding another fix made moot.
 
 ## The arbiter's earlier rulings should bind it
 
@@ -295,8 +302,8 @@ follow-up re-rules only the findings it carries; the session kept the last rulin
 every verifier returns, or briefing that a follow-up re-rules only the indices it names, would
 close it.
 
-**Adopt when:** the arbiter reverses a ruling with no new evidence again; round 9's run above has
-fired it.
+**Adopt when:** the next edit to ARBITER.md or `agents/arbiter.md`; round 9's run above is the
+second reversal with no new evidence.
 
 ## Checking a decline's premise no evidence covers
 
@@ -315,7 +322,8 @@ could get that experiment. A premise the ruling never lists escapes even the re-
 rulings in one run rested on one a live probe then contradicted, and the regression one of them
 declined stood until the user overruled it (transcript `be48e9ab-2360-4cea-b7e5-011c63ad5edd`).
 
-**Adopt when:** a false premise under a decline survives because no verdict covered it.
+**Adopt when:** the next edit to ARBITER.md, or a false premise under a decline survives because no
+verdict covered it.
 
 ## A finder's `spec` label parks findings no spec route fits
 
@@ -326,7 +334,8 @@ not apply; the agent wrote stand-in options instead (transcript
 whose evidence quotes no spec requirement, or the script could park only `spec` findings anchored
 to one.
 
-**Adopt when:** a run parks a `spec` finding whose options are not the two routes again.
+**Adopt when:** the next edit to `findings.ts`, or a run parks a `spec` finding whose options are
+not the two routes again.
 
 ## A merge across categories is verified under one
 
@@ -336,7 +345,8 @@ verifier judging it as correctness confirmed it (transcript
 `72284c61-7ff3-4a44-8ec2-d1aefc771e0e`). Verify could judge a cross-category merge under each of
 its categories and keep the strongest verdict.
 
-**Adopt when:** another merged candidate's categories would split its verdict.
+**Adopt when:** the next edit to `/review-gate`'s SKILL.md, or another merged candidate's categories
+would split its verdict.
 
 ## A tripped `/review-gate` stop prints below everything else
 
@@ -345,7 +355,7 @@ above a ledger that ran to 58 KB. An agent that trimmed the section to its first
 batches past a tripped `fourth_novel_round` without seeing it (transcript
 `5678f667-f07c-4826-b158-8e10551a2d4f`). The script could print a stop first.
 
-**Adopt when:** a run works past a stop it did not see again.
+**Adopt when:** the next edit to `findings.ts`, or a run works past a stop it did not see again.
 
 ## The arbiter's round message numbers findings two ways
 
@@ -357,7 +367,8 @@ trajectory warning that a correct ledger was inverted (transcript
 `a5d3ab6a-1141-4fa6-899e-201b2e389791`). The clause could name the arbiter's indices as the
 numbering of every line the message carries.
 
-**Adopt when:** another arbiter reply disputes an outcome ledger that is correct.
+**Adopt when:** the next edit to ARBITER.md, or another arbiter reply disputes an outcome ledger
+that is correct.
 
 ## No `/review-gate` subcommand lists the findings a `same_as` tag matches against
 
@@ -368,7 +379,8 @@ recommends before a continued run — a re-found fixed finding goes untagged and
 a new ID (transcript `5678f667-f07c-4826-b158-8e10551a2d4f`, F259). `ledger` could list fixed and
 queued findings on request; riding them on every gate call would grow each round by the whole run.
 
-**Adopt when:** a compacted run re-fixes a finding under a new ID, or misses a `fix_not_taking`.
+**Adopt when:** the next edit to `findings.ts`, or a compacted run re-fixes a finding under a new
+ID, or misses a `fix_not_taking`.
 
 ## `/simplify` reports in its own format
 
@@ -378,8 +390,9 @@ summary, although its findings come through the same quality lenses and would re
 rows (transcript `5678f667-f07c-4826-b158-8e10551a2d4f`). Adopting the rows means shipping the
 script, or a shared one, with `/simplify`, and its runtime requirement with it.
 
-**Adopt when:** `/simplify`'s report draws the complaints the gate's did — a numbering invented per
-run, a format that swings between runs, or a summary the user asks to have reworked.
+**Adopt when:** the next edit to `/simplify`'s SKILL.md, or its report draws the complaints the
+gate's did — a numbering invented per run, a format that swings between runs, or a summary the user
+asks to have reworked.
 
 ## `/review-gate`'s Stop hooks miss a sandboxed run's hand-off
 
@@ -390,8 +403,8 @@ directory and never wakes the agent: each round waits on a user nudge and the ag
 sandboxed, so it cannot fall back to printing the step with its block; a state location both sides
 share would.
 
-**Adopt when:** a sandboxed `--loop` run stalls on a hand-off, or Claude Code documents a sandbox
-marker.
+**Adopt when:** the next edit to `findings.ts`, or a sandboxed `--loop` run stalls on a hand-off, or
+Claude Code documents a sandbox marker.
 
 ## A Stop hook for `/review-gate` on Codex CLI
 
@@ -402,8 +415,8 @@ and a `Stop` hook answering `decision: "block"` makes Codex continue with a new 
 give Codex the same split; bundled hooks stay skipped until the user reviews and trusts them
 ([research](docs/research/codex-mid-turn-messages.md#what-this-means-for-review-gate)).
 
-**Adopt when:** a Codex run lands a round's findings and outcomes together, or shortens the
-findings block it was meant to send mid-turn.
+**Adopt when:** the next edit to `/review-gate`'s SKILL.md, or a Codex run lands a round's findings
+and outcomes together, or shortens the findings block it was meant to send mid-turn.
 
 ## `/review-gate`'s snapshots fault under Codex CLI's default sandbox
 
@@ -418,7 +431,8 @@ repository's store as its alternate, and prefix the handed diff with
 `GIT_ALTERNATE_OBJECT_DIRECTORIES=<side>`. That costs the plain `git diff` on Codex only, and
 reverses the ruling that kept a side object directory out of the snapshot's design.
 
-**Adopt when:** a Codex user runs `/review-gate --fix` or `--loop` under the default sandbox.
+**Adopt when:** the next edit to `findings.ts`, or a Codex user runs `/review-gate --fix` or
+`--loop` under the default sandbox.
 
 ## `/review-gate --loop` sees one repository of a cross-repo target
 
@@ -441,7 +455,8 @@ directory: a `report` piped from `/tmp` answered "no run in this session and wor
 `78b19e64-06d2-4ff5-8b59-f8c668d45e2d`). SKILL.md could say to call it from the repository under
 review.
 
-**Adopt when:** a second cross-repo run leaves a batch unreviewed.
+**Adopt when:** the next edit to `findings.ts`, or a second cross-repo run leaves a batch
+unreviewed.
 
 ## A `--1`/`--one` argument for `/grilling`
 
@@ -462,8 +477,8 @@ the best outcome and state its cost and scope as facts beside it (reported from 
 the others' cost and scope stated as facts next to it, and let the user name the bias to recommend
 on, so an answer that reads "A" is A and not the agent's compromise.
 
-**Adopt when:** another grilling round recommends a merge of its options, or the user overrides a
-recommendation on cost grounds.
+**Adopt when:** the next edit to `/grilling`'s SKILL.md, or another grilling round recommends a
+merge of its options, or the user overrides a recommendation on cost grounds.
 
 ## `/implement` cannot keep a spec's commit boundaries when the agent may not commit
 
@@ -474,7 +489,8 @@ throwaway index (`GIT_INDEX_FILE=<tmp> git read-tree HEAD`, `git add -A`, `git w
 touches neither the real index nor any ref. `/implement` could record one such tree per prescribed
 commit and `/commit` replay them in order.
 
-**Adopt when:** a second spec prescribes more than one commit.
+**Adopt when:** the next edit to `/implement`'s SKILL.md, or a second spec prescribes more than one
+commit.
 
 ## `/spec` decides in prose while rewriting a published body
 
@@ -484,7 +500,8 @@ than as a numbered question (transcript `0bd2fa27-5f4f-4178-bba7-71f8cbe2d620`).
 with no reread, so nothing turns such a choice into a question. The rewrite could put any decision
 the correction did not state to the user in the numbered format.
 
-**Adopt when:** a post-publication rewrite carries a decision the user later reverses.
+**Adopt when:** the next edit to `/spec`'s SKILL.md, or a post-publication rewrite carries a
+decision the user later reverses.
 
 ## Apply mode skips a correctness fix no red case can reach
 
@@ -499,7 +516,8 @@ It recurred on a broken user rule: `process.exit()` after a stdout write truncat
 refused it (`F2 is not waiting on an answer`) (transcript `9f48eefc-4716-4be5-b628-b49447244957`).
 A finding quoting a broken rule could apply as conventions, with no red case.
 
-**Adopt when:** a third fix is skipped this way.
+**Adopt when:** the next edit to `/review-gate`'s SKILL.md or `findings.ts`, or a third fix is
+skipped this way.
 
 ## `/review-gate` narrates its own mechanics
 
@@ -516,7 +534,7 @@ sessions rather than improvised by each. The rule belongs in SKILL.md (or as a f
 script prints), covering every turn between two pasted blocks: finders returning, verdicts
 arriving, the arbiter's reply, a re-send.
 
-**Adopt when:** fired by the second run above; adopt at the next edit to SKILL.md's report section.
+**Adopt when:** fired by the second run above; adopt at the next edit to `/review-gate`'s SKILL.md.
 
 ## A spec's decisions reach `/compound` only where something flags them
 
@@ -536,8 +554,8 @@ step 2 asks about every standing ADR a feature touches but never whether the fea
 decision worth a record of its own; its Records could name the new ADR the feature earns, and the
 scan could read the spec's Implementation Decisions for one.
 
-**Adopt when:** the next edit to what `/commit`'s scan reads or `/spec`'s step 2, or another spec
-decision goes unrecorded; the closing-block half is adopted, so an edit there fires nothing here.
+**Adopt when:** the next edit to `/commit`'s or `/spec`'s SKILL.md, or another spec decision goes
+unrecorded; the closing-block half is adopted, so an edit there fires nothing here.
 
 ## A parked row still reads as a question after a deputy answered it
 
@@ -548,8 +566,9 @@ reads a question the deputy already answered and asks why it went unanswered (tr
 `0b9eb4f8-9742-4008-8df3-6a1b68fdf0bf`). The parked row could show that a reply is queued, or
 LOOP.md could hand `answers` a deputy's reply as soon as it lands.
 
-**Adopt when:** another deputy run draws the same question; the `--fsd` change re-rendered
-the parked row for a `kind` of its own and left this one standing.
+**Adopt when:** the next edit to `findings.ts` or LOOP.md, or another deputy run draws the same
+question; the `--fsd` change re-rendered the parked row for a `kind` of its own and left this one
+standing.
 
 ## A delta round over a small diff dispatches every agent afresh
 
@@ -564,8 +583,8 @@ say that a callback deserves the same skepticism as the first message: the agent
 its earlier reading of a file the batch changed, nor defend a verdict it gave before. A level, or
 a size the diff stays under, would mark where reuse stops paying.
 
-**Adopt when:** a delta round at `medium` or above pays for fresh finders over a batch of comments
-or one expression.
+**Adopt when:** the next edit to LOOP.md, or a delta round at `medium` or above pays for fresh
+finders over a batch of comments or one expression.
 
 ## `/review-gate` needs a git repository, and its snapshots follow the global gitignore
 
@@ -582,7 +601,7 @@ throwaway repo (see the cross-repo entry). The script could snapshot with the re
 only, or warn when a target file the standard excludes hide is passed to it, and `start` could
 fall back to a snapshot of the target's files where there is no repository.
 
-**Adopt when:** the next edit to `findings.ts`'s snapshot.
+**Adopt when:** the next edit to `findings.ts`.
 
 ## The built-in `/simplify` shadows the plugin's
 
@@ -595,7 +614,7 @@ closing and the docs name the skill `/simplify`; only `flow-pointers.md` writes
 `/cantrips:simplify`. Every user-facing mention could take the scoped name, or the skill a name the
 harness doesn't own.
 
-**Adopt when:** the next edit to `/simplify`'s frontmatter or to a closing that names it.
+**Adopt when:** the next edit to `/simplify`'s SKILL.md or to a closing that names it.
 
 ## A delta round's diff carries a rebase made during the run
 
@@ -606,8 +625,7 @@ round's `git diff` carries the commits the rebase brought in as well as the batc
 `report` already warns that the tree moved; it could re-snapshot there, so the next delta starts
 from the tree the round reviewed.
 
-**Adopt when:** the next edit to `findings.ts`'s snapshot, or a second delta round carrying a base
-move.
+**Adopt when:** the next edit to `findings.ts`, or a second delta round carrying a base move.
 
 ## A crash wipes a run's state under `/tmp`
 
@@ -618,8 +636,7 @@ restarted `start` snapshotted a tree that already held the applied batch, so the
 diff and the batch was re-reviewed inline, unverified. State kept somewhere a reboot leaves, such as
 the user's cache directory, would let `resume` pick the run up.
 
-**Adopt when:** the next edit to where `findings.ts` writes its state, or a second run lost to a
-reboot.
+**Adopt when:** the next edit to `findings.ts`, or a second run lost to a reboot.
 
 ## Agent descriptions repeat their summoning guard
 
@@ -632,7 +649,7 @@ expects the message the gate composes"); that form on the rest could save about 
 exists to keep the model from spawning these agents on its own, so a shortened guard needs a check
 that it still holds.
 
-**Adopt when:** the next edit to an agent file's frontmatter under `agents/`.
+**Adopt when:** the next edit to an agent file under `agents/`.
 
 ## An unused skill stays model-invocable
 
@@ -640,7 +657,7 @@ that it still holds.
 `39d0e12c-5c7a-4b9d-a982-8f65fcf87b39`), yet its description sits in every session's skill listing.
 `disable-model-invocation: true` would drop it from the listing and leave `/prototype` in place.
 
-**Adopt when:** the next edit to its frontmatter, or a session where it fires on its own.
+**Adopt when:** the next edit to `/prototype`'s SKILL.md, or a session where it fires on its own.
 
 ## Finders and verifiers experiment in the live working tree
 
@@ -682,8 +699,7 @@ skill's directory to read LOOP.md and called `scripts/findings.ts` from there). 
 script by the skill's directory and says nothing of the working directory. It could say to call the
 script from the repository root, or the script could take the root as an input.
 
-**Adopt when:** the next edit to how `findings.ts` locates the repository, or a second run faulting
-on its working directory.
+**Adopt when:** the next edit to `findings.ts`, or a second run faulting on its working directory.
 
 ## `/simplify` and `/review-gate` stage the tree before editing
 
@@ -695,7 +711,7 @@ brought). Each skill could stage the resolved scope before its first edit, unles
 differs from HEAD, a sign the user staged by hand and the skill should leave the index as it found
 it. The pass's own edits then read in `git diff` alone, the user's work in `git diff --cached`.
 
-**Adopt when:** the next edit to simplify's Step 3 or review-gate's fix step, or a second run asked
+**Adopt when:** the next edit to `/simplify`'s or `/review-gate`'s SKILL.md, or a second run asked
 to stage first.
 
 ## A parked finding still takes an arbiter ruling
@@ -710,8 +726,7 @@ Withholding alone does not settle it: a hands-off run that kept a spec finding f
 routed it itself had the report print that round as "unjudged" (same transcript, a later run), so the
 missing ruling reads as a fault where it was the rule.
 
-**Adopt when:** the next edit to ARBITER.md's Each round's message, or to how `report` dispositions
-a candidate with options.
+**Adopt when:** the next edit to ARBITER.md or `findings.ts`.
 
 ## The arbiter rules before the verifiers answer
 
@@ -722,7 +737,7 @@ to land, the session folding the doc edit into a neighbouring fix (transcript
 `449ee1b0-8f4e-4e34-a306-6263c9118606`). Either Acting on what comes back says a ruling on a refuted
 finding is void, or the arbiter takes the candidates once their verdicts are in, a round later.
 
-**Adopt when:** the next edit to ARBITER.md's Dispatch or Acting on what comes back.
+**Adopt when:** the next edit to ARBITER.md.
 
 ## Verify has no tally of the finders' candidates
 
@@ -732,7 +747,7 @@ away in round 1 and reached no verifier and no arbiter, resurfacing only in the 
 (transcript `449ee1b0-8f4e-4e34-a306-6263c9118606`). A tally, candidates in against verdicts plus
 explicit merges out, before the verifiers dispatch would catch it.
 
-**Adopt when:** the next edit to the Verify section of review-gate's SKILL.md.
+**Adopt when:** the next edit to `/review-gate`'s SKILL.md.
 
 ## `/tickets` has no stable format for the list it puts to the user
 
@@ -743,7 +758,7 @@ read as a list and harder to compare run to run (transcript
 `27b97b0a-597b-41be-bf81-a8ff7abd7881`). A fixed shape, kept word for word across runs the way the
 question format is, would let the user read a breakdown at a glance.
 
-**Adopt when:** the next edit to step 4 of tickets' SKILL.md.
+**Adopt when:** the next edit to `/tickets`' SKILL.md.
 
 ## The arbiter's brief carries the spec but not the annotate-spec rule
 
@@ -753,7 +768,8 @@ a spec annotation in place, where the loop config has an annotation append witho
 is already there (transcript `dcdac79d-3961-4076-b9bb-5265196c1a09`, F27). The writer caught it and
 appended instead. The arbiter's message could carry the annotate-spec verb's line.
 
-**Adopt when:** another ruling's route breaks a storage verb, or a fix applies one unchecked.
+**Adopt when:** the next edit to ARBITER.md, or another ruling's route breaks a storage verb, or a
+fix applies one unchecked.
 
 ## A sentence in the loop panel on what the review has bought so far
 
@@ -766,7 +782,7 @@ findings script would take the sentence through a call and keep it in the state 
 already reads (asked for by the user during a `/review-gate high --fsd` run, transcript
 `be0ab4f2-76ff-4cab-bba8-3970d02ba578`).
 
-**Adopt when:** the gate section is next revised, or the arbiter's brief next changes.
+**Adopt when:** the next edit to `mod/core/gate.ts` or `agents/arbiter.md`.
 
 ## A relaunched session loses the Stop hooks that pace a `/review-gate --loop` run
 
@@ -780,7 +796,8 @@ until the user typed "continue" (transcript `746f8666-f9c9-44e9-bac4-249bcb894c4
 plugin-level Stop hook that runs `resume` where a run's hand-off is pending could take over from the
 skill's hooks.
 
-**Adopt when:** another `--loop` run stalls after a relaunch, or the manifest next gains a hook.
+**Adopt when:** the next edit to `/review-gate`'s SKILL.md, or another `--loop` run stalls after a
+relaunch, or the manifest next gains a hook.
 
 ## The loop panel offers the flow pointer's steps as buttons, compacting first
 
@@ -795,7 +812,7 @@ step's command and its one-clause rationale. Not yet confirmed: whether two comm
 `(user-invoked)` then becomes a press rather than something the user types (asked for by the user
 after ticket 06 of the loop panel, transcript `f6f568e2-2046-4491-879a-eca600f51b16`).
 
-**Adopt when:** the loop tool next gains a field, or the pane's "Needs you" row is wired.
+**Adopt when:** the next edit to `mod/core/tool.ts`, or the pane's "Needs you" row is wired.
 
 ## The loop panel opens what it lists
 
@@ -808,7 +825,8 @@ in a terminal pane (a read-only view drawn in the pane, the file in the user's e
 handed to the chat), and how the keyboard moves between rows (asked for by the user during ticket
 06's review of the loop panel, transcript `f6f568e2-2046-4491-879a-eca600f51b16`).
 
-**Adopt when:** the pane next gains a press, or a user reaches for a file the pane already names.
+**Adopt when:** the next edit to `mod/hooks/register.tsx`, or a user reaches for a file the pane
+already names.
 
 ## A visual redesign of the loop panel, after flightdeck
 
@@ -817,7 +835,7 @@ taking its cues from the flightdeck mod. Nothing here is designed yet; the entry
 intent (asked for by the user during ticket 06's review of the loop panel, transcript
 `f6f568e2-2046-4491-879a-eca600f51b16`).
 
-**Adopt when:** the loop-panel tickets are done and the pane's sections stop changing shape.
+**Adopt when:** the next edit to `mod/hooks/register.tsx`; the loop-panel tickets are done.
 
 ## The loop tool refuses a feature whose spec is not written yet
 
@@ -845,7 +863,7 @@ the same pipe into a `readFileSync(0)` reader read all 16 KB, so the trigger is 
 input: a subcommand that needs input could say its stdin was unreadable instead, and SKILL.md's
 quoted-heredoc rule could add that a file redirect is the fallback.
 
-**Adopt when:** a second run hits it, or the next edit to `readInput()`.
+**Adopt when:** the next edit to `findings.ts`, or a second run hits it.
 
 ## `report` takes a whole round in one heredoc
 
@@ -876,5 +894,5 @@ it only serves Claude Code and widens the reach boundary in `mod/CLAUDE.md`, und
 acts on the session only in answer to a press, the compaction keep list aside (asked for by the
 user, transcript `b25e2445-be64-4b2f-b32a-89fa476fac8b`).
 
-**Adopt when:** a session hits a problem a `docs/solutions/` doc already answers, or the next edit
-to one of the four search steps.
+**Adopt when:** the next edit to one of those four skills' SKILL.md, or a session hits a problem a
+`docs/solutions/` doc already answers.

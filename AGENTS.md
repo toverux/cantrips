@@ -138,5 +138,6 @@ Ask first before:
 ## Preferred agent behavior
 
 - Start by inspecting existing patterns: read a neighboring skill before writing a new one.
+- Before editing a file, check IDEAS.md's `Adopt when` triggers for one naming it, and propose each entry that fires as a related change, for the user to include or leave.
 - CLAUDE.md here is a committed relative symlink to AGENTS.md; edit AGENTS.md, never the symlink.
 - Propose updates to this file when you notice a pattern or introduce changes that deserve to be documented for future sessions.
