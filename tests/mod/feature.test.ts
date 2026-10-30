@@ -122,6 +122,10 @@ test('parseTicket reads the blocker numbers from the label line alone', () => {
   // A label alone on its line names no blocker, whatever the next line holds.
   const alone = parseTicket('03-x.md', '# 03 — X\n\n**Blocked by:**\n\n- [ ] Handles 10 rows\n')
   assert.deepEqual(alone.blockedBy, [])
+  // What the ticket blocks, sharing the line, names no blocker.
+  assert.deepEqual(blockers('02 — The server. **Blocks:** 06 — The reference.'), ['02'])
+  assert.deepEqual(blockers('**Blocks:** 06 — The reference.'), [])
+  assert.deepEqual(blockers('None — can start. **Blocks:** 02, and 07.'), [])
 })
 
 test('buildFeatureView keeps the blockers that name an unresolved ticket of the folder', () => {

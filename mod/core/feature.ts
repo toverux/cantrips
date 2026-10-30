@@ -20,7 +20,7 @@ const DATED_LINE = /^(?:[-*]\s+|#{3,6}\s+)?\**\d{4}-\d{2}-\d{2}/
 const CHECKBOX = /^\s*[-*]\s+\[([ xX])\]/
 const TITLE = /^#\s+(.+?)\s*$/m
 const NUMBER_PREFIX = /^\d{2,}\s*[—–-]+\s*/
-const BLOCKED_BY = /^\*\*Blocked by:\*\*[ \t]*(.+?)[ \t]*$/m
+const BLOCKED_BY = /^\*\*Blocked by:\*\*[ \t]*(.*?)[ \t]*(?:\*\*Blocks:\*\*|$)/m
 const TICKET_NUMBER = /\b(\d{2,3})\b/g
 const RESOLVED = /^Status:\s*resolved\b/im
 
