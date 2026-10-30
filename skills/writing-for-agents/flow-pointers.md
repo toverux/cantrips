@@ -21,9 +21,9 @@ A closing whose message flagged `/compound` material adds `/compound` as a step 
 
 ## The compact hint
 
-A closing that can point into `/simplify` or `/review-gate` carries this line after its steps:
+A closing whose first rendered step naming a skill can be `/review-gate` carries this line after its steps:
 
-> Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first.
+> Where the first rendered step that names a skill is `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first.
 
 ## The closing's deputy step
 
@@ -43,12 +43,11 @@ One step, from a skill invoked as `/compound`:
 
 > _Next: `/commit` (user-invoked) — lands these writes with the rest of the diff._
 
-A chain with a hint due, from a skill invoked as `/cantrips:implement`:
+A chain with a hint due, from a skill invoked as `/cantrips:diagnosing-bugs`:
 
-Compact the conversation before the review tail.
+Compact the conversation before the gate.
 
 > _Next steps:_
 >
-> - _`/cantrips:simplify` (user-invoked) — an optional quality pass over the diff._
-> - _`/cantrips:review-gate medium --fix` (user-invoked) — hunts bugs and spec drift before the commit._
+> - _`/cantrips:review-gate medium --fix` (user-invoked) — hunts bugs in the fix before the commit._
 > - _`/cantrips:commit` (user-invoked) — once the gate stands._

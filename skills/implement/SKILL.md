@@ -3,7 +3,7 @@ name: implement
 description: Implement a spec or a single ticket, driving TDD at the seams agreed in the spec.
 argument-hint: '[spec or ticket; blank asks]'
 disable-model-invocation: true
-version: 1.6.0
+version: 1.7.0
 source: mattpocock/skills@1.3.2 (implement)
 ---
 
@@ -23,9 +23,8 @@ The spec itself stays as published — no skill ever closes a spec; closing the 
 
 Done when every criterion is verified, the ticket (if any) is resolved, and the full suite passes → close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash) naming the review tail, a **chain** rendered whole and in order, all in this session with the working diff as context:
 
-- `/simplify` (user-invoked) — an optional quality pass.
+- `/simplify` (user-invoked) — an optional quality pass, rendered as the command to type with one `proof-test:<path>` token per proving test of the whole run and bare where the run has none: a proving test is a `/tdd` test at an agreed seam or a test the agent wrote or changed and ran to tick a criterion, so a test never run for proof, a pre-existing test that merely passed, and a criterion verified by hand name none.
 - `/review-gate [--fix | --loop]` (user-invoked) — suggest `low` for a trivial or mechanical diff, `high` for a large, cross-cutting, or risky one, `medium` otherwise; pair any level with `--fix` to apply the findings once, or with `--loop` to converge the gate to green.
 - `/commit` (user-invoked) — once the gate stands.
 
-Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first.
 Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.

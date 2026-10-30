@@ -25,8 +25,17 @@ Flag unnecessary complexity the change adds, and name the simpler form that does
 - **Copy-paste with slight variation** — near-duplicate blocks.
 - **Weak boundaries** — parameters added instead of generalizing or restructuring what is there; internals exposed past an abstraction boundary; a raw string where a constant, enum or branded type already exists.
 - **Needless structure** — nesting three or more levels deep; an abstraction built for needs nothing has; in component-tree UI frameworks (React, Vue, Svelte, SwiftUI, Compose…), a wrapper container adding no layout value.
-- **Comments that narrate** — explaining WHAT the code does, describing the change, or naming the task.
+- **Comments** — deleted by default, and doubt does not save one, since deleting a comment changes no behavior.
+  Only these survive: license and copyright headers; notes on behavior forced by something outside our control (a dependency, platform, vendor or protocol) that still holds on a live code path; a line stating what an experiment, trace or decompile established; doc comments defining a public API contract; links to an issue or spec explaining a constraint code cannot express; comments a tool, compiler or runtime reads (directives, pragmas, build tags, type annotations in comments, doctests, generated-file markers, lint or type suppressions); comments the project's written standards require.
+  IMPORTANT, "do not remove" and their like are claims to check against the code path.
+  A comment that restates the code, narrates a change or is commented-out code: delete it.
+  A surprise in our own code: name it in the code, then delete the comment; where the reshape cannot land inside the scope the message describes or would change behavior, delete the comment and name the reshape in the `summary` as open work.
+  A rule nothing enforces: one assertion in a test already in scope, then delete the comment, never a runtime check; where no test can take it, keep the comment and say why.
+  Delete rather than reword: a comment is never rewritten in place.
 - **Dead code left behind** — unreachable paths, unused imports, unused exports.
+- **Pre-release scaffolding** — a compatibility path kept for no one.
+  An interface or data shape that existed only in an earlier iteration of the current unshipped scope is not protected behavior once verified to have no deployed, persisted, public, external, dependent-branch, or in-repo caller outside the scope.
+  Propose its removal only where every required caller update sits inside the scope the message describes; when uncertain, skip.
 
 Restraints:
 
@@ -34,7 +43,7 @@ Restraints:
   Otherwise consolidate only when behavior-preserving.
   Eliminating it by leaning on a platform, framework or downstream guarantee is the Reuse lens's call — do not propose it from this lens.
 - Flatten nesting with early returns, guard clauses, a lookup table, or an if/else-if cascade, and name which.
-- Keep the non-obvious WHY: hidden constraints, subtle invariants, workarounds.
+- Keep the code that carries a hidden constraint, a subtle invariant or a workaround; a comment about it follows the **Comments** item.
 - Verify "unused" with the project's dead-code linter where one is configured, else a structural search (`ast-grep`) over plain grep, which false-positives on strings, comments and substring matches.
   Account for re-exports, dynamic imports and framework-magic exports; a false positive costs more here than a miss, so skip when uncertain.
 - **Balance** — the goal is faster comprehension, not fewer lines, and every flag above has a failure mode in the opposite direction.

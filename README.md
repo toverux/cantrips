@@ -73,9 +73,9 @@ flowchart TD
     style commitPhase fill:transparent,stroke:#5eead4,stroke-dasharray:4 4,color:#94a3b8
 ```
 
-`/handoff` breaks context at any point. A closing that points into `/simplify` or `/review-gate`
-recommends compacting the conversation first: a full pass rarely fits one context window, and only
-you can see how full yours is.
+`/handoff` breaks context at any point. A closing whose next step is `/review-gate` recommends
+compacting the conversation first: a full pass rarely fits one context window, and only you can see
+how full yours is.
 
 ## The loop panel
 
@@ -196,7 +196,8 @@ slice, numbered in dependency order, with acceptance criteria.
 decisions and the approved seams, so implementation tests at them without re-asking and states
 explicit verification criteria where no seam was agreed. A ticket whose criteria are all verified is
 **resolved** through the backend; the spec itself is never closed. Next is `/simplify` (optional),
-then `/review-gate` with an effort level scaled to the diff, then `/commit`, all in session.
+rendered as the command to type with the tests that proved the run as `proof-test:` tokens, then
+`/review-gate` with an effort level scaled to the diff, then `/commit`, all in session.
 
 ### `/tdd`
 
@@ -211,9 +212,13 @@ belongs to the review tail.
 
 **An optional quality pass between implementation and review that changes nothing about what the
 material does.** It dispatches the three mechanical lens finders `/review-gate` runs (reuse,
-simplification, efficiency) over the scope (your words, or the branch diff plus anything
-uncommitted), applies the worthwhile fixes that fit inside it and names the ones it skipped.
-**Safety checks are never simplified away**, a gate or a prohibition in prose counting as one.
+simplification, efficiency), plus a **test-value** finder where the scope holds a test file, over
+the scope (your words, or the branch diff plus anything uncommitted), applies the worthwhile fixes
+that fit inside it and names the ones it skipped. Comments are deleted by default unless a keep list
+saves them, and tests that protect nothing go, each removal naming the test that still covers the
+ground. **Proof tests stay as they are**, whether named by `proof-test:` tokens or by the session's
+evidence, and **safety checks are never simplified away**, a gate or a prohibition in prose counting
+as one.
 
 ### `/review-gate`
 

@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[inline|low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop | --fsd]'
 disable-model-invocation: true
-version: 2.3.1
+version: 2.3.2
 source: mattpocock/skills@1.3.2 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 # `; exit $LASTEXITCODE`, unquoted, keeps node's exit 2 under PowerShell, where Claude Code runs hooks on Windows; bash and sh ignore it.
 hooks:
@@ -175,6 +175,6 @@ Where a fix wrote prose, reread every sentence it wrote in place, as its reader 
 ## Close
 
 Close with a flow pointer (the message's final paragraph, a blockquote in full italics opening `Next:` — or `Next steps:` over one bullet per pointer — each pointer naming its skill the way this skill was itself invoked, same prefix and namespace, and ending in a one-clause rationale after an em dash), in this session: the findings worth fixing get applied — by this run in apply mode, by the user after a report-only one — then `/review-gate` (user-invoked) again where those fixes were substantial, since nothing has yet reviewed them, and `/commit` (user-invoked) once they stand.
-Where a rendered pointer leads into `/simplify` or `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first.
+Where the first rendered step that names a skill is `/review-gate`, precede the blockquote with a paragraph of its own recommending that the user compact the conversation first.
 Where this session engaged a deputy through `/deputy` and has not dismissed it, a choice is put to the deputy as [ROUNDS.md](../deputy/ROUNDS.md) says and rendered as the one step it chose, any other closing is rendered as written, and each rendered step that names a skill is then taken: one marked `(user-invoked)` by notifying the user where the harness has a tool for it and waiting for them to type it, any other by invoking it, notifying nobody.
 A finding that exposed a durable gotcha or root cause is `/compound` material: flag it so `/commit`'s opening scan captures it, or invoke `/compound` directly.
