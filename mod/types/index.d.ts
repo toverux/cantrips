@@ -18,7 +18,7 @@ export type Ticket = {
   file: string
   /** The `NN` the file name opens with. */
   number: string
-  /** The heading, its `NN —` prefix dropped. */
+  /** The heading, its `NN:` or `NN —` prefix dropped. */
   title: string
   /**
    * The ticket numbers the "Blocked by" prose names; the feature view keeps those of the folder's

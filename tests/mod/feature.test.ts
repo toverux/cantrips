@@ -60,6 +60,10 @@ test('parseTicket reads number, title, blockers, resolution and criteria', () =>
   })
 })
 
+test('parseTicket drops the number prefix the /tickets template writes', () => {
+  assert.equal(parseTicket('03-x.md', '# 03: X\n').title, 'X')
+})
+
 test('parseTicket reads "None" as no blocker and a missing status as unresolved', () => {
   const ticket = parseTicket(
     '01-mod-skeleton.md',
