@@ -1,5 +1,24 @@
 # Changelog
 
+## [4.0.0](https://github.com/toverux/cantrips/compare/v3.2.1...v4.0.0) (2026-10-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* `/resolving-merge-conflicts` is removed.
+
+### Features
+
+* carry mattpocock/skills v1.3.2 and compound-engineering v3.33.2 into the forks ([62bd0e4](https://github.com/toverux/cantrips/commit/62bd0e4d898c86cfa0f571c6e5b9f7982611d1f2))
+* **compound-refresh:** retire a solutions doc when its outside condition is met ([dcb6237](https://github.com/toverux/cantrips/commit/dcb6237a8c582458cae0a7edff1d8cdc5d81fcaa))
+* **simplify:** protect the proving tests and prune tests and comments as upstream does ([78c8a1d](https://github.com/toverux/cantrips/commit/78c8a1de60fe825f0783669566a0043fc7353595))
+
+
+### Bug Fixes
+
+* **mod:** drop the ticket number from titles under the /tickets colon heading ([7db6870](https://github.com/toverux/cantrips/commit/7db6870c9cdd12a436f9d94dfeb048d82395e95b))
+* **mod:** stop counting the tickets a ticket blocks as its blockers ([20fab1e](https://github.com/toverux/cantrips/commit/20fab1e6acfb32d625c1e998ff708ca82fd8247f))
+
 ## [3.2.1](https://github.com/toverux/cantrips/compare/v3.2.0...v3.2.1) (2026-10-29)
 
 
