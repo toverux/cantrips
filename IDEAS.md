@@ -860,3 +860,21 @@ arbiter's reply as returned, each verifier's verdicts against the finders' candi
 `report` itself takes little more than the rank order.
 
 **Adopt when:** now; the user ranked it high priority.
+
+## `docs/solutions/` goes unread while the code is being written
+
+Four skills search the store for what it can teach them, each by a sentence in its own step:
+`/spec` step 2, `/diagnosing-bugs` Phase 0, `/improve-codebase-architecture` before it explores, and
+`/review-gate` step 4, by which time the code exists. `/tickets`, `/implement` and `/grilling` never
+read it, and `/tdd` reads only the ADR store, so a recorded gotcha reaches the code through the
+spec, if `/spec` folded it in, or at review. Each search also rests on the terms the agent picks.
+The first step is to audit those points and decide which ones need recall. A command could then
+list every solution with its `area`, `tags` and `symptoms`, run at those points (`/implement`
+taking up a ticket, `/tdd` before it names tests), so the agent scans an index rather than guessing
+a grep. The mod could instead inject matching entries into the prompt, which reaches further, but
+it only serves Claude Code and widens the reach boundary in `mod/CLAUDE.md`, under which the mod
+acts on the session only in answer to a press, the compaction keep list aside (asked for by the
+user, transcript `b25e2445-be64-4b2f-b32a-89fa476fac8b`).
+
+**Adopt when:** a session hits a problem a `docs/solutions/` doc already answers, or the next edit
+to one of the four search steps.
