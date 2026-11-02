@@ -9,6 +9,11 @@ stand beside the file. An entry deferring a whole feature may wait on its own co
 that fires a trigger proposes the entry to the user as a related change, and one left out keeps
 its trigger for the next edit.
 
+An entry a session met adds **Hits**: the running count of those sessions, dated by the last that
+added to it. A session meeting an entry's problem adds one and takes today's date; an entry with no
+**Hits** yet gains the field. Entry prose carries no hit count: **Hits** is the only one kept
+current.
+
 ## Questions a sync set aside, standing
 
 Keep this entry: adopting it is reading the section, and an edit that fires it re-defers it here
@@ -906,3 +911,14 @@ user, transcript `b25e2445-be64-4b2f-b32a-89fa476fac8b`).
 
 **Adopt when:** the next edit to one of those four skills' SKILL.md, or a session hits a problem a
 `docs/solutions/` doc already answers.
+
+## `report` rejects a merged entry whose members got different rulings
+
+SKILL.md gives a merged entry's `index` as "an array of its members'" with no word on the case where
+the arbiter ruled its members differently: `findings.ts report` refuses the entry, and the agent
+retyped a 50-candidate payload to unmerge it (transcript `2f3207ea-a579-42ae-ba5c-e36e8c6853c9`).
+SKILL.md could tell the agent to merge only after the rulings are in, keeping apart what they split.
+
+**Hits:** 1 as of 2026-11-02
+
+**Adopt when:** the next edit to `/review-gate`'s SKILL.md or `findings.ts`.
