@@ -922,3 +922,16 @@ SKILL.md could tell the agent to merge only after the rulings are in, keeping ap
 **Hits:** 1 as of 2026-11-02
 
 **Adopt when:** the next edit to `/review-gate`'s SKILL.md or `findings.ts`.
+
+## An arbiter finding can override a verifier's REFUTED verdict
+
+An arbiter's own `findings` skip Verify, so a "shrink" deleted a comment the verifier had just refuted
+deleting under Apply mode's rule on experiment comments, and no rule breaks that tie (transcript
+`7896c417-4823-4035-b1dd-937075bb2191`). The opinion claimed nothing rested on an experiment with an
+empty `rests_on`, so the re-send had no listed fact to contradict. ARBITER.md could drop from a
+finding's change whatever a same-round REFUTED verdict covers, and require `rests_on` to list every
+fact the opinion states.
+
+**Hits:** 1 as of 2026-11-02
+
+**Adopt when:** the next edit to ARBITER.md or `/review-gate`'s apply rules.
