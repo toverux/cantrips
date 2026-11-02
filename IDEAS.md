@@ -935,3 +935,15 @@ fact the opinion states.
 **Hits:** 1 as of 2026-11-02
 
 **Adopt when:** the next edit to ARBITER.md or `/review-gate`'s apply rules.
+
+## An arbiter's decline can outlive the text it rested on
+
+A decline stands for the whole run, even where a later batch removes what it relied on (session
+`89a945d0-897f-49a6-8d7c-3f8bc1f4c96c`). The arbiter declined a false tool description because the
+reference taught the gap; a later round deleted that section, and the run closed green with nothing
+left warning of it. The user caught it from the closing report. `/review-gate` could re-offer a
+decline whose `rests_on` names text a later batch changed, before `close` calls the run green.
+
+**Hits:** 1 as of 2026-11-02
+
+**Adopt when:** the next edit to ARBITER.md or `/review-gate`'s apply rules.
