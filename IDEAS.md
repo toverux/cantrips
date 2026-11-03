@@ -471,6 +471,8 @@ the next question is framed. The user asked for it at the start of a grilling se
 `270fcb57-9d96-4487-b800-f522f8cbf6f7`). With one question per message, the frontier and the lock
 still apply, but the "numbers still open" line has nothing to name.
 
+**Hits:** 2 as of 2026-11-03
+
 ## `/grilling`'s recommended answer carries the agent's bias, not the user's
 
 `/grilling` gives every question a recommended answer and says nothing about how to pick it. In
@@ -947,3 +949,18 @@ decline whose `rests_on` names text a later batch changed, before `close` calls 
 **Hits:** 1 as of 2026-11-02
 
 **Adopt when:** the next edit to ARBITER.md or `/review-gate`'s apply rules.
+
+## A loop config for local work on a fork
+
+Twelve skills read the loop config from `docs/agents/cantrips-loop.md`, else the plugin defaults. On
+a fork contributed upstream, that file would have to be committed into a repo whose maintainers
+never asked for it, so a fork gets the defaults and `/setup-cantrips-loop` cannot apply there
+(session `ca130e9f-6dde-4908-ba9b-f12b2d6b2263`, a claude-powerline contribution). The lookup could
+also accept a config under `.scratch/`, read when `docs/agents/` holds none, so local work on a fork
+keeps its own storage contract out of git. The defaults' rule that a `.scratch/` write first lists
+`.scratch/` in `.gitignore` meets the same wall: it edits a tracked file upstream sees. It could
+accept a path that `git check-ignore` already reports ignored (there, a global gitignore covers it).
+
+**Hits:** 1 as of 2026-11-03
+
+**Adopt when:** the next edit to `defaults.md` or `/setup-cantrips-loop`'s SKILL.md.
