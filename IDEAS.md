@@ -252,6 +252,8 @@ the run fails or the agent picks a fixed point itself: twice in one session it s
 `main...HEAD` and said so. Scope could propose the default branch as the fixed point when the tree
 is clean and the branch is ahead of it.
 
+**Hits:** 2 as of 2026-11-05
+
 **Adopt when:** the next edit to `/review-gate`'s SKILL.md, or a run on a clean tree fails, or picks
 its own fixed point, again.
 
@@ -964,3 +966,19 @@ accept a path that `git check-ignore` already reports ignored (there, a global g
 **Hits:** 1 as of 2026-11-03
 
 **Adopt when:** the next edit to `defaults.md` or `/setup-cantrips-loop`'s SKILL.md.
+
+## `report`'s input contract leaves out fields the script requires
+
+SKILL.md lists a `report` candidate's fields as "the finder's fields — `file` and `line`, or
+`section`", then the gate's own, and never names `failure_scenario`, which the script requires on
+every candidate. A session building the call from the contract, as SKILL.md tells it to, omits it
+and gets an input error. The same run then merged two wrap findings the arbiter ruled `fix` and
+`decline`, and the script rejected the merge, which the contract does not forbid. Each rejection
+resends the whole payload, the arbiter's rulings included (transcript
+`6280f8c1-5e53-418d-a2b0-daa8fdaf2b9e`). The contract could list every required candidate field,
+and say that a merge joins only findings the arbiter ruled alike.
+
+**Hits:** 1 as of 2026-11-05
+
+**Adopt when:** the next edit to `/review-gate`'s SKILL.md or `findings.ts`, or another `report`
+call is rejected for a field or a merge the contract does not mention.
