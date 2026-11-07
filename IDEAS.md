@@ -579,6 +579,20 @@ LOOP.md could hand `answers` a deputy's reply as soon as it lands.
 question; the `--fsd` change re-rendered the parked row for a `kind` of its own and left this one
 standing.
 
+## A deputy re-briefed after a context summary costs a transcript dig
+
+ROUNDS.md has a session that lost its deputy's handle to a context summary dispatch a fresh one,
+briefed with every round so far and its answer. Nothing keeps either: the summary dropped the handle
+and kept the rounds only in outline, so the session wrote a script over the transcript JSONL to
+rebuild them, and the arbiter's handle survived only because the session had copied it into a notes
+file (transcript `cc528b48-bcdf-4841-b0eb-25d5950058f8`). The run's state file could hold the
+deputy's and the arbiter's handles and each round as put, with its answer; a session past a summary
+then continues the same deputy, or briefs a new one from that file.
+
+**Hits:** 1 as of 2026-11-07
+
+**Adopt when:** now; the user ranked it high priority.
+
 ## A delta round over a small diff dispatches every agent afresh
 
 LOOP.md's delta round runs the gate at the level its diff earns, and Find and Verify dispatch new
