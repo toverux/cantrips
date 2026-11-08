@@ -305,9 +305,12 @@ first's rulings, though the only evidence between them bore on a fifth finding. 
 declined a narrower retry catch on a doubt about the game's exception mapping, a doubt the first
 reply had settled with a cited line. ARBITER.md says neither which reply stands nor that a
 follow-up re-rules only the findings it carries; the session kept the last ruling per index, which
-`report`'s one-ruling-per-index check forces anyway. Holding the verdicts for one message once
-every verifier returns, or briefing that a follow-up re-rules only the indices it names, would
-close it.
+`report`'s one-ruling-per-index check forces anyway. A third time (transcript
+`cc528b48-bcdf-4841-b0eb-25d5950058f8`, round 8), a question the user sent mid-round set the
+re-ruling off, and SKILL.md's "the `rulings` arrays of this gate call's replies as returned, put end
+to end" then failed that check (`120 is ruled twice`). Holding the verdicts for one message once
+every verifier returns, or briefing that a follow-up re-rules only the indices it names, would close
+it.
 
 **Adopt when:** the next edit to ARBITER.md or `agents/arbiter.md`; round 9's run above is the
 second reversal with no new evidence.
@@ -658,6 +661,14 @@ time the session restarted the run and refiled round 1's report from its own con
 restarted `start` snapshotted a tree that already held the applied batch, so the delta round saw no
 diff and the batch was re-reviewed inline, unverified. State kept somewhere a reboot leaves, such as
 the user's cache directory, would let `resume` pick the run up.
+A second run lost it at round 3 (transcript `cc528b48-bcdf-4841-b0eb-25d5950058f8`), and a replay
+of the run's script calls from the transcript, in order, rebuilt its findings and rounds: each
+replayed block matched the original byte for byte. Its tree snapshots did not: the replayed calls
+snapshotted a tree already holding the next batch, so `base` equalled `handed` and the script
+called that batch empty. The session found the real base in the last pre-crash handoff line
+(`git diff <base> <handed>`), and the tree object was still in the store.
+
+**Hits:** 2 as of 2026-11-08
 
 **Adopt when:** the next edit to `findings.ts`, or a second run lost to a reboot.
 
