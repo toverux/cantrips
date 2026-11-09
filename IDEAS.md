@@ -461,9 +461,11 @@ pending" rather than "no run" (transcript `acf285ac-7061-46c2-9815-e118a4157d14`
 look up every run of the session, whatever worktree it is keyed on.
 
 A single-repo run hits the same fault when the orchestrator calls the script from any other
-directory: a `report` piped from `/tmp` answered "no run in this session and worktree" (transcript
-`78b19e64-06d2-4ff5-8b59-f8c668d45e2d`). SKILL.md could say to call it from the repository under
-review.
+directory: a `report` piped from `/tmp` answered "no run in this session and worktree" (transcripts
+`78b19e64-06d2-4ff5-8b59-f8c668d45e2d`, `cc528b48-bcdf-4841-b0eb-25d5950058f8`). SKILL.md could say
+to call it from the repository under review.
+
+**Hits:** 1 as of 2026-11-09
 
 **Adopt when:** the next edit to `findings.ts`, or a second cross-repo run leaves a batch
 unreviewed.
