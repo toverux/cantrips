@@ -1009,3 +1009,14 @@ and say that a merge joins only findings the arbiter ruled alike.
 
 **Adopt when:** the next edit to `/review-gate`'s SKILL.md or `findings.ts`, or another `report`
 call is rejected for a field or a merge the contract does not mention.
+
+## Compound candidates recorded as they surface
+
+`/compound` scans the session for its candidates at the end, so a candidate met early lives only
+in context until then, and a context summary can drop it before the scan. A long implement run
+flagged one mid-run for later (an Entities source-generator trap) and kept it only in its own
+messages (transcript `94247bc1-3c7c-4c2c-89a4-ca5a5e6a0892`). Where the harness has a tool for it,
+as the plugin registers `loop`, a candidate could be recorded through a tool the moment it
+surfaces, kept outside the context, and read back by `/compound`'s scan beside the session.
+
+**Adopt when:** the next edit to `/compound`'s SKILL.md, or a candidate is lost to a summary.
