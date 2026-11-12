@@ -478,7 +478,7 @@ the next question is framed. The user asked for it at the start of a grilling se
 `270fcb57-9d96-4487-b800-f522f8cbf6f7`). With one question per message, the frontier and the lock
 still apply, but the "numbers still open" line has nothing to name.
 
-**Hits:** 2 as of 2026-11-03
+**Hits:** 3 as of 2026-11-12
 
 ## `/grilling`'s recommended answer carries the agent's bias, not the user's
 
@@ -592,11 +592,25 @@ and kept the rounds only in outline, so the session wrote a script over the tran
 rebuild them, and the arbiter's handle survived only because the session had copied it into a notes
 file (transcript `cc528b48-bcdf-4841-b0eb-25d5950058f8`). The run's state file could hold the
 deputy's and the arbiter's handles and each round as put, with its answer; a session past a summary
-then continues the same deputy, or briefs a new one from that file.
+then continues the same deputy, or briefs a new one from that file. `/spec`'s rereader takes the
+same record pasted verbatim, which a session retyped from context after 22 rounds (transcript
+`d7af41c5-6c3c-4925-8a89-a9b5cc28422e`): the file would serve both.
 
 **Hits:** 1 as of 2026-11-07
 
 **Adopt when:** now; the user ranked it high priority.
+
+## A deputy's departing answer sits under a question worded for the session's
+
+`/grilling` and `/spec` word each question so "yes" accepts the session's recommendation, and in
+advisor mode ROUNDS.md puts the deputy's answer in the recommendation slot, so that a bare yes
+accepts what stands on screen. Where the deputy departs, the two disagree on screen: the body asks
+"Does this spec deliver (a)?" over a slot answering "(b)", and the session added a line each time
+saying which one a bare yes takes (transcript `d7af41c5-6c3c-4925-8a89-a9b5cc28422e`, Q1 and Q9).
+ROUNDS.md could have the question's closing line follow the slot.
+
+**Adopt when:** the next edit to ROUNDS.md, or a user answers "yes" under a departing slot and
+means the question's option.
 
 ## A delta round over a small diff dispatches every agent afresh
 
