@@ -1034,3 +1034,25 @@ as the plugin registers `loop`, a candidate could be recorded through a tool the
 surfaces, kept outside the context, and read back by `/compound`'s scan beside the session.
 
 **Adopt when:** the next edit to `/compound`'s SKILL.md, or a candidate is lost to a summary.
+
+## The storage contract has no verb to annotate a ticket
+
+The loop config annotates a spec but not a ticket, so a revision to an open ticket is improvised:
+one pass inserted a dated section mid-body, a later one appended it at the end (session
+`5e875875-0362-4c97-a690-726c5b77c76c`). An annotate-ticket verb, the annotate-spec rule applied to
+a ticket, would settle the placement.
+
+**Hits:** 1 as of 2026-11-14
+
+**Adopt when:** the next edit to `defaults.md` or `/setup-cantrips-loop`'s SKILL.md.
+
+## `/compound` rereads its writes
+
+`/compound` writes the approved entries and stops, so their mistakes and spare words land as
+approved. A last step could have the agent reread each entry in place once written, fix what is
+wrong and shorten it as far as it goes. Asked for by the user after a run whose entries they had to
+ask to keep short (session `5e875875-0362-4c97-a690-726c5b77c76c`).
+
+**Hits:** 1 as of 2026-11-14
+
+**Adopt when:** the next edit to `/compound`'s SKILL.md.
