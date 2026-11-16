@@ -104,8 +104,9 @@ engine call it makes.
 No skill hard-codes where a spec or a ticket lives. The storage-touching skills speak **six
 verbs** — _publish_, _fetch_, and _annotate_ the spec; _publish_, _fetch_, and _resolve_ the
 ticket — and one per-repo doc, `docs/agents/cantrips-loop.md`, translates each verb for the repo's
-backend and lists which knowledge stores are enabled. When that doc is absent, the plugin's defaults
-govern, so a bare install runs with no configuration step.
+backend, lists which knowledge stores are enabled, and says where the roadmap lives in a `## Roadmap`
+section. When that doc is absent, the plugin's defaults govern, so a bare install runs with no
+configuration step.
 
 | Artifact  | Default home                                  | Role                                                                           |
 | --------- | --------------------------------------------- |--------------------------------------------------------------------------------|
@@ -149,7 +150,7 @@ authoritative source. 🧑 you type it; 🤖 the agent loads it on its own when 
 
 | Skill                                                              | Invoked by | Role                                                                       |
 | ------------------------------------------------------------------ | ---------- | -------------------------------------------------------------------------- |
-| [`/setup-cantrips-loop`](#setup-cantrips-loop)                     | 🧑         | Configure a repo's storage backend and opt-in knowledge stores.            |
+| [`/setup-cantrips-loop`](#setup-cantrips-loop)                     | 🧑         | Configure a repo's storage backend, knowledge stores and roadmap.          |
 | [`/setup-git-guardrails`](#setup-git-guardrails)                   | 🧑         | Install a hook that blocks dangerous git commands before they run.         |
 | [`/handoff`](#handoff)                                             | 🧑         | Compact the session into a handoff for a fresh context.                    |
 | [`/wait-what`](#wait-what)                                         | 🧑         | Interrupt: re-pitch a message that did not land.                           |
@@ -311,10 +312,12 @@ do not settle. A later `/deputy` takes new orders, a switch of mode, or a dismis
 
 ### `/setup-cantrips-loop`
 
-**Configure how a repo runs the loop.** Asks which opt-in knowledge stores to enable and which
+**Configure how a repo runs the loop.** Asks which opt-in knowledge stores to enable, which
 backend seed translates the six storage verbs (local markdown, GitHub through the `gh` CLI, or
-freeform), then writes `docs/agents/cantrips-loop.md`. Re-runnable: a second run edits the existing
-doc.
+freeform), and where the roadmap lives (a git-ignored local file, or the repo's GitHub issues), then
+writes `docs/agents/cantrips-loop.md`. On GitHub issues it creates the roadmap labels and marks the
+clone as one where agents may write to the roadmap without asking. Re-runnable: a second run edits
+the existing doc.
 
 ### `/setup-git-guardrails`
 

@@ -30,3 +30,11 @@ Both opt-in stores default off:
 - `docs/solutions/` (problem-shaped learnings) — off.
 
 A store is on only when `docs/agents/cantrips-loop.md` lists it as enabled; skills skip reads and writes against a store that is off.
+
+## Roadmap
+
+Read and write this repo's roadmap through `/roadmap`.
+
+- Backend: local file
+
+The roadmap is `.scratch/ROADMAP.md`, git-ignored: agents read and edit it directly, with no script, no inbox and no approval round.

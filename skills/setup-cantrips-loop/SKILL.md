@@ -1,11 +1,11 @@
 ---
 name: setup-cantrips-loop
-description: Configure this repo's cantrips loop — knowledge stores and storage backend — by writing docs/agents/cantrips-loop.md.
+description: Configure this repo's cantrips loop — knowledge stores, storage backend and roadmap — by writing docs/agents/cantrips-loop.md.
 disable-model-invocation: true
-version: 1.0.1
+version: 1.1.0
 ---
 
-Configure how this repo runs the cantrips loop: which opt-in knowledge stores are enabled, and which backend the six storage verbs translate to.
+Configure how this repo runs the cantrips loop: which opt-in knowledge stores are enabled, which backend the six storage verbs translate to, and where the roadmap lives.
 The result is one prose doc, `docs/agents/cantrips-loop.md`, that storage-touching skills read in place of the plugin defaults ([defaults.md](defaults.md)).
 
 ## Process
@@ -30,7 +30,13 @@ The result is one prose doc, `docs/agents/cantrips-loop.md`, that storage-touchi
    Every seed holds the contract invariants in [defaults.md](defaults.md): an annotation appends without overwriting what is there, stays time-ordered, and governs over the body it revises; a published ticket is traceable to its parent spec.
    When a derived translation would break one, say so and ask the user for one that holds.
 
-4. Write `docs/agents/cantrips-loop.md` as this repo's **phrasebook**: a skill arrives holding a verb and leaves holding the path or command it means here.
+4. Ask where the repo's roadmap lives: the git-ignored local file `.scratch/ROADMAP.md` (the default), or the repo's GitHub issues, one issue per item.
+   Take GitHub issues only from an answer the user gives in this run; a choice the existing doc holds carries forward.
+   Either way, make sure `.scratch/` is in `.gitignore`; on GitHub issues, ask for the tracker as `owner/repo` and any labels of the repo's own to ride beside the standard ones, and check that `gh` is installed and logged in (`gh auth status`).
+   Where the user chose GitHub issues in this run, or the doc holds it and `git config --get cantrips.roadmapWrites` is unset in this clone and the user confirms the choice when asked, run `git config --local cantrips.roadmapWrites true`, the mark that lets agents write to the roadmap without asking.
+   Where `.git` is read-only, print that command for the user to run instead.
+
+5. Write `docs/agents/cantrips-loop.md` as this repo's **phrasebook**: a skill arrives holding a verb and leaves holding the path or command it means here.
    Whatever a skill still needs has to be in it.
    Fill the scaffold:
 
@@ -38,7 +44,7 @@ The result is one prose doc, `docs/agents/cantrips-loop.md`, that storage-touchi
 
 # The cantrips loop in this repo
 
-What the six storage verbs translate to here, and which knowledge stores are enabled.
+What the six storage verbs translate to here, which knowledge stores are enabled, and where the roadmap lives.
 Storage-touching skills read this doc instead of the plugin defaults.
 `/setup-cantrips-loop` wrote it; re-run that skill to change it.
 
@@ -60,6 +66,18 @@ Storage-touching skills read this doc instead of the plugin defaults.
 - `docs/adr/` — **enabled** or **disabled**.
 - `docs/solutions/` — **enabled** or **disabled**.
 
+## Roadmap
+
+Read and write this repo's roadmap through `/roadmap`.
+
+- Backend: <`local file` or `GitHub issues`>
+- Tracker: <`owner/repo`; GitHub issues only>
+- Labels: <the repo's own labels, each in backticks, comma-separated; GitHub issues only>
+- Note: <optional: what the issues are>
+
 </loop-config-template>
 
-Done when every slot is filled and nothing sits outside one.
+Keep the roadmap lines in this form, since `/roadmap`'s script reads them, and drop a line that has no value.
+On GitHub issues, then create the labels with `/roadmap`'s script (`labels`).
+
+Done when every slot kept is filled, nothing sits outside one, and on GitHub issues the labels exist.
