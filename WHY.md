@@ -55,8 +55,8 @@ per-skill `agents/openai.yaml` sidecar. The sidecar is load-bearing: Codex ignor
 
 No skill hard-codes where a spec or a ticket lives. They speak six verbs — publish, fetch and
 annotate the spec; publish, fetch and resolve the ticket — and one plain-prose doc per repo
-translates each verb for the backend in use: local markdown, GitHub issues via `gh`, or a tracker you
-describe in a paragraph.
+translates each verb for the backend in use: local markdown, GitHub issues via `gh`, local markdown
+mirrored one way to GitHub issues, or a tracker you describe in a paragraph.
 
 A bare install runs on defaults with no configuration step, so the abstraction costs nothing to
 ignore.

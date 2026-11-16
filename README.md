@@ -109,6 +109,10 @@ section: a git-ignored `.scratch/ROADMAP.md` by default, or the repo's GitHub is
 item. When that doc is absent, the plugin's defaults govern, so a bare install runs with no
 configuration step.
 
+A repo can also mirror its features to GitHub issues. The spec and tickets stay local files, and
+after each write verb `/roadmap`'s script copies the feature one way to the tracker: the spec becomes
+an issue, and each ticket a sub-issue of it. A folder holding a `no-mirror` file is never published.
+
 | Artifact  | Default home                                  | Role                                                                           |
 | --------- | --------------------------------------------- |--------------------------------------------------------------------------------|
 | Specs     | `.scratch/<feature>/spec.md`, gitignored      | Point-in-time record of one feature's decisions; deleted at feature close.     |
@@ -320,11 +324,13 @@ do not settle. A later `/deputy` takes new orders, a switch of mode, or a dismis
 ### `/setup-cantrips-loop`
 
 **Configure how a repo runs the loop.** Asks which opt-in knowledge stores to enable, which
-backend seed translates the six storage verbs (local markdown, GitHub through the `gh` CLI, or
-freeform), and where the roadmap lives (a git-ignored local file, or the repo's GitHub issues), then
-writes `docs/agents/cantrips-loop.md`. On GitHub issues it creates the roadmap labels and marks the
-clone as one where agents may write to the roadmap without asking. Re-runnable: a second run edits
-the existing doc.
+backend seed translates the six storage verbs (local markdown, GitHub through the `gh` CLI, local
+markdown mirrored to GitHub issues, or freeform), and where the roadmap lives (a git-ignored local
+file, or the repo's GitHub issues), then writes `docs/agents/cantrips-loop.md`. On GitHub issues or
+the mirror it creates the labels and marks the clone as one where agents may write to GitHub
+without asking. When you pick the mirror in a repo that already has feature folders, it lists what
+would go public, flagging secrets, email addresses and home paths, and publishes only the folders you
+keep. Re-runnable: a second run edits the existing doc.
 
 ### `/setup-git-guardrails`
 

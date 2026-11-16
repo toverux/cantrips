@@ -25,6 +25,9 @@ The result is one prose doc, `docs/agents/cantrips-loop.md`, that storage-touchi
      Ask where the artifacts live: gitignored `.scratch/<feature>/` (the default — disposable working material, deleted by the human when the feature closes) or a committed path such as `docs/specs/` for repos whose specs should travel with branches, worktrees, and pull requests.
      For a gitignored location, add the entry to `.gitignore` in this run, so the doc can state a fact instead of leaving every later write a chore.
    - **GitHub** — the `gh` CLI: publish the spec as a GitHub issue holding the spec body; publish the tickets as one issue each, each linking its parent spec issue, blocking edges via native issue links; fetch the spec or a ticket with `gh issue view`; annotate the spec as an issue comment, which appends and carries its own timestamp; resolve the ticket as an issue close with a completion comment.
+   - **Mirror** — local markdown as above, each feature copied one way to a GitHub repo's issues by `/roadmap`'s script, the local files ruling.
+     Take it only from an answer the user gives in this run; a choice the existing doc holds carries forward.
+     Ask for the tracker as `owner/repo`, and check that `gh issue create --help` lists `--parent` and `gh issue edit --help` lists `--add-blocked-by`, telling the user the mirror needs a newer `gh` where either is missing.
    - **Freeform** — the user describes their tracker workflow in a paragraph; record that paragraph as prose and derive each verb's translation from it, asking about any verb the paragraph leaves uncovered.
 
    Every seed holds the contract invariants in [defaults.md](defaults.md): an annotation appends without overwriting what is there, stays time-ordered, and governs over the body it revises; a published ticket is traceable to its parent spec.
@@ -33,7 +36,7 @@ The result is one prose doc, `docs/agents/cantrips-loop.md`, that storage-touchi
 4. Ask where the repo's roadmap lives: the git-ignored local file `.scratch/ROADMAP.md` (the default), or the repo's GitHub issues, one issue per item.
    Take GitHub issues only from an answer the user gives in this run; a choice the existing doc holds carries forward.
    Either way, make sure `.scratch/` is in `.gitignore`; on GitHub issues, ask for the tracker as `owner/repo` and any labels of the repo's own to ride beside the standard ones, and check that `gh` is installed and logged in (`gh auth status`).
-   Where the user chose GitHub issues in this run, or the doc holds it and `git config --get cantrips.roadmapWrites` is unset in this clone and the user confirms the choice when asked, run `git config --local cantrips.roadmapWrites true`, the mark that lets agents write to the roadmap without asking.
+   Where the user chose GitHub issues or the mirror in this run, or the doc holds either and `git config --get cantrips.roadmapWrites` is unset in this clone and the user confirms the choice when asked, run `git config --local cantrips.roadmapWrites true`, the mark that lets agents write to the roadmap without asking.
    Where `.git` is read-only, print that command for the user to run instead.
 
 5. Write `docs/agents/cantrips-loop.md` as this repo's **phrasebook**: a skill arrives holding a verb and leaves holding the path or command it means here.
@@ -79,6 +82,10 @@ Read and write this repo's roadmap through `/roadmap`.
 
 Keep the roadmap lines in this form, since `/roadmap`'s script reads them, and drop a line that has no value.
 On GitHub issues, then create the labels with `/roadmap`'s script (`labels`).
-On GitHub issues where specs live in feature folders, the storage backend section says once that a spec or a ticket delivering roadmap items names them on a `Roadmap items:` line and that publishing a spec marks its items in flight through `/roadmap`, and its line on closing a feature runs `/roadmap`'s script `close <feature folder>` before deleting the folder.
+In mirror mode, the storage backend section names the tracker and says once: after any write verb, sync the feature through `/roadmap`; a spec opens with a one-line title, a level-one heading on its first line.
+Then create the `spec` and `ticket` labels with the script's `labels --tracker <owner/repo>`.
+Where the mirror was chosen in this run and feature folders exist, run the adoption look: show the user each folder's `sync <folder> --dry-run`, saying a spec with no tickets may be a draft, theirs to keep or strike; create an empty `no-mirror` file in each folder they strike, then `sync <folder> --tracker <owner/repo>` the rest, and `close <folder>` each whose tickets are all resolved.
+On GitHub issues where specs live in feature folders, the storage backend section says once that a spec or a ticket delivering roadmap items names them on a `Roadmap items:` line and that publishing a spec marks its items in flight through `/roadmap`.
+In either mode, the line on closing a feature runs `/roadmap`'s script `close <feature folder>`, in mirror mode with `--done` or `--not-planned` where the feature's tickets are not all resolved, and deletes the folder once that succeeded.
 
-Done when every slot kept is filled, nothing sits outside one, and on GitHub issues the labels exist.
+Done when every slot kept is filled, nothing sits outside one, on GitHub issues or the mirror the labels exist, and in a mirror chosen in this run every feature folder is synced or struck.

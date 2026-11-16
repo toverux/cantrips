@@ -772,11 +772,11 @@ test('a sync of a folder with no spec ends in one line and a non-zero exit', () 
   assert.deepEqual(out.calls, []);
 });
 
-test('each annotation is posted once as a dated comment across repeated syncs, on a closed issue too', () => {
+test('each annotation, a bullet, a heading or a paragraph opening on its date, is posted once as a dated comment across repeated syncs, on a closed issue too', () => {
   const { sync, write, folder } = mirrorable({ 'spec.md': SPEC }, { state: { issues: [{ ...issue(101, 'first-sync'), state: 'CLOSED' }] } });
   const first = sync('--tracker', 'acme/widgets');
   assert.equal(first.status, 0, first.stderr);
-  write('spec.md', `${SPEC}- 2026-11-17: a second note,\n  on two lines.\n### 2026-11-18 — a dated heading\n\nIts text.\n`);
+  write('spec.md', `${SPEC}- 2026-11-17: a second note,\n  on two lines.\n### 2026-11-18 — a dated heading\n\nIts text.\n2026-11-19: a dated paragraph.\n`);
   const out = sync();
   assert.equal(out.status, 0, out.stderr);
   assert.equal(sync().calls.length, out.calls.length);
@@ -785,8 +785,9 @@ test('each annotation is posted once as a dated comment across repeated syncs, o
     ['101', 'acme/widgets', '2026-11-16: a note.\n'],
     ['101', 'acme/widgets', '2026-11-17: a second note,\n  on two lines.\n'],
     ['101', 'acme/widgets', '2026-11-18 — a dated heading\n\nIts text.\n'],
+    ['101', 'acme/widgets', '2026-11-19: a dated paragraph.\n'],
   ]);
-  assert.equal(JSON.parse(fs.readFileSync(path.join(folder, 'mirror.json'), 'utf8')).annotations, 3);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(folder, 'mirror.json'), 'utf8')).annotations, 4);
 });
 
 test('a ticket marked resolved has its issue closed as completed, and one no longer resolved reopened', () => {
@@ -963,4 +964,38 @@ test('close is right after a skipped sync: a dropped ticket closes as not planne
   assert.equal(out.status, 0, out.stderr);
   assert.deepEqual(closes(out.calls), [['102', 'completed'], ['104', 'not planned'], ['101', 'not planned'], ['103', 'not planned']]);
   assert.match(flagValues(out.calls.find((c) => c[2] === '104')!, '--comment')[0], /dropped or renumbered/);
+});
+
+test('the dry run lists each title it would publish with its flags, and publishes nothing', () => {
+  const { sync, folder } = mirrorable({
+    'spec.md': SPEC.replace('Why.', 'Why, in /home/jane/notes.'),
+    '01-spec.md': TICKET_1.replace('It works.', 'Ask jane.doe@example.com, token = abcd1234efgh.'),
+    '02-tickets.md': TICKET_2,
+  });
+  const out = sync('--dry-run');
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(out.stdout.trimEnd().split('\n').slice(1), [
+    '  first-sync: A first sync — flagged: a home path',
+    '  01: Publish the spec — flagged: a secret assignment, an email address',
+    '  02: Publish the tickets',
+  ]);
+  assert.deepEqual(out.calls, []);
+  assert.ok(!fs.existsSync(path.join(folder, 'mirror.json')));
+});
+
+test('a home path blocks no push', () => {
+  const { sync } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1.replace('It works.', 'Reads /Users/jane/x.') });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.equal(out.status, 0, out.stderr);
+  assert.equal(out.stderr, '');
+  assert.equal(creates(out.calls).length, 2);
+});
+
+test('labels with a tracker creates the mirror\'s spec and ticket labels there, needing no config, and a second run creates nothing', () => {
+  const out = sandbox(null, { labels: ['bug'] }).run('labels', '--tracker', 'acme/mirror');
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(out.calls.filter((c) => c[1] === 'create').map((c) => [c[2], flagValues(c, '--repo')[0]]), [['spec', 'acme/mirror'], ['ticket', 'acme/mirror']]);
+  const again = sandbox(null, { labels: ['Spec', 'ticket'] }).run('labels', '--tracker', 'acme/mirror');
+  assert.equal(again.status, 0, again.stderr);
+  assert.deepEqual(again.calls.filter((c) => c[1] === 'create'), []);
 });
