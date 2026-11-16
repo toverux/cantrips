@@ -13,8 +13,9 @@ import { test } from 'node:test';
 
 const SCRIPT = fileURLToPath(new URL('./roadmap.ts', import.meta.url));
 
-// The stand-in: answers `issue list` and `label list` from the canned state, applies `--limit` (default 30),
-// records `label create`, and fails every call with the canned error where one is set.
+// The stand-in: answers `issue list` and `label list` from the canned state, applies `--state` (default open),
+// `--search` (every word in the title) and `--limit` (default 30), records `issue create` and `label create`,
+// and fails every call with the canned error where one is set.
 const FAKE_GH = `
 const fs = require('node:fs');
 const args = process.argv.slice(2);
@@ -32,10 +33,18 @@ const limit = Number(flag('--limit') ?? 30);
 const [group, verb] = args;
 if (group === 'issue' && verb === 'list') {
   const fields = flag('--json').split(',');
-  const rows = state.issues.slice(0, limit).map((issue) => Object.fromEntries(fields.map((f) => [f, issue[f]])));
+  const wanted = flag('--state') ?? 'open';
+  const words = (flag('--search') ?? '').toLowerCase().split(' ').filter(Boolean);
+  const rows = state.issues
+    .map((issue) => ({ state: 'OPEN', stateReason: '', ...issue }))
+    .filter((issue) => wanted === 'all' || issue.state === wanted.toUpperCase())
+    .filter((issue) => words.every((w) => issue.title.toLowerCase().includes(w)))
+    .slice(0, limit).map((issue) => Object.fromEntries(fields.map((f) => [f, issue[f]])));
   process.stdout.write(JSON.stringify(rows));
 } else if (group === 'label' && verb === 'list') {
   process.stdout.write(JSON.stringify(state.labels.slice(0, limit).map((name) => ({ name }))));
+} else if (group === 'issue' && verb === 'create') {
+  process.stdout.write('https://github.com/' + flag('--repo') + '/issues/101\\n');
 } else if (group !== 'label' || verb !== 'create') {
   process.stderr.write('unexpected call\\n');
   process.exit(2);
@@ -64,9 +73,11 @@ function sandbox(config: string | null, state: { issues?: unknown[]; labels?: st
     fs.mkdirSync(path.join(repo, 'docs/agents'), { recursive: true });
     fs.writeFileSync(path.join(repo, 'docs/agents/cantrips-loop.md'), config);
   }
-  const run = (...args: string[]): Run => {
+  const run = (...args: string[]): Run => runWith('', ...args);
+  const runWith = (input: string, ...args: string[]): Run => {
     const result = spawnSync(process.execPath, [SCRIPT, ...args], {
       cwd: repo,
+      input,
       env: {
         ...process.env,
         PATH: `${bin}${path.delimiter}${process.env.PATH}`,
@@ -79,7 +90,7 @@ function sandbox(config: string | null, state: { issues?: unknown[]; labels?: st
     const calls = fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line));
     return { status: result.status, stdout: result.stdout, stderr: result.stderr, calls };
   };
-  return { run, repo };
+  return { run, runWith, repo };
 }
 
 function loopConfig(roadmap: string) {
@@ -100,6 +111,10 @@ function issue(number: number, title: string, ...labels: string[]) {
   return { number, title, labels: ['roadmap', ...labels].map((name) => ({ name })) };
 }
 
+function flagValues(call: string[], name: string) {
+  return call.flatMap((arg, i) => (arg === name ? [call[i + 1]] : []));
+}
+
 function oneLine(text: string) {
   assert.equal(text.trimEnd().split('\n').length, 1, `expected one line, got:\n${text}`);
 }
@@ -110,6 +125,8 @@ test('--help lists the commands', () => {
   assert.equal(out.status, 0);
   assert.match(out.stdout, /\blist\b/);
   assert.match(out.stdout, /\blabels\b/);
+  assert.match(out.stdout, /\bsearch\b/);
+  assert.match(out.stdout, /\badd\b/);
   assert.deepEqual(out.calls, []);
 });
 
@@ -164,6 +181,79 @@ test('list reads a config checked out with CRLF line ends', () => {
   assert.equal(out.stdout, '#1 Item 1\n');
 });
 
+test('search returns the items the words find, open and closed, saying how a closed one closed', () => {
+  const issues = [
+    issue(1, 'Panel shows the inbox', 'priority: high'),
+    { ...issue(2, 'Panel shows the inbox count'), state: 'CLOSED', stateReason: 'NOT_PLANNED' },
+    { ...issue(3, 'Inbox in the panel footer'), state: 'CLOSED', stateReason: 'COMPLETED' },
+    { ...issue(5, 'Inbox panel badge'), state: 'CLOSED', stateReason: 'DUPLICATE' },
+    issue(4, 'Deputy reads the roadmap'),
+  ];
+  const { run } = sandbox(GITHUB, { issues });
+  const out = run('search', 'panel', 'inbox');
+  assert.equal(out.status, 0, out.stderr);
+  assert.equal(
+    out.stdout,
+    '#1 Panel shows the inbox [priority: high]\n#2 Panel shows the inbox count (closed as not planned)\n#3 Inbox in the panel footer (closed as completed)\n#5 Inbox panel badge (closed as duplicate)\n',
+  );
+  const [call] = out.calls;
+  assert.equal(call[call.indexOf('--state') + 1], 'all');
+  assert.equal(call[call.indexOf('--label') + 1], 'roadmap');
+  assert.equal(call[call.indexOf('--search') + 1], 'panel inbox');
+  assert.equal(call[call.indexOf('--limit') + 1], '100000');
+
+  const none = run('search', 'nothing');
+  assert.equal(none.status, 0, none.stderr);
+  oneLine(none.stdout);
+});
+
+test('add creates one issue with the title, the body as written, and the roadmap label beside the labels given', () => {
+  const { runWith } = sandbox(GITHUB);
+  const body = 'The panel shows the inbox.\n\n- Evidence: session 0f3c2a9e-1b2d-4c5e-8f9a-0b1c2d3e4f5a, commit 8d0d248.\n';
+  const out = runWith(body, 'add', 'Panel shows the inbox', '--label', 'priority: medium', '--label', 'cost: cheap', '--label', 'area: mod');
+  assert.equal(out.status, 0, out.stderr);
+  assert.equal(out.stdout, 'https://github.com/acme/widgets/issues/101\n');
+  assert.equal(out.calls.length, 1);
+  const [call] = out.calls;
+  assert.deepEqual(call.slice(0, 2), ['issue', 'create']);
+  assert.equal(call[call.indexOf('--repo') + 1], 'acme/widgets');
+  assert.equal(call[call.indexOf('--title') + 1], 'Panel shows the inbox');
+  assert.equal(call[call.indexOf('--body') + 1], body);
+  assert.deepEqual(flagValues(call, '--label'), ['roadmap', 'priority: medium', 'cost: cheap', 'area: mod']);
+});
+
+for (const [name, text] of [
+  ['a GitHub token', 'Token ghp_abcdefghijklmnopqrstuvwxyz0123456789 leaked'],
+  ['an API key', 'Uses sk-ant-api03-abcdefghijklmnopqrstuvwxyz'],
+  ['a private key', '-----BEGIN OPENSSH PRIVATE KEY-----'],
+  ['a password in a URL', 'Clone https://bot:hunter2secret@github.com/acme/widgets.git'],
+  ['a secret assignment', 'Set password=Tr0ub4dor&3 in the env'],
+  ['an email address', 'Reported by jane.doe@example.com'],
+  ['an email address before a colon', 'Reported by jane.doe@example.com: it crashes'],
+] as const) {
+  test(`add publishes nothing holding ${name}, and reports it in one line`, () => {
+    const { runWith } = sandbox(GITHUB);
+    for (const out of [runWith(text, 'add', 'An item'), runWith('A body.', 'add', text)]) {
+      assert.notEqual(out.status, 0);
+      oneLine(out.stderr);
+      assert.match(out.stderr, /not published/);
+      assert.deepEqual(out.calls, []);
+    }
+  });
+}
+
+test('add lets a session identifier, a commit hash and git remote addresses through', () => {
+  const { runWith } = sandbox(GITHUB);
+  const body = [
+    'Session 0f3c2a9e-1b2d-4c5e-8f9a-0b1c2d3e4f5a, commit 8d0d248b1c4e5f60718293a4b5c6d7e8f9012345.',
+    'Remotes: git@github.com:acme/widgets.git, ssh://git@github.com/acme/widgets.git, https://github.com/acme/widgets.git.',
+    'Package @anthropic-ai/sdk@1.2.3, token cost: moderate.',
+  ].join('\n');
+  const out = runWith(body, 'add', 'An item');
+  assert.equal(out.status, 0, out.stderr);
+  assert.equal(out.calls.length, 1);
+});
+
 for (const [name, config] of [
   ['no loop config', null],
   ['no roadmap section', loopConfig('')],
@@ -171,7 +261,7 @@ for (const [name, config] of [
 ] as const) {
   test(`tracker commands refuse in one line on ${name}`, () => {
     const { run } = sandbox(config);
-    for (const command of ['list', 'labels']) {
+    for (const command of ['list', 'labels', 'search', 'add']) {
       const out = run(command);
       assert.notEqual(out.status, 0);
       oneLine(out.stderr);

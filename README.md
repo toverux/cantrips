@@ -105,7 +105,8 @@ No skill hard-codes where a spec or a ticket lives. The storage-touching skills 
 verbs** — _publish_, _fetch_, and _annotate_ the spec; _publish_, _fetch_, and _resolve_ the
 ticket — and one per-repo doc, `docs/agents/cantrips-loop.md`, translates each verb for the repo's
 backend, lists which knowledge stores are enabled, and says where the roadmap lives in a `## Roadmap`
-section. When that doc is absent, the plugin's defaults govern, so a bare install runs with no
+section: a git-ignored `.scratch/ROADMAP.md` by default, or the repo's GitHub issues, one issue per
+item. When that doc is absent, the plugin's defaults govern, so a bare install runs with no
 configuration step.
 
 | Artifact  | Default home                                  | Role                                                                           |
@@ -152,6 +153,7 @@ authoritative source. 🧑 you type it; 🤖 the agent loads it on its own when 
 | ------------------------------------------------------------------ | ---------- | -------------------------------------------------------------------------- |
 | [`/setup-cantrips-loop`](#setup-cantrips-loop)                     | 🧑         | Configure a repo's storage backend, knowledge stores and roadmap.          |
 | [`/setup-git-guardrails`](#setup-git-guardrails)                   | 🧑         | Install a hook that blocks dangerous git commands before they run.         |
+| [`/roadmap`](#roadmap)                                             | 🧑🤖       | File an idea on the repo's roadmap, or read what it holds.                 |
 | [`/handoff`](#handoff)                                             | 🧑         | Compact the session into a handoff for a fresh context.                    |
 | [`/wait-what`](#wait-what)                                         | 🧑         | Interrupt: re-pitch a message that did not land.                           |
 | [`/afk`](#afk)                                                     | 🧑         | Keep the session's prompt cache warm across a break.                       |
@@ -326,6 +328,14 @@ Claude Code, Codex CLI, or both, for this project or every project, that denies 
 short list of destructive-git patterns: extended regexes shipped narrow and yours to widen at
 install time. On Codex the hook stays inert until you trust it under `/hooks`.
 
+### `/roadmap`
+
+**The repo's roadmap, kept off the commit history.** Type `/roadmap` followed by an idea and it is
+filed at once: on the GitHub backend it searches the tracker first, records a hit on an item that
+already holds the idea, and otherwise opens an issue with its labels; a text that looks like it
+holds a secret or an email address is not published. On the default local file it adds the entry
+there. Agents load it too, when they meet a gap worth an item or are asked what the roadmap holds.
+
 ### `/handoff`
 
 **Compaction for resuming work.** Writes a handoff document to the OS temp directory that a fresh
@@ -393,8 +403,8 @@ prune sediment. Loaded before editing any skill, `AGENTS.md`, or rules file.
 
 ## Install
 
-Register this repository as a plugin source once, then install cantrips from it. `/review-gate`'s
-script needs `node` 22.18 or later.
+Register this repository as a plugin source once, then install cantrips from it. The scripts of
+`/review-gate` and `/roadmap` need `node` 22.18 or later.
 
 > [!IMPORTANT]
 > **Migrating from the upstreams?** Cantrips _replaces_ the Matt Pocock skills and the
