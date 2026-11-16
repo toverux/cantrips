@@ -446,7 +446,7 @@ function close(args: string[]): string {
   if (mirrored && !reason) throw new Fault(`not closed: not every ticket of ${folder} is resolved; say --done or --not-planned`);
   if (!marked()) return `not closed: this clone lacks the ${MARK} mark, so ${folder}'s issues and items keep their state\n`;
   // A sync first closes what the folder settles itself: a resolved ticket as completed, a dropped one as not planned.
-  const synced = mirrored ? sync([folder]) : '';
+  const synced = mirrored ? sync([folder], false) : '';
   const open = openIssues();
   const tracker = readNumbers(folder)?.tracker;
   for (const issue of open) gh('issue', 'close', String(issue), '--repo', tracker!, '--reason', reason!);
@@ -454,7 +454,7 @@ function close(args: string[]): string {
   return synced + closed + (roadmap ? flight(roadmap, folder, false) : '');
 }
 
-function sync(args: string[]): string {
+function sync(args: string[], keyword = true): string {
   const { first: folder, flags } = parse('sync', args, ['--tracker']);
   if (fs.existsSync(path.join(folder, STRUCK))) return '';
   const numbersFile = path.join(folder, NUMBERS);
@@ -571,7 +571,7 @@ function sync(args: string[]): string {
     save();
   }
   const done = created + updated === 0 ? `${folder} already matches ${numbers.tracker}\n` : `synced ${folder} to ${numbers.tracker}: ${created} created, ${updated} updated\n`;
-  return done + closing(folder, numbers);
+  return done + (keyword ? closing(folder, numbers) : '');
 }
 
 const COMMANDS: Record<string, (roadmap: Roadmap, args: string[]) => string> = {

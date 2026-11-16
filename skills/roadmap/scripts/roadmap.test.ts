@@ -920,6 +920,7 @@ test('close closes as done the open issues of a feature whose tickets are all re
   const out = close();
   assert.equal(out.status, 0, out.stderr);
   assert.deepEqual(closes(out.calls), [['101', 'completed']]);
+  assert.doesNotMatch(out.stdout, /Closes/);
   assert.deepEqual(out.calls.filter((c) => c[1] === 'edit').map((c) => [c[2], flagValues(c, '--remove-label')[0]]), [['7', 'in flight']]);
 });
 
