@@ -15,7 +15,7 @@ const SCRIPT = fileURLToPath(new URL('./roadmap.ts', import.meta.url));
 
 // The stand-in: answers `issue list` and `label list` from the canned state, applies `--state` (default open),
 // `--search` (every word in the title) and `--limit` (default 30), answers `issue view` with the item's canned
-// comments and state, records `issue create` (numbering the issues it creates from 101), `issue comment`, `issue edit` and `label create`, and fails every call with the canned error
+// comments and state, records `issue create` (numbering the issues it creates from 101), `issue comment` (numbering its comments from 901), `issue edit`, `issue close`, `issue reopen`, `api` and `label create`, and fails every call with the canned error
 // where one is set, or the calls holding the canned `failOn` text.
 const FAKE_GH = `
 const fs = require('node:fs');
@@ -51,8 +51,9 @@ if (group === 'issue' && verb === 'list') {
   const issue = state.issues.find((i) => String(i.number) === args[2]);
   process.stdout.write(JSON.stringify({ state: issue?.state ?? 'OPEN', comments: (state.comments[args[2]] ?? []).map((body) => ({ body })) }));
 } else if (group === 'issue' && verb === 'comment') {
-  process.stdout.write('https://github.com/' + flag('--repo') + '/issues/' + args[2] + '#issuecomment-7\\n');
-} else if (!(group === 'label' && verb === 'create') && !(group === 'issue' && verb === 'edit')) {
+  const posted = fs.readFileSync(process.env.FAKE_GH_LOG, 'utf8').split('\\n').filter((l) => l.startsWith('["issue","comment"')).length;
+  process.stdout.write('https://github.com/' + flag('--repo') + '/issues/' + args[2] + '#issuecomment-' + (900 + posted) + '\\n');
+} else if (!(group === 'label' && verb === 'create') && !(group === 'issue' && ['edit', 'close', 'reopen'].includes(verb)) && group !== 'api') {
   process.stderr.write('unexpected call\\n');
   process.exit(2);
 }
@@ -762,4 +763,118 @@ test('a sync of a folder with no spec ends in one line and a non-zero exit', () 
   oneLine(out.stderr);
   assert.match(out.stderr, /cannot read .*spec\.md/);
   assert.deepEqual(out.calls, []);
+});
+
+test('each annotation is posted once as a dated comment across repeated syncs, on a closed issue too', () => {
+  const { sync, write, folder } = mirrorable({ 'spec.md': SPEC }, { state: { issues: [{ ...issue(101, 'first-sync'), state: 'CLOSED' }] } });
+  const first = sync('--tracker', 'acme/widgets');
+  assert.equal(first.status, 0, first.stderr);
+  write('spec.md', `${SPEC}- 2026-11-17: a second note,\n  on two lines.\n### 2026-11-18 — a dated heading\n\nIts text.\n`);
+  const out = sync();
+  assert.equal(out.status, 0, out.stderr);
+  assert.equal(sync().calls.length, out.calls.length);
+  const comments = out.calls.filter((c) => c[1] === 'comment');
+  assert.deepEqual(comments.map((c) => [c[2], flagValues(c, '--repo')[0], flagValues(c, '--body')[0]]), [
+    ['101', 'acme/widgets', '2026-11-16: a note.\n'],
+    ['101', 'acme/widgets', '2026-11-17: a second note,\n  on two lines.\n'],
+    ['101', 'acme/widgets', '2026-11-18 — a dated heading\n\nIts text.\n'],
+  ]);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(folder, 'mirror.json'), 'utf8')).annotations, 3);
+});
+
+test('a ticket marked resolved has its issue closed as completed, and one no longer resolved reopened', () => {
+  const resolved = TICKET_1.replace('\n\n', '\n\nStatus: resolved\n\n').replace('[ ]', '[x]');
+  const { sync, write } = mirrorable({ 'spec.md': SPEC, '01-spec.md': resolved });
+  const first = sync('--tracker', 'acme/widgets');
+  assert.equal(first.status, 0, first.stderr);
+  const states = (calls: string[][]) => calls.filter((c) => ['close', 'reopen'].includes(c[1])).map((c) => [c[1], c[2], flagValues(c, '--repo')[0], flagValues(c, '--reason')[0]]);
+  assert.deepEqual(states(first.calls), [['close', '102', 'acme/widgets', 'completed']]);
+  assert.equal(sync().calls.length, first.calls.length);
+
+  write('01-spec.md', TICKET_1);
+  const out = sync();
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(states(out.calls.slice(first.calls.length)), [['reopen', '102', 'acme/widgets', undefined]]);
+});
+
+test('an issue whose ticket file no longer exists is closed as not planned with a one-line comment', () => {
+  const { sync, folder } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1, '02-tickets.md': TICKET_2 });
+  const first = sync('--tracker', 'acme/widgets');
+  assert.equal(first.status, 0, first.stderr);
+  fs.renameSync(path.join(folder, '02-tickets.md'), path.join(folder, '03-tickets.md'));
+  const out = sync();
+  assert.equal(out.status, 0, out.stderr);
+  const closes = out.calls.slice(first.calls.length).filter((c) => c[1] === 'close');
+  assert.deepEqual(closes.map((c) => [c[2], flagValues(c, '--repo')[0], flagValues(c, '--reason')[0]]), [['103', 'acme/widgets', 'not planned']]);
+  oneLine(flagValues(closes[0], '--comment')[0]);
+  const again = sync();
+  assert.equal(again.calls.filter((c) => c[1] === 'close').length, 1);
+  assert.ok(!('02-tickets.md' in JSON.parse(fs.readFileSync(path.join(folder, 'mirror.json'), 'utf8')).files));
+});
+
+test('a blocker the "Blocked by" line stops naming has its relation removed', () => {
+  const { sync, write } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1, '02-tickets.md': TICKET_2, '03-last.md': '# 03: Last\n\n**Blocked by:** 01, 02\n' });
+  const first = sync('--tracker', 'acme/widgets');
+  assert.equal(first.status, 0, first.stderr);
+  write('03-last.md', '# 03: Last\n\n**Blocked by:** 01\n');
+  const out = sync();
+  assert.equal(out.status, 0, out.stderr);
+  const relations = out.calls.slice(first.calls.length).filter((c) => c.includes('--remove-blocked-by'));
+  assert.deepEqual(relations.map((c) => [c[2], flagValues(c, '--repo')[0], flagValues(c, '--remove-blocked-by')[0]]), [['104', 'acme/widgets', '103']]);
+  assert.equal(sync().calls.length, out.calls.length);
+});
+
+test('a body over GitHub\'s limit continues in comments cut at a heading, edited in place by later syncs', () => {
+  const long = (b: string) => `# Long\n\n## Part A\n\n${'a'.repeat(40000)}\n\n## Part B\n\n${b.repeat(40000)}\n`;
+  const { sync, write } = mirrorable({ 'spec.md': long('b') });
+  const first = sync('--tracker', 'acme/widgets');
+  assert.equal(first.status, 0, first.stderr);
+  assert.equal(flagValues(creates(first.calls)[0], '--body')[0], `# Long\n\n## Part A\n\n${'a'.repeat(40000)}\n\n`);
+  const posted = first.calls.filter((c) => c[1] === 'comment');
+  assert.deepEqual(posted.map((c) => [c[2], flagValues(c, '--body')[0]]), [['101', `## Part B\n\n${'b'.repeat(40000)}\n`]]);
+
+  write('spec.md', long('c'));
+  const edited = sync();
+  assert.equal(edited.status, 0, edited.stderr);
+  const api = (calls: string[][]) => calls.filter((c) => c[0] === 'api').map((c) => [c[2], c[3], c[5]]);
+  assert.deepEqual(api(edited.calls.slice(first.calls.length)), [['PATCH', 'repos/acme/widgets/issues/comments/901', `body=## Part B\n\n${'c'.repeat(40000)}\n`]]);
+  assert.equal(edited.calls.filter((c) => c[1] === 'comment').length, 1);
+
+  write('spec.md', '# Long\n\nShort now.\n');
+  const shrunk = sync();
+  assert.equal(shrunk.status, 0, shrunk.stderr);
+  assert.deepEqual(api(shrunk.calls.slice(edited.calls.length)), [['DELETE', 'repos/acme/widgets/issues/comments/901', undefined]]);
+  assert.equal(sync().calls.length, shrunk.calls.length);
+});
+
+test('a first sync through a linked folder refuses in one line, naming the repo holding the real folder', () => {
+  const { sync, repo, folder } = mirrorable({});
+  const home = path.join(path.dirname(repo), 'home');
+  fs.mkdirSync(path.join(home, '.scratch/shared'), { recursive: true });
+  assert.equal(spawnSync('git', ['init', '-q', home]).status, 0);
+  fs.writeFileSync(path.join(home, '.scratch/shared/spec.md'), SPEC);
+  fs.rmdirSync(folder);
+  fs.symlinkSync(path.join(home, '.scratch/shared'), folder);
+  const out = sync('--tracker', 'acme/widgets');
+  assert.notEqual(out.status, 0);
+  oneLine(out.stderr);
+  assert.ok(out.stderr.includes(home), out.stderr);
+  assert.deepEqual(out.calls, []);
+  assert.ok(!fs.existsSync(path.join(home, '.scratch/shared/mirror.json')));
+});
+
+test('a folder carrying the strike marker is never synced, whenever the marker was added', () => {
+  const { sync } = mirrorable({ 'spec.md': SPEC, 'no-mirror': '' });
+  const struck = sync('--tracker', 'acme/widgets');
+  assert.equal(struck.status, 0, struck.stderr);
+  assert.equal(struck.stdout + struck.stderr, '');
+  assert.deepEqual(struck.calls, []);
+
+  const other = mirrorable({ 'spec.md': SPEC });
+  const first = other.sync('--tracker', 'acme/widgets');
+  other.write('no-mirror', '');
+  other.write('spec.md', `${SPEC}- 2026-11-17: later.\n`);
+  const later = other.sync();
+  assert.equal(later.status, 0, later.stderr);
+  assert.equal(later.calls.length, first.calls.length);
 });

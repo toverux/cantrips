@@ -29,6 +29,10 @@ const REFUSED = /error connecting|dial tcp|could not resolve|network is unreacha
 
 // The file the sync owns in a feature folder. Its name is neither spec.md nor NN-*.md, so the panel never reads it.
 const NUMBERS = 'mirror.json';
+// The file whose presence strikes a feature folder from the mirror.
+const STRUCK = 'no-mirror';
+// GitHub's limit on an issue's or a comment's body, in characters.
+const BODY_LIMIT = 65536;
 
 const HELP = `Usage: node roadmap.ts <command>
 
@@ -58,6 +62,7 @@ Commands:
   sync <folder> [--tracker <owner/repo>]
                           Make the tracker's issues match the feature folder: the spec as an issue, each ticket as
                           its sub-issue. The tracker is required on the first sync; ${NUMBERS} in the folder holds it after.
+                          A folder holding a file named ${STRUCK} is never synced.
   labels                  Create the roadmap labels the tracker lacks: the standard set and the repo's own.
   --help                  Print this help.
 `;
@@ -373,17 +378,39 @@ function labels(roadmap: Roadmap): string {
 
 interface Numbers {
   tracker: string;
-  // Each mirrored file's issue, a hash of what was last pushed for it, and the blocking issues set on it.
-  files: Record<string, { issue: number; pushed: string; blockedBy?: number[] }>;
+  // Each mirrored file's issue, a hash of what was last pushed for it, the blocking issues set on it, and whether the sync closed it.
+  // The continuation comments of a body over the limit are recorded so a later sync edits them in place.
+  files: Record<string, { issue: number; pushed: string; blockedBy?: number[]; closed?: boolean; continued?: number[] }>;
+  // How many of the spec's annotations are posted: they only ever append, so a count is exact.
+  annotations?: number;
+}
+
+// A body cut into pieces within the limit, each cut made before the last heading that fits.
+function pieces(body: string): string[] {
+  const out: string[] = [];
+  while (body.length > BODY_LIMIT) {
+    const cut = [...body.slice(0, BODY_LIMIT).matchAll(/\n(?=#{1,6} )/g)].at(-1)?.index;
+    const end = cut ? cut + 1 : BODY_LIMIT;
+    out.push(body.slice(0, end));
+    body = body.slice(end);
+  }
+  return [...out, body];
 }
 
 function sync(args: string[]): string {
   const { first: folder, flags } = parse('sync', args, ['--tracker']);
+  if (fs.existsSync(path.join(folder, STRUCK))) return '';
   const numbersFile = path.join(folder, NUMBERS);
   const numbers: Numbers = fs.existsSync(numbersFile)
     ? JSON.parse(fs.readFileSync(numbersFile, 'utf8'))
     : { tracker: flags['--tracker']?.[0] ?? '', files: {} };
   if (!/^[\w.-]+\/[\w.-]+$/.test(numbers.tracker)) throw new Fault(`not synced: the first sync of ${folder} needs --tracker <owner/repo>`);
+  // A folder two repos share is mirrored from the repo that holds it, so a link never publishes it a second time.
+  const real = fs.existsSync(folder) ? fs.realpathSync(folder) : folder;
+  if (!fs.existsSync(numbersFile) && path.relative(repoRoot(), real).startsWith('..')) {
+    const holder = spawnSync('git', ['-C', real, 'rev-parse', '--show-toplevel'], { encoding: 'utf8' }).stdout.trim() || real;
+    throw new Fault(`not synced: ${folder} is linked from ${holder}; run its first sync there`);
+  }
   if (!marked()) return `not synced: this clone lacks the ${MARK} mark, so nothing of ${folder} was published\n`;
   const read = (name: string) => fs.readFileSync(path.join(folder, name), 'utf8');
   const title = (text: string) => /^# (.+)/.exec(text)?.[1].trim();
@@ -391,50 +418,99 @@ function sync(args: string[]): string {
   let updated = 0;
   // Each push is saved at once, so a failed call leaves the file true to what the tracker holds.
   const save = () => fs.writeFileSync(numbersFile, `${JSON.stringify(numbers, null, 2)}\n`);
+  const leaks = (name: string, text: string) => {
+    const secret = SECRETS.find(([, pattern]) => pattern.test(text));
+    if (secret) process.stderr.write(`not published: ${name} holds what looks like ${secret[0]}; reword it\n`);
+    return secret !== undefined;
+  };
   const push = (name: string, heading: string, body: string, extra: string[]) => {
     const pushed = createHash('sha256').update(`${heading}\0${body}`).digest('hex');
     const known = numbers.files[name];
     if (known?.pushed === pushed) return;
-    const secret = SECRETS.find(([, pattern]) => pattern.test(`${heading}\n${body}`));
-    if (secret) {
-      process.stderr.write(`not published: ${name} holds what looks like ${secret[0]}; reword it\n`);
-      return;
-    }
-    if (known) {
-      gh('issue', 'edit', String(known.issue), '--repo', numbers.tracker, '--title', heading, '--body', body);
-      known.pushed = pushed;
-      updated++;
+    if (leaks(name, `${heading}\n${body}`)) return;
+    const [first, ...more] = pieces(body);
+    let file = known;
+    if (file) {
+      gh('issue', 'edit', String(file.issue), '--repo', numbers.tracker, '--title', heading, '--body', first);
     } else {
-      const url = gh('issue', 'create', '--repo', numbers.tracker, '--title', heading, '--body', body, ...extra);
-      numbers.files[name] = { issue: Number(/(\d+)\s*$/.exec(url)![1]), pushed };
-      created++;
+      const url = gh('issue', 'create', '--repo', numbers.tracker, '--title', heading, '--body', first, ...extra);
+      file = numbers.files[name] = { issue: Number(/(\d+)\s*$/.exec(url)![1]), pushed: '' };
+      save();
     }
+    const ids = (file.continued ??= []);
+    const comment = (id: number) => `repos/${numbers.tracker}/issues/comments/${id}`;
+    for (const [i, text] of more.entries()) {
+      if (i < ids.length) {
+        gh('api', '-X', 'PATCH', comment(ids[i]), '-f', `body=${text}`);
+      } else {
+        ids.push(Number(/issuecomment-(\d+)/.exec(gh('issue', 'comment', String(file.issue), '--repo', numbers.tracker, '--body', text))![1]));
+        save();
+      }
+    }
+    while (ids.length > more.length) {
+      gh('api', '-X', 'DELETE', comment(ids.at(-1)!));
+      ids.pop();
+      save();
+    }
+    if (ids.length === 0) delete file.continued;
+    file.pushed = pushed;
+    if (known) updated++;
+    else created++;
     save();
   };
 
   const feature = path.basename(path.resolve(folder));
   const spec = readSpec(folder);
   const specTitle = title(spec);
-  push('spec.md', specTitle ? `${feature}: ${specTitle}` : feature, spec.split(/^##\s+comments\s*$/im)[0], ['--label', 'spec']);
+  const [specBody, notes = ''] = spec.split(/^##\s+comments\s*$/im);
+  push('spec.md', specTitle ? `${feature}: ${specTitle}` : feature, specBody, ['--label', 'spec']);
   const tickets = fs.readdirSync(folder).filter((name) => /^\d{2,}-.+\.md$/.test(name)).sort((a, b) => parseInt(a) - parseInt(b));
   const parent = numbers.files['spec.md']?.issue;
+  // Each dated entry under the comments heading, a bullet or a heading, posted once, in order; a flagged one holds back those after it.
+  const annotations = notes.split(/^(?:- |#+ )(?=\d{4}-\d{2}-\d{2})/m).slice(1);
+  for (const note of parent === undefined ? [] : annotations.slice(numbers.annotations ?? 0)) {
+    if (leaks('an annotation of spec.md', note)) break;
+    gh('issue', 'comment', String(parent), '--repo', numbers.tracker, '--body', `${note.trimEnd()}\n`);
+    numbers.annotations = (numbers.annotations ?? 0) + 1;
+    updated++;
+    save();
+  }
   for (const name of parent === undefined ? [] : tickets) {
     const text = read(name);
     push(name, title(text) ?? name.replace(/\.md$/, ''), text, ['--label', 'ticket', '--parent', String(parent)]);
+    // Read as the panel reads it.
+    const resolved = /^Status:\s*resolved\b/im.test(text);
+    const known = numbers.files[name];
+    if (!known || !!known.closed === resolved) continue;
+    gh('issue', resolved ? 'close' : 'reopen', String(known.issue), '--repo', numbers.tracker, ...(resolved ? ['--reason', 'completed'] : []));
+    known.closed = resolved;
+    updated++;
+    save();
+  }
+  // A ticket file dropped or renumbered closes its issue, unless the issue closed as resolved.
+  for (const name of Object.keys(numbers.files).filter((name) => name !== 'spec.md' && !tickets.includes(name))) {
+    const { issue, closed } = numbers.files[name];
+    if (!closed) gh('issue', 'close', String(issue), '--repo', numbers.tracker, '--reason', 'not planned', '--comment', `The ticket ${name} was dropped or renumbered.`);
+    delete numbers.files[name];
+    updated++;
+    save();
   }
   // Read as the panel reads it: every other ticket number the "Blocked by" line names, none where it opens with "none",
-  // each once its issue exists.
+  // each once its issue exists. A blocker the line stops naming loses its relation.
   const issueOf = (number: number) => numbers.files[tickets.find((name) => parseInt(name) === number) ?? '']?.issue;
   for (const name of tickets) {
     const known = numbers.files[name];
     if (!known) continue;
     const prose = /^\*\*Blocked by:\*\*[ \t]*(.*?)[ \t]*(?:\*\*Blocks:\*\*|$)/m.exec(read(name))?.[1] ?? '';
     const named = /^none\b/i.test(prose) ? [] : [...prose.matchAll(/\b(\d{2,3})\b/g)];
-    const blockers = new Set(named.map(([, number]) => issueOf(Number(number))));
-    const missing = [...blockers].filter((issue): issue is number => issue !== undefined && issue !== known.issue && !known.blockedBy?.includes(issue));
-    if (missing.length === 0) continue;
-    gh('issue', 'edit', String(known.issue), '--repo', numbers.tracker, '--add-blocked-by', missing.join(','));
-    known.blockedBy = [...(known.blockedBy ?? []), ...missing];
+    const blockers = named.map(([, number]) => issueOf(Number(number))).filter((issue): issue is number => issue !== undefined && issue !== known.issue);
+    const had = known.blockedBy ?? [];
+    const added = [...new Set(blockers)].filter((issue) => !had.includes(issue));
+    const removed = had.filter((issue) => !blockers.includes(issue));
+    if (added.length + removed.length === 0) continue;
+    const change = (flag: string, issues: number[]) => (issues.length > 0 ? [flag, issues.join(',')] : []);
+    gh('issue', 'edit', String(known.issue), '--repo', numbers.tracker, ...change('--add-blocked-by', added), ...change('--remove-blocked-by', removed));
+    known.blockedBy = [...had.filter((issue) => !removed.includes(issue)), ...added];
     updated++;
     save();
   }
