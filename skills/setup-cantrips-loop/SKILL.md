@@ -79,5 +79,6 @@ Read and write this repo's roadmap through `/roadmap`.
 
 Keep the roadmap lines in this form, since `/roadmap`'s script reads them, and drop a line that has no value.
 On GitHub issues, then create the labels with `/roadmap`'s script (`labels`).
+On GitHub issues where specs live in feature folders, the storage backend section says once that a spec or a ticket delivering roadmap items names them on a `Roadmap items:` line and that publishing a spec marks its items in flight through `/roadmap`, and its line on closing a feature runs `/roadmap`'s script `close <feature folder>` before deleting the folder.
 
 Done when every slot kept is filled, nothing sits outside one, and on GitHub issues the labels exist.

@@ -49,6 +49,9 @@ Commands:
                           read from stdin, and the session. Posts only in a clone marked by ${MARK} or with
                           --approved, otherwise prints the hit to propose. With --candidate, settles it as add does.
   drop <file>             Settle a claimed candidate as declined: remove its file, writing nothing.
+  in-flight <folder>      Mark in flight the items on the \`Roadmap items:\` line of the feature folder's spec.md:
+                          #N on the tracker, owner/repo#N on that repo. Only in a clone marked by ${MARK}.
+  close <folder>          Clear the in-flight mark from those items that are still open, before the folder is deleted.
   labels                  Create the roadmap labels the tracker lacks: the standard set and the repo's own.
   --help                  Print this help.
 `;
@@ -317,6 +320,34 @@ function drop(_roadmap: Roadmap, args: string[]): string {
   return `dropped ${path.basename(candidate)}\n`;
 }
 
+// The items on the `Roadmap items:` line of a feature folder's spec, each with the repo whose tracker holds it.
+function featureItems(roadmap: Roadmap, folder: string | undefined): { name: string; repo: string; number: string }[] {
+  if (!folder?.trim()) throw new Fault('needs the feature folder: see --help');
+  const spec = path.join(folder, 'spec.md');
+  let text: string;
+  try {
+    text = fs.readFileSync(spec, 'utf8');
+  } catch (error) {
+    throw new Fault(`cannot read ${spec}: ${(error as Error).message}`);
+  }
+  const line = /^\W*Roadmap items:(.*)$/im.exec(text)?.[1] ?? '';
+  return [...line.matchAll(/([\w.-]+\/[\w.-]+)?#(\d+)/g)].map(([name, repo, number]) => ({ name, repo: repo ?? roadmap.tracker, number }));
+}
+
+// Sets or clears the in-flight label on the feature's items; clearing passes over the items already closed.
+function flight(roadmap: Roadmap, folder: string | undefined, set: boolean): string {
+  const items = featureItems(roadmap, folder);
+  if (items.length === 0) return `the spec in ${folder} lists no roadmap items\n`;
+  if (!marked()) return `not changed: this clone lacks the ${MARK} mark, so ${items.map((i) => i.name).join(', ')} keep their in-flight state\n`;
+  const done: string[] = [];
+  for (const item of items) {
+    if (!set && JSON.parse(gh('issue', 'view', item.number, '--repo', item.repo, '--json', 'state')).state !== 'OPEN') continue;
+    gh('issue', 'edit', item.number, '--repo', item.repo, set ? '--add-label' : '--remove-label', 'in flight');
+    done.push(item.name);
+  }
+  return `${set ? 'in flight' : 'in-flight mark cleared'}: ${done.join(', ') || 'none, every item is closed'}\n`;
+}
+
 // Creates only what the tracker lacks, so a second run changes nothing; GitHub matches label names regardless of case.
 function labels(roadmap: Roadmap): string {
   const existing = new Set(
@@ -332,7 +363,11 @@ function labels(roadmap: Roadmap): string {
   return created.length > 0 ? `created on ${roadmap.tracker}: ${created.join(', ')}\n` : `every roadmap label exists on ${roadmap.tracker}\n`;
 }
 
-const COMMANDS: Record<string, (roadmap: Roadmap, args: string[]) => string> = { list, search, add, park, claim, hit, drop, labels };
+const COMMANDS: Record<string, (roadmap: Roadmap, args: string[]) => string> = {
+  list, search, add, park, claim, hit, drop, labels,
+  'in-flight': (roadmap, [folder]) => flight(roadmap, folder, true),
+  close: (roadmap, [folder]) => flight(roadmap, folder, false),
+};
 
 function main(args: string[]): void {
   const [command, ...rest] = args;

@@ -26,6 +26,14 @@ The round drains this repo's inbox as a bare [`/roadmap`](SKILL.md) does, and fr
 Its proposals follow the knowledge candidates in `/compound`'s list, continuing their numbering, and the closing line goes under the list.
 They are judged on the roadmap bar in place of `/compound`'s: a gap that no existing item, ticket or commit already holds.
 
+## Delivery
+
+A spec lists every item its feature delivers on one `Roadmap items:` line, and each ticket the items it delivers on its own: `#N` on the config's tracker, `owner/repo#N` on any other.
+
+- Publishing the spec: run the script's `in-flight <feature folder>`.
+- `/commit`: for each ticket its commit's work resolved, as the session knows them, add `Fixes #N` to the message body for each item on the ticket's line, read from the file with no tracker call, in the `owner/repo#N` form where the commit's repo is not the item's tracker.
+- Closing the feature: run `close <feature folder>` before deleting the folder, so an abandoned feature's open items return to the pool.
+
 ## Plain `gh`
 
 Check a text for secrets and email addresses before writing it, since only the script checks for you.

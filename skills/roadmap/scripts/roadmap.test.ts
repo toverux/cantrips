@@ -15,7 +15,7 @@ const SCRIPT = fileURLToPath(new URL('./roadmap.ts', import.meta.url));
 
 // The stand-in: answers `issue list` and `label list` from the canned state, applies `--state` (default open),
 // `--search` (every word in the title) and `--limit` (default 30), answers `issue view` with the item's canned
-// comments, records `issue create`, `issue comment` and `label create`, and fails every call with the canned error
+// comments and state, records `issue create`, `issue comment`, `issue edit` and `label create`, and fails every call with the canned error
 // where one is set.
 const FAKE_GH = `
 const fs = require('node:fs');
@@ -47,10 +47,11 @@ if (group === 'issue' && verb === 'list') {
 } else if (group === 'issue' && verb === 'create') {
   process.stdout.write('https://github.com/' + flag('--repo') + '/issues/101\\n');
 } else if (group === 'issue' && verb === 'view') {
-  process.stdout.write(JSON.stringify({ comments: (state.comments[args[2]] ?? []).map((body) => ({ body })) }));
+  const issue = state.issues.find((i) => String(i.number) === args[2]);
+  process.stdout.write(JSON.stringify({ state: issue?.state ?? 'OPEN', comments: (state.comments[args[2]] ?? []).map((body) => ({ body })) }));
 } else if (group === 'issue' && verb === 'comment') {
   process.stdout.write('https://github.com/' + flag('--repo') + '/issues/' + args[2] + '#issuecomment-7\\n');
-} else if (group !== 'label' || verb !== 'create') {
+} else if (!(group === 'label' && verb === 'create') && !(group === 'issue' && verb === 'edit')) {
   process.stderr.write('unexpected call\\n');
   process.exit(2);
 }
@@ -554,4 +555,48 @@ test('claim given files takes only those of the new candidates', () => {
   assert.deepEqual([...out.stdout.matchAll(/^# (.*)$/gm)].map((m) => m[1]), ['one', 'three']);
   assert.equal(claimed().length, 2);
   assert.ok(fs.existsSync(path.join(repo, INBOX, 'candidate-1.md')));
+});
+
+// A feature folder whose spec lists the items given on its `Roadmap items:` line.
+function feature(items: string, { mark = true } = {}) {
+  const box = drainable({ issues: [{ ...issue(5, 'Delivered'), state: 'CLOSED' }] }, { candidates: [], mark });
+  fs.mkdirSync(path.join(box.repo, '.scratch/feat'), { recursive: true });
+  fs.writeFileSync(path.join(box.repo, '.scratch/feat/spec.md'), `## Problem Statement\n\nWhy.\n\n**Roadmap items:** ${items}\n`);
+  return box;
+}
+
+test('in-flight sets the mark on each item the spec lists, a bare number on the tracker and a qualified one on its repo', () => {
+  const out = feature('#7, acme/other#3').run('in-flight', '.scratch/feat');
+  assert.equal(out.status, 0, out.stderr);
+  oneLine(out.stdout);
+  const edits = out.calls.filter((c) => c[1] === 'edit');
+  assert.deepEqual(edits.map((c) => [c[2], c[c.indexOf('--repo') + 1], c[c.indexOf('--add-label') + 1]]), [
+    ['7', 'acme/widgets', 'in flight'],
+    ['3', 'acme/other', 'in flight'],
+  ]);
+});
+
+test('close clears the mark from the feature\'s open items and leaves closed ones alone', () => {
+  const out = feature('#7, #5').run('close', '.scratch/feat');
+  assert.equal(out.status, 0, out.stderr);
+  oneLine(out.stdout);
+  const edits = out.calls.filter((c) => c[1] === 'edit');
+  assert.deepEqual(edits.map((c) => [c[2], c[c.indexOf('--remove-label') + 1]]), [['7', 'in flight']]);
+});
+
+test('without the clone\'s mark, in-flight and close make no tracker call and say so in one line', () => {
+  for (const command of ['in-flight', 'close']) {
+    const out = feature('#7', { mark: false }).run(command, '.scratch/feat');
+    assert.equal(out.status, 0, out.stderr);
+    oneLine(out.stdout);
+    assert.match(out.stdout, /cantrips\.roadmapWrites/);
+    assert.deepEqual(out.calls, []);
+  }
+});
+
+test('a spec listing no roadmap items makes no tracker call', () => {
+  const out = feature('none').run('close', '.scratch/feat');
+  assert.equal(out.status, 0, out.stderr);
+  oneLine(out.stdout);
+  assert.deepEqual(out.calls, []);
 });

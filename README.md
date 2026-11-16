@@ -340,7 +340,9 @@ there. Agents load it too when asked what the roadmap holds. On the GitHub backe
 meets a gap mid-task parks it as a file in the target repo's git-ignored `.scratch/roadmap-inbox/`
 and goes on without asking you, so the candidate survives a context summary or a session that ends
 early. `/compound` or a bare `/roadmap` drains that inbox: matches become hits, new items wait for
-your approval.
+your approval. A spec names the roadmap items its feature delivers. They are marked in flight while
+the work is under way, the commit that delivers a ticket closes its items with a `Fixes` line, and
+closing an abandoned feature puts its open items back in the pool.
 
 ### `/handoff`
 

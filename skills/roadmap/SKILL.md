@@ -13,7 +13,7 @@ Invoked with an idea, add it there as an entry; invoked bare, say there is no in
 **GitHub issues**: run `node <this skill's directory>/scripts/roadmap.ts <command>`; its `--help` lists the commands.
 Invoked with an idea in the user's own message, `search` the tracker on its key words; where an item already holds the idea, record a `hit` on it, otherwise `add` it at once.
 A match closed as not planned takes a hit; one closed as completed does not: file the idea as a new item naming it.
-[REFERENCE.md](REFERENCE.md) gives an item's shape, the labels, the hit format, how `/compound` drains, and the plain `gh` to use where the script falls short.
+[REFERENCE.md](REFERENCE.md) gives an item's shape, the labels, the hit format, how `/compound` drains, what a spec and a commit do with items, and the plain `gh` to use where the script falls short.
 
 **Bare**, drain the inbox: `claim` it, merge the candidates that say the same thing, and judge each against the items its search found, or a `search` on its key words where that found none.
 Settle a match at once with `hit --candidate`; propose everything else in this format, then settle each with `add --candidate` once approved, or `drop` it.
