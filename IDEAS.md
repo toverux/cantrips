@@ -185,19 +185,6 @@ user's explicit invocation — I'll run the gate by its files"), forty-seven nag
 **Adopt when:** the next edit to a skill's trigger phrases lands, or the next edit to
 `/review-gate`'s SKILL.md for the gate lock, which needs wording that survives hook pressure.
 
-## /compound-refresh's judgment rules guard only the audit that never runs here
-
-The judgment rules — the restored "Unverifiable is not false" prohibition included — sit
-under `## Audit docs/solutions/`, while `## Audit AGENTS.md` is a sibling heading none of them
-reach. In a repo whose solutions store is off (this one), every run takes only the AGENTS.md
-audit, whose Bloat lens proposes deletions with no guard above them — so a
-true but uncorroborated claim can still be stripped, the outcome the restoration exists to
-prevent. The fix is hoisting the store-neutral rules above both audits; it restructures a body the
-fork-divergence spec kept out of bounds, which is why it waits here.
-
-**Adopt when:** the next edit to `/compound-refresh`'s SKILL.md lands, or a run strips a true
-AGENTS.md line.
-
 ## The redaction discipline lives in one skill
 
 Upstream's `## Redact` section landed in `/diagnosing-bugs` at v1.2.3: every secret redacted before
@@ -1068,7 +1055,7 @@ guidance on the agent's own judgment (session `f5b87697-e042-4f3d-a877-d0bb48f2a
 could say that a remainder `git rev-parse` rejects is scope guidance, or give guidance a marker of
 its own.
 
-**Hits:** 1 as of 2026-11-16
+**Hits:** 2 as of 2026-11-16
 
 **Adopt when:** the next edit to `/review-gate`'s SKILL.md.
 
@@ -1080,6 +1067,6 @@ interview's decisions in the scope block, on the agent's own judgment (session
 `f5b87697-e042-4f3d-a877-d0bb48f2aa0f`). Scope could say what a hands-off run does there: go on
 with no spec and put the session's recorded decisions in the scope block.
 
-**Hits:** 1 as of 2026-11-16
+**Hits:** 2 as of 2026-11-16
 
 **Adopt when:** the next edit to `/review-gate`'s SKILL.md.
