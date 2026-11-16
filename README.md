@@ -334,7 +334,10 @@ install time. On Codex the hook stays inert until you trust it under `/hooks`.
 filed at once: on the GitHub backend it searches the tracker first, records a hit on an item that
 already holds the idea, and otherwise opens an issue with its labels; a text that looks like it
 holds a secret or an email address is not published. On the default local file it adds the entry
-there. Agents load it too, when they meet a gap worth an item or are asked what the roadmap holds.
+there. Agents load it too when asked what the roadmap holds. On the GitHub backend, an agent that
+meets a gap mid-task parks it as a file in the target repo's git-ignored `.scratch/roadmap-inbox/`
+and goes on without asking you, so the candidate survives a context summary or a session that ends
+early.
 
 ### `/handoff`
 

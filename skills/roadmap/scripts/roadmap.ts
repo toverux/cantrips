@@ -2,12 +2,14 @@
 // Runs as-is under node >= 22.18: strippable TypeScript, no dependencies.
 
 import { spawnSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import process from 'node:process';
 
 const CONFIG = 'docs/agents/cantrips-loop.md';
 const LOCAL_FILE = '.scratch/ROADMAP.md';
+const INBOX = '.scratch/roadmap-inbox';
 const ROADMAP_LABEL = 'roadmap';
 const STANDARD_LABELS = [
   ROADMAP_LABEL,
@@ -30,6 +32,9 @@ Commands:
   add <title> [--label <name>]...
                           Create one roadmap item, its body read from stdin as written, with the roadmap label
                           and the labels given. Refuses a title or body holding what looks like a secret or an email.
+  park <title> [--label <name>]...
+                          Write one candidate into ${INBOX}/, its body read from stdin: what was met and
+                          the evidence. The labels given are suggestions. Makes no tracker call.
   labels                  Create the roadmap labels the tracker lacks: the standard set and the repo's own.
   --help                  Print this help.
 `;
@@ -137,18 +142,55 @@ function checkPublishable(text: string): void {
   if (hit) throw new Fault(`not published: the text holds what looks like ${hit[0]}; reword it`);
 }
 
-function add(roadmap: Roadmap, args: string[]): string {
+function titleAndLabels(command: string, args: string[]): { title: string; labels: string[] } {
   const [title, ...rest] = args;
-  if (!title?.trim()) throw new Fault('add needs a title: add <title> [--label <name>]...');
-  const labels = [ROADMAP_LABEL];
+  if (!title?.trim()) throw new Fault(`${command} needs a title: ${command} <title> [--label <name>]...`);
+  const labels: string[] = [];
   for (let i = 0; i < rest.length; i += 2) {
-    if (rest[i] !== '--label' || rest[i + 1] === undefined) throw new Fault(`add takes only --label <name> after the title, got "${rest[i]}"`);
+    if (rest[i] !== '--label' || rest[i + 1] === undefined) throw new Fault(`${command} takes only --label <name> after the title, got "${rest[i]}"`);
     labels.push(rest[i + 1]);
   }
-  const body = process.stdin.isTTY ? '' : fs.readFileSync(0, 'utf8');
+  return { title, labels };
+}
+
+function stdin(): string {
+  return process.stdin.isTTY ? '' : fs.readFileSync(0, 'utf8');
+}
+
+function add(roadmap: Roadmap, args: string[]): string {
+  const { title, labels } = titleAndLabels('add', args);
+  const body = stdin();
   checkPublishable(`${title}\n${body}`);
-  const url = gh('issue', 'create', '--repo', roadmap.tracker, '--title', title, '--body', body, ...labels.flatMap((l) => ['--label', l])).trim();
+  const url = gh('issue', 'create', '--repo', roadmap.tracker, '--title', title, '--body', body, ...[ROADMAP_LABEL, ...labels].flatMap((l) => ['--label', l])).trim();
   return `${url}\n`;
+}
+
+// One file per candidate, standing alone. Its name starts with a letter, so the panel never reads it as a ticket.
+function park(_roadmap: Roadmap, args: string[]): string {
+  const { title, labels } = titleAndLabels('park', args);
+  const root = repoRoot();
+  if (spawnSync('git', ['-C', root, 'check-ignore', '-q', `${INBOX}/`]).status !== 0) {
+    throw new Fault(`not parked: git does not report ${INBOX}/ ignored in ${root}`);
+  }
+  const body = stdin().trim();
+  if (!body) throw new Fault('park needs the candidate on stdin: what was met and the evidence');
+  // Codex exports its conversation as CODEX_THREAD_ID and its root session as CODEX_SESSION_ID.
+  const session = process.env.CLAUDE_CODE_SESSION_ID || process.env.CODEX_THREAD_ID || process.env.CODEX_SESSION_ID || 'unknown';
+  const text = [
+    `# ${title}`,
+    '',
+    body,
+    '',
+    `Labels: ${labels.map((l) => `\`${l}\``).join(', ') || 'none'}`,
+    `Session: ${session}`,
+    '',
+  ].join('\n');
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40).replace(/^-|-$/g, '');
+  const dir = path.join(root, INBOX);
+  const file = path.join(dir, `candidate-${slug}-${randomBytes(3).toString('hex')}.md`);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(file, text, { flag: 'wx' });
+  return `parked in ${file}\n`;
 }
 
 // Creates only what the tracker lacks, so a second run changes nothing; GitHub matches label names regardless of case.
@@ -166,7 +208,7 @@ function labels(roadmap: Roadmap): string {
   return created.length > 0 ? `created on ${roadmap.tracker}: ${created.join(', ')}\n` : `every roadmap label exists on ${roadmap.tracker}\n`;
 }
 
-const COMMANDS: Record<string, (roadmap: Roadmap, args: string[]) => string> = { list, search, add, labels };
+const COMMANDS: Record<string, (roadmap: Roadmap, args: string[]) => string> = { list, search, add, park, labels };
 
 function main(args: string[]): void {
   const [command, ...rest] = args;

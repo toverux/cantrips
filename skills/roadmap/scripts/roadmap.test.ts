@@ -84,6 +84,9 @@ function sandbox(config: string | null, state: { issues?: unknown[]; labels?: st
         FAKE_GH_LOG: log,
         FAKE_GH_STATE: stateFile,
         GIT_CEILING_DIRECTORIES: tmp,
+        GIT_CONFIG_GLOBAL: '/dev/null',
+        XDG_CONFIG_HOME: tmp,
+        CLAUDE_CODE_SESSION_ID: '0f3c2a9e-1b2d-4c5e-8f9a-0b1c2d3e4f5a',
       },
       encoding: 'utf8',
     });
@@ -127,6 +130,7 @@ test('--help lists the commands', () => {
   assert.match(out.stdout, /\blabels\b/);
   assert.match(out.stdout, /\bsearch\b/);
   assert.match(out.stdout, /\badd\b/);
+  assert.match(out.stdout, /\bpark\b/);
   assert.deepEqual(out.calls, []);
 });
 
@@ -261,7 +265,7 @@ for (const [name, config] of [
 ] as const) {
   test(`tracker commands refuse in one line on ${name}`, () => {
     const { run } = sandbox(config);
-    for (const command of ['list', 'labels', 'search', 'add']) {
+    for (const command of ['list', 'labels', 'search', 'add', 'park']) {
       const out = run(command);
       assert.notEqual(out.status, 0);
       oneLine(out.stderr);
@@ -309,4 +313,54 @@ test('an unknown command faults in one line', () => {
   assert.notEqual(out.status, 0);
   oneLine(out.stderr);
   assert.match(out.stderr, /--help/);
+});
+
+// A git repo at the sandbox's folder, ignoring what the given .gitignore says.
+function gitInit(repo: string, gitignore: string) {
+  assert.equal(spawnSync('git', ['init', '-q', repo]).status, 0);
+  fs.writeFileSync(path.join(repo, '.gitignore'), gitignore);
+}
+
+// The panel's own reading of a feature file, from mod/core/feature.ts.
+const FEATURE_FILE = (name: string) => name === 'spec.md' || /^(\d{2,})-.+\.md$/.test(name);
+
+test('park writes one standalone file per candidate into the inbox, and makes no gh call', () => {
+  const { runWith, repo } = sandbox(GITHUB);
+  gitInit(repo, '.scratch/\n');
+  const body = 'The panel lists no roadmap inbox.\n\nEvidence: 3 candidates sat unseen in .scratch/roadmap-inbox/.\n';
+  const out = runWith(body, 'park', '42 panel shows the inbox', '--label', 'priority: medium', '--label', 'area: mod');
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(out.calls, []);
+  oneLine(out.stdout);
+  const inbox = path.join(repo, '.scratch/roadmap-inbox');
+  const [name, ...others] = fs.readdirSync(inbox);
+  assert.deepEqual(others, []);
+  assert.ok(!FEATURE_FILE(name), name);
+  assert.match(out.stdout, new RegExp(name));
+  assert.equal(
+    fs.readFileSync(path.join(inbox, name), 'utf8'),
+    '# 42 panel shows the inbox\n\nThe panel lists no roadmap inbox.\n\nEvidence: 3 candidates sat unseen in .scratch/roadmap-inbox/.\n\n' +
+      'Labels: `priority: medium`, `area: mod`\nSession: 0f3c2a9e-1b2d-4c5e-8f9a-0b1c2d3e4f5a\n',
+  );
+
+  assert.equal(runWith('Same title, another candidate.', 'park', '42 panel shows the inbox').status, 0);
+  assert.equal(fs.readdirSync(inbox).length, 2);
+});
+
+test('park refuses in one line where git does not report the inbox ignored, and with no body', () => {
+  for (const setup of [(repo: string) => gitInit(repo, 'node_modules/\n'), () => {}]) {
+    const { runWith, repo } = sandbox(GITHUB);
+    setup(repo);
+    const out = runWith('A body.', 'park', 'An item');
+    assert.notEqual(out.status, 0);
+    oneLine(out.stderr);
+    assert.match(out.stderr, /roadmap-inbox/);
+    assert.ok(!fs.existsSync(path.join(repo, '.scratch')));
+  }
+  const { runWith, repo } = sandbox(GITHUB);
+  gitInit(repo, '.scratch/\n');
+  const empty = runWith(' \n', 'park', 'An item');
+  assert.notEqual(empty.status, 0);
+  oneLine(empty.stderr);
+  assert.ok(!fs.existsSync(path.join(repo, '.scratch/roadmap-inbox')));
 });
