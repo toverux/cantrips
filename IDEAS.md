@@ -1070,3 +1070,14 @@ with no spec and put the session's recorded decisions in the scope block.
 **Hits:** 2 as of 2026-11-16
 
 **Adopt when:** the next edit to `/review-gate`'s SKILL.md.
+
+## A deputy runs `/compound` ahead of `/commit`'s own scan
+
+A green `/review-gate` close renders `/compound` beside `/commit`, and with a deputy engaged the
+closing rule invokes the model-invoked step at once, so `/compound` scans before `/commit`, whose
+opening scan covers the same ground again (session `00f30277-f6b1-4c61-8482-fcf838b23d72`). The
+closing could leave `/compound` to `/commit`'s scan where `/commit` is the step it renders.
+
+**Hits:** 1 as of 2026-11-16
+
+**Adopt when:** the next edit to `/review-gate`'s LOOP.md or the shared closing clause.
