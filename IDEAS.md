@@ -478,7 +478,7 @@ the next question is framed. The user asked for it at the start of a grilling se
 `270fcb57-9d96-4487-b800-f522f8cbf6f7`). With one question per message, the frontier and the lock
 still apply, but the "numbers still open" line has nothing to name.
 
-**Hits:** 3 as of 2026-11-12
+**Hits:** 4 as of 2026-11-16
 
 ## `/grilling`'s recommended answer carries the agent's bias, not the user's
 
@@ -547,6 +547,8 @@ table at each round, only the verifying, with the output during a round settled 
 sessions rather than improvised by each. The rule belongs in SKILL.md (or as a fixed line the
 script prints), covering every turn between two pasted blocks: finders returning, verdicts
 arriving, the arbiter's reply, a re-send.
+
+**Hits:** 3 as of 2026-11-16
 
 **Adopt when:** fired by the second run above; adopt at the next edit to `/review-gate`'s SKILL.md.
 
@@ -1056,3 +1058,28 @@ ask to keep short (session `5e875875-0362-4c97-a690-726c5b77c76c`).
 **Hits:** 1 as of 2026-11-14
 
 **Adopt when:** the next edit to `/compound`'s SKILL.md.
+
+## `/review-gate`'s arguments leave scope guidance no slot
+
+Arguments says that what remains once the level and the flags are taken out is the fixed point,
+while Scope's step 5 treats user-supplied arguments as scope guidance. A run invoked as
+`low --fsd standing instructions: minimize usless diff with upstream` took the remainder as
+guidance on the agent's own judgment (session `f5b87697-e042-4f3d-a877-d0bb48f2aa0f`). Arguments
+could say that a remainder `git rev-parse` rejects is scope guidance, or give guidance a marker of
+its own.
+
+**Hits:** 1 as of 2026-11-16
+
+**Adopt when:** the next edit to `/review-gate`'s SKILL.md.
+
+## A hands-off `/review-gate` run has no rule for a missing spec
+
+Scope's step 2 asks the user when no spec resolves, which an `--fsd` run is invoked to avoid. After
+a `/grilling` that closed on `/implement` with no spec, the run went on without one and carried the
+interview's decisions in the scope block, on the agent's own judgment (session
+`f5b87697-e042-4f3d-a877-d0bb48f2aa0f`). Scope could say what a hands-off run does there: go on
+with no spec and put the session's recorded decisions in the scope block.
+
+**Hits:** 1 as of 2026-11-16
+
+**Adopt when:** the next edit to `/review-gate`'s SKILL.md.
