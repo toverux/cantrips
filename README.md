@@ -123,7 +123,10 @@ configuration step.
 
 A spec's body **freezes once implementation starts**, and afterthoughts arrive as **dated
 annotations**. No skill ever closes a spec; closing a feature is your act through the backend's
-native machinery, on local markdown by deleting the feature's `.scratch/` folder.
+native machinery, on local markdown by deleting the feature's `.scratch/` folder. In a repo that
+mirrors its features to GitHub issues, the local spec stays open too; its issue closes with the
+commit that resolves the last ticket, or when you run `/roadmap`'s close command before you delete
+the folder.
 
 ## The skills
 

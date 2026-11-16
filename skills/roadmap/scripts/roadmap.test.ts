@@ -112,7 +112,7 @@ function sandbox(config: string | null, state: State = {}) {
       child.stderr.on('data', (chunk) => (stderr += chunk));
       child.on('close', (status) => resolve({ status, stdout, stderr, calls: calls() }));
     });
-  return { run, runWith, start, repo, setState };
+  return { run, runWith, start, repo, setState, calls };
 }
 
 function loopConfig(roadmap: string) {
@@ -138,6 +138,7 @@ function flagValues(call: string[], name: string) {
 }
 
 function oneLine(text: string) {
+  assert.ok(text.trim(), 'expected one line, got nothing');
   assert.equal(text.trimEnd().split('\n').length, 1, `expected one line, got:\n${text}`);
 }
 
@@ -607,8 +608,8 @@ test('a spec listing no roadmap items makes no tracker call', () => {
 });
 
 // A feature folder in a marked clone, its files as given; the sync reads no loop config.
-function mirrorable(files: Record<string, string>, { mark = true, state = {} as Parameters<typeof sandbox>[1] } = {}) {
-  const box = sandbox(null, state);
+function mirrorable(files: Record<string, string>, { mark = true, state = {} as Parameters<typeof sandbox>[1], config = null as string | null } = {}) {
+  const box = sandbox(config, state);
   gitInit(box.repo, '.scratch/\n');
   if (mark) assert.equal(spawnSync('git', ['-C', box.repo, 'config', 'cantrips.roadmapWrites', 'true']).status, 0);
   const folder = path.join(box.repo, '.scratch/first-sync');
@@ -641,12 +642,12 @@ test('a first sync creates the spec\'s issue, then each ticket as its sub-issue 
   assert.equal(flagValues(made[2], '--body')[0], TICKET_2);
 });
 
-test('a first sync with no tracker passed refuses in one line', () => {
+test('a first sync with no tracker passed, the catch-all form, publishes nothing and says so in one line', () => {
   const { sync, folder } = mirrorable({ 'spec.md': SPEC });
   const out = sync();
-  assert.notEqual(out.status, 0);
-  oneLine(out.stderr);
-  assert.match(out.stderr, /--tracker/);
+  assert.equal(out.status, 0, out.stderr);
+  oneLine(out.stdout);
+  assert.match(out.stdout, /not mirrored yet/);
   assert.deepEqual(out.calls, []);
   assert.ok(!fs.existsSync(path.join(folder, 'mirror.json')));
 });
@@ -728,13 +729,19 @@ test('a spec holding a secret is skipped, and its tickets wait for its issue', (
 });
 
 test('in a clone without the mark, sync makes no tracker call and says so in one line', () => {
-  const { sync, folder } = mirrorable({ 'spec.md': SPEC }, { mark: false });
+  const { sync, folder, write } = mirrorable({ 'spec.md': SPEC }, { mark: false });
   const out = sync('--tracker', 'acme/widgets');
   assert.equal(out.status, 0, out.stderr);
   oneLine(out.stdout);
   assert.match(out.stdout, /cantrips\.roadmapWrites/);
   assert.deepEqual(out.calls, []);
   assert.ok(!fs.existsSync(path.join(folder, 'mirror.json')));
+
+  write('01-spec.md', '# 01: Done\n\nStatus: resolved\n');
+  write('mirror.json', JSON.stringify({ tracker: 'acme/widgets', files: { 'spec.md': { issue: 101, pushed: '' } } }));
+  const mirrored = sync();
+  assert.match(mirrored.stdout, /cantrips\.roadmapWrites/);
+  assert.doesNotMatch(mirrored.stdout, /Closes/);
 });
 
 test('a sync failed after some creations ends in one line, and the next run completes it creating nothing twice', () => {
@@ -865,10 +872,12 @@ test('a first sync through a linked folder refuses in one line, naming the repo 
 
 test('a folder carrying the strike marker is never synced, whenever the marker was added', () => {
   const { sync } = mirrorable({ 'spec.md': SPEC, 'no-mirror': '' });
-  const struck = sync('--tracker', 'acme/widgets');
-  assert.equal(struck.status, 0, struck.stderr);
-  assert.equal(struck.stdout + struck.stderr, '');
-  assert.deepEqual(struck.calls, []);
+  for (const args of [['--tracker', 'acme/widgets'], []]) {
+    const struck = sync(...args);
+    assert.equal(struck.status, 0, struck.stderr);
+    assert.equal(struck.stdout + struck.stderr, '');
+    assert.deepEqual(struck.calls, []);
+  }
 
   const other = mirrorable({ 'spec.md': SPEC });
   const first = other.sync('--tracker', 'acme/widgets');
@@ -877,4 +886,80 @@ test('a folder carrying the strike marker is never synced, whenever the marker w
   const later = other.sync();
   assert.equal(later.status, 0, later.stderr);
   assert.equal(later.calls.length, first.calls.length);
+});
+
+const RESOLVED_1 = TICKET_1.replace('\n\n', '\n\nStatus: resolved\n\n');
+const RESOLVED_2 = TICKET_2.replace('\n\n', '\n\nStatus: resolved\n\n');
+
+test('once every ticket is resolved, a sync prints the closing keyword, bare where the repo is the tracker', () => {
+  const box = mirrorable({ 'spec.md': SPEC, '01-spec.md': RESOLVED_1, '02-tickets.md': TICKET_2 });
+  assert.equal(box.sync('--tracker', 'acme/widgets').status, 0);
+  assert.doesNotMatch(box.sync().stdout, /Closes/);
+  box.write('02-tickets.md', RESOLVED_2);
+  assert.match(box.sync().stdout, /"Closes acme\/widgets#101"/);
+  spawnSync('git', ['-C', box.repo, 'remote', 'add', 'origin', 'git@github.com:Acme/widgets.git']);
+  assert.match(box.sync().stdout, /"Closes #101"/);
+});
+
+// A mirrored feature whose spec lists #7 on its `Roadmap items:` line, first synced with its tickets as given.
+function mirrored(tickets: Record<string, string>, { config = GITHUB as string | null } = {}) {
+  const box = mirrorable({ 'spec.md': SPEC.replace('Why.', 'Why.\n\n**Roadmap items:** #7'), ...tickets }, { config });
+  assert.equal(box.sync('--tracker', 'acme/widgets').status, 0);
+  const close = (...args: string[]) => {
+    const before = box.calls().length;
+    const out = box.run('close', '.scratch/first-sync', ...args);
+    return { ...out, calls: out.calls.slice(before) };
+  };
+  return { ...box, close };
+}
+
+const closes = (calls: string[][]) => calls.filter((c) => c[1] === 'close').map((c) => [c[2], flagValues(c, '--reason')[0]]);
+
+test('close closes as done the open issues of a feature whose tickets are all resolved, and clears its in-flight marks', () => {
+  const { close } = mirrored({ '01-spec.md': RESOLVED_1, '02-tickets.md': RESOLVED_2 });
+  const out = close();
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(closes(out.calls), [['101', 'completed']]);
+  assert.deepEqual(out.calls.filter((c) => c[1] === 'edit').map((c) => [c[2], flagValues(c, '--remove-label')[0]]), [['7', 'in flight']]);
+});
+
+test('close says --not-planned or --done for a feature whose tickets are not all resolved', () => {
+  const { close } = mirrored({ '01-spec.md': RESOLVED_1, '02-tickets.md': TICKET_2 });
+  assert.deepEqual(closes(close('--not-planned').calls), [['101', 'not planned'], ['103', 'not planned']]);
+  assert.deepEqual(closes(close('--done').calls), [['101', 'completed'], ['103', 'completed']]);
+});
+
+test('without a word, close refuses in one line and changes nothing for unresolved tickets or none', () => {
+  for (const tickets of [{ '01-spec.md': TICKET_1 }, {}]) {
+    const out = mirrored(tickets).close();
+    assert.notEqual(out.status, 0);
+    oneLine(out.stderr);
+    assert.match(out.stderr, /--not-planned/);
+    assert.deepEqual(out.calls, []);
+  }
+});
+
+test('in a repo whose config has no roadmap section, close closes the mirrored issues and touches no item', () => {
+  const out = mirrored({ '01-spec.md': RESOLVED_1 }, { config: loopConfig('') }).close();
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(out.calls.map((c) => c.slice(0, 3)), [['issue', 'close', '101']]);
+});
+
+test('without the clone\'s mark, close of a mirrored feature makes no tracker call and says so in one line', () => {
+  const box = mirrored({ '01-spec.md': RESOLVED_1 });
+  spawnSync('git', ['-C', box.repo, 'config', '--unset', 'cantrips.roadmapWrites']);
+  const out = box.close();
+  assert.equal(out.status, 0, out.stderr);
+  oneLine(out.stdout);
+  assert.deepEqual(out.calls, []);
+});
+
+test('close is right after a skipped sync: a dropped ticket closes as not planned with its comment, a resolved one as completed', () => {
+  const box = mirrored({ '01-spec.md': TICKET_1, '02-tickets.md': TICKET_2, '03-more.md': TICKET_2.replace('# 02', '# 03') });
+  fs.rmSync(path.join(box.folder, '03-more.md'));
+  box.write('01-spec.md', RESOLVED_1);
+  const out = box.close('--not-planned');
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(closes(out.calls), [['102', 'completed'], ['104', 'not planned'], ['101', 'not planned'], ['103', 'not planned']]);
+  assert.match(flagValues(out.calls.find((c) => c[2] === '104')!, '--comment')[0], /dropped or renumbered/);
 });

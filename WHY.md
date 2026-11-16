@@ -89,7 +89,9 @@ revisions stay distinguishable.
 
 The consequence is deliberate: post-loop drift between spec and code is not an error. Code and git
 are truth; the spec is history. `/spec` also never mines past specs, so decisions that implementation
-abandoned stop propagating, and no skill ever closes a spec — that is your call.
+abandoned stop propagating, and no skill ever closes a spec — that is your call. Mirroring to
+GitHub doesn't change that for the local file; only its issue closes, with the commit that delivers
+the last ticket.
 
 ### Finders find, verifiers judge
 

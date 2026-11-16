@@ -34,6 +34,13 @@ A spec lists every item its feature delivers on one `Roadmap items:` line, and e
 - `/commit`: for each ticket its commit's work resolved, as the session knows them, add `Fixes #N` to the message body for each item on the ticket's line, read from the file with no tracker call, in the `owner/repo#N` form where the commit's repo is not the item's tracker.
 - Closing the feature: run `close <feature folder>` before deleting the folder, so an abandoned feature's open items return to the pool.
 
+## A mirrored feature
+
+Where the loop config says to sync a feature after each write verb, its storage section names the tracker: the script's `sync <feature folder> --tracker <owner/repo>` is that sync, the tracker needed on its first run only.
+
+- `/commit`: run `sync <feature folder>` once, without `--tracker`, for the feature the session took up and no other; where it prints a `Closes` keyword, add it to the message body as written.
+- Closing the feature: `close` also closes the feature's issues still open, and needs `--done` or `--not-planned` where its tickets are not all resolved; delete the folder once it succeeded.
+
 ## Plain `gh`
 
 Check a text for secrets and email addresses before writing it, since only the script checks for you.
