@@ -15,15 +15,15 @@ const SCRIPT = fileURLToPath(new URL('./roadmap.ts', import.meta.url));
 
 // The stand-in: answers `issue list` and `label list` from the canned state, applies `--state` (default open),
 // `--search` (every word in the title) and `--limit` (default 30), answers `issue view` with the item's canned
-// comments and state, records `issue create`, `issue comment`, `issue edit` and `label create`, and fails every call with the canned error
-// where one is set.
+// comments and state, records `issue create` (numbering the issues it creates from 101), `issue comment`, `issue edit` and `label create`, and fails every call with the canned error
+// where one is set, or the calls holding the canned `failOn` text.
 const FAKE_GH = `
 const fs = require('node:fs');
 const args = process.argv.slice(2);
 fs.appendFileSync(process.env.FAKE_GH_LOG, JSON.stringify(args) + '\\n');
 const state = JSON.parse(fs.readFileSync(process.env.FAKE_GH_STATE, 'utf8'));
-if (state.fail) {
-  process.stderr.write(state.fail + '\\n');
+if (state.fail || (state.failOn && args.join(' ').includes(state.failOn))) {
+  process.stderr.write((state.fail || 'HTTP 502: Bad Gateway') + '\\n');
   process.exit(1);
 }
 const flag = (name) => {
@@ -45,7 +45,8 @@ if (group === 'issue' && verb === 'list') {
 } else if (group === 'label' && verb === 'list') {
   process.stdout.write(JSON.stringify(state.labels.slice(0, limit).map((name) => ({ name }))));
 } else if (group === 'issue' && verb === 'create') {
-  process.stdout.write('https://github.com/' + flag('--repo') + '/issues/101\\n');
+  const created = fs.readFileSync(process.env.FAKE_GH_LOG, 'utf8').split('\\n').filter((l) => l.startsWith('["issue","create"')).length;
+  process.stdout.write('https://github.com/' + flag('--repo') + '/issues/' + (100 + created) + '\\n');
 } else if (group === 'issue' && verb === 'view') {
   const issue = state.issues.find((i) => String(i.number) === args[2]);
   process.stdout.write(JSON.stringify({ state: issue?.state ?? 'OPEN', comments: (state.comments[args[2]] ?? []).map((body) => ({ body })) }));
@@ -66,7 +67,9 @@ interface Run {
 
 const SESSION = '0f3c2a9e-1b2d-4c5e-8f9a-0b1c2d3e4f5a';
 
-function sandbox(config: string | null, state: { issues?: unknown[]; labels?: string[]; comments?: Record<string, string[]>; fail?: string } = {}) {
+type State = { issues?: unknown[]; labels?: string[]; comments?: Record<string, string[]>; fail?: string; failOn?: string };
+
+function sandbox(config: string | null, state: State = {}) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'roadmap-test-'));
   const bin = path.join(tmp, 'bin');
   const repo = path.join(tmp, 'repo');
@@ -76,7 +79,8 @@ function sandbox(config: string | null, state: { issues?: unknown[]; labels?: st
   const log = path.join(tmp, 'calls.jsonl');
   fs.writeFileSync(log, '');
   const stateFile = path.join(tmp, 'state.json');
-  fs.writeFileSync(stateFile, JSON.stringify({ issues: [], labels: [], comments: {}, ...state }));
+  const setState = (next: State) => fs.writeFileSync(stateFile, JSON.stringify({ issues: [], labels: [], comments: {}, ...next }));
+  setState(state);
   if (config !== null) {
     fs.mkdirSync(path.join(repo, 'docs/agents'), { recursive: true });
     fs.writeFileSync(path.join(repo, 'docs/agents/cantrips-loop.md'), config);
@@ -107,7 +111,7 @@ function sandbox(config: string | null, state: { issues?: unknown[]; labels?: st
       child.stderr.on('data', (chunk) => (stderr += chunk));
       child.on('close', (status) => resolve({ status, stdout, stderr, calls: calls() }));
     });
-  return { run, runWith, start, repo };
+  return { run, runWith, start, repo, setState };
 }
 
 function loopConfig(roadmap: string) {
@@ -598,5 +602,164 @@ test('a spec listing no roadmap items makes no tracker call', () => {
   const out = feature('none').run('close', '.scratch/feat');
   assert.equal(out.status, 0, out.stderr);
   oneLine(out.stdout);
+  assert.deepEqual(out.calls, []);
+});
+
+// A feature folder in a marked clone, its files as given; the sync reads no loop config.
+function mirrorable(files: Record<string, string>, { mark = true, state = {} as Parameters<typeof sandbox>[1] } = {}) {
+  const box = sandbox(null, state);
+  gitInit(box.repo, '.scratch/\n');
+  if (mark) assert.equal(spawnSync('git', ['-C', box.repo, 'config', 'cantrips.roadmapWrites', 'true']).status, 0);
+  const folder = path.join(box.repo, '.scratch/first-sync');
+  fs.mkdirSync(folder, { recursive: true });
+  const write = (name: string, text: string) => fs.writeFileSync(path.join(folder, name), text);
+  for (const [name, text] of Object.entries(files)) write(name, text);
+  const sync = (...args: string[]) => box.run('sync', '.scratch/first-sync', ...args);
+  return { ...box, folder, write, sync };
+}
+
+const SPEC = '# A first sync\n\n## Problem Statement\n\nWhy.\n\n## Comments\n\n- 2026-11-16: a note.\n';
+const TICKET_1 = '# 01: Publish the spec\n\n**Blocked by:** None.\n\n- [ ] It works.\n';
+const TICKET_2 = '# 02: Publish the tickets\n\n**Blocked by:** 01\n\n- [ ] It works.\n';
+
+function creates(calls: string[][]) {
+  return calls.filter((c) => c[0] === 'issue' && c[1] === 'create');
+}
+
+test('a first sync creates the spec\'s issue, then each ticket as its sub-issue in number order, with their labels', () => {
+  const { sync } = mirrorable({ '02-tickets.md': TICKET_2, 'spec.md': SPEC, '01-spec.md': TICKET_1 });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.equal(out.status, 0, out.stderr);
+  const made = creates(out.calls);
+  assert.deepEqual(made.map((c) => [flagValues(c, '--repo')[0], flagValues(c, '--title')[0], flagValues(c, '--label'), flagValues(c, '--parent')]), [
+    ['acme/widgets', 'first-sync: A first sync', ['spec'], []],
+    ['acme/widgets', '01: Publish the spec', ['ticket'], ['101']],
+    ['acme/widgets', '02: Publish the tickets', ['ticket'], ['101']],
+  ]);
+  assert.equal(flagValues(made[0], '--body')[0], '# A first sync\n\n## Problem Statement\n\nWhy.\n\n');
+  assert.equal(flagValues(made[2], '--body')[0], TICKET_2);
+});
+
+test('a first sync with no tracker passed refuses in one line', () => {
+  const { sync, folder } = mirrorable({ 'spec.md': SPEC });
+  const out = sync();
+  assert.notEqual(out.status, 0);
+  oneLine(out.stderr);
+  assert.match(out.stderr, /--tracker/);
+  assert.deepEqual(out.calls, []);
+  assert.ok(!fs.existsSync(path.join(folder, 'mirror.json')));
+});
+
+test('a spec with no title line is titled with the feature\'s name alone', () => {
+  const { sync } = mirrorable({ 'spec.md': '## Problem Statement\n\nWhy.\n' });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(creates(out.calls).map((c) => flagValues(c, '--title')[0]), ['first-sync']);
+});
+
+test('a second sync with nothing changed makes no gh call and leaves the numbers file untouched', () => {
+  const { sync, folder } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1 });
+  assert.equal(sync('--tracker', 'acme/widgets').status, 0);
+  const numbers = path.join(folder, 'mirror.json');
+  const before = fs.statSync(numbers).mtimeMs;
+  const calls = sync('--tracker', 'acme/widgets').calls.length;
+  const out = sync();
+  assert.equal(out.status, 0, out.stderr);
+  oneLine(out.stdout);
+  assert.equal(out.calls.length, calls);
+  assert.equal(fs.statSync(numbers).mtimeMs, before);
+});
+
+test('a changed file rewrites its issue\'s body and an unchanged one is left alone', () => {
+  const { sync, write } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1 });
+  const first = sync('--tracker', 'acme/widgets').calls.length;
+  write('01-spec.md', TICKET_1.replace('[ ]', '[x]'));
+  const out = sync();
+  assert.equal(out.status, 0, out.stderr);
+  const later = out.calls.slice(first);
+  assert.deepEqual(later.map((c) => [c[1], c[2], flagValues(c, '--repo')[0], flagValues(c, '--body')[0]]), [
+    ['edit', '102', 'acme/widgets', TICKET_1.replace('[ ]', '[x]')],
+  ]);
+});
+
+test('a blocked-by line sets a relation for every other ticket number it names, and a line opening with none sets none', () => {
+  const { sync } = mirrorable({
+    'spec.md': SPEC,
+    '01-spec.md': TICKET_1.replace('None.', 'None within this feature; see 03'),
+    '02-tickets.md': TICKET_2.replace('01', '01 and 03'),
+    '03-last.md': '# 03: Last\n\n**Blocked by:** 02, and 03 itself\n',
+  });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.equal(out.status, 0, out.stderr);
+  const relations = out.calls.filter((c) => c.includes('--add-blocked-by'));
+  assert.deepEqual(relations.map((c) => [c[2], flagValues(c, '--repo')[0], flagValues(c, '--add-blocked-by')[0]]), [
+    ['103', 'acme/widgets', '102,104'],
+    ['104', 'acme/widgets', '103'],
+  ]);
+  assert.equal(sync().calls.length, out.calls.length);
+});
+
+test('a file holding a secret or an email is skipped and reported in one line until its text changes', () => {
+  const leaky = TICKET_1.replace('It works.', 'Ask jane.doe@example.com.');
+  const { sync, write } = mirrorable({ 'spec.md': SPEC, '01-spec.md': leaky, '02-tickets.md': TICKET_2 });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.equal(out.status, 0, out.stderr);
+  oneLine(out.stderr);
+  assert.match(out.stderr, /01-spec\.md.*an email address/);
+  assert.deepEqual(creates(out.calls).map((c) => flagValues(c, '--title')[0]), ['first-sync: A first sync', '02: Publish the tickets']);
+  assert.ok(!out.calls.some((c) => c.includes('--add-blocked-by')));
+
+  write('01-spec.md', TICKET_1);
+  const later = sync().calls.slice(out.calls.length);
+  assert.deepEqual(later.map((c) => [c[1], flagValues(c, '--title')[0] ?? c[2], flagValues(c, '--add-blocked-by')[0]]), [
+    ['create', '01: Publish the spec', undefined],
+    ['edit', '102', '103'],
+  ]);
+});
+
+test('a spec holding a secret is skipped, and its tickets wait for its issue', () => {
+  const { sync } = mirrorable({ 'spec.md': SPEC.replace('Why.', 'Why. token = abcd1234efgh'), '01-spec.md': TICKET_1 });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.equal(out.status, 0, out.stderr);
+  oneLine(out.stderr);
+  assert.match(out.stderr, /spec\.md.*a secret assignment/);
+  assert.deepEqual(out.calls, []);
+});
+
+test('in a clone without the mark, sync makes no tracker call and says so in one line', () => {
+  const { sync, folder } = mirrorable({ 'spec.md': SPEC }, { mark: false });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.equal(out.status, 0, out.stderr);
+  oneLine(out.stdout);
+  assert.match(out.stdout, /cantrips\.roadmapWrites/);
+  assert.deepEqual(out.calls, []);
+  assert.ok(!fs.existsSync(path.join(folder, 'mirror.json')));
+});
+
+test('a sync failed after some creations ends in one line, and the next run completes it creating nothing twice', () => {
+  const { sync, setState, folder } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1, '02-tickets.md': TICKET_2 }, { state: { failOn: '02: Publish' } });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.notEqual(out.status, 0);
+  oneLine(out.stderr);
+  assert.match(out.stderr, /HTTP 502/);
+  const numbers = JSON.parse(fs.readFileSync(path.join(folder, 'mirror.json'), 'utf8'));
+  assert.deepEqual(Object.fromEntries(Object.entries(numbers.files).map(([name, file]) => [name, (file as { issue: number }).issue])), { 'spec.md': 101, '01-spec.md': 102 });
+
+  setState({});
+  const again = sync();
+  assert.equal(again.status, 0, again.stderr);
+  const later = again.calls.slice(out.calls.length);
+  assert.deepEqual(later.map((c) => [c[1], flagValues(c, '--title')[0] ?? c[2], flagValues(c, '--parent')[0] ?? flagValues(c, '--add-blocked-by')[0]]), [
+    ['create', '02: Publish the tickets', '101'],
+    ['edit', '104', '102'],
+  ]);
+});
+
+test('a sync of a folder with no spec ends in one line and a non-zero exit', () => {
+  const { sync } = mirrorable({ '01-spec.md': TICKET_1 });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.notEqual(out.status, 0);
+  oneLine(out.stderr);
+  assert.match(out.stderr, /cannot read .*spec\.md/);
   assert.deepEqual(out.calls, []);
 });
