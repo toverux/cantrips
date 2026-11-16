@@ -26,7 +26,8 @@ Any "no" → discard.
 
 This bar is the defence against the eager-auto-memory failure mode: session-specific trivia — in-flight task state, one-off values, things any agent would infer anyway — must die here.
 
-If nothing clears the bar, say so in one line and stop.
+Where the repo's loop config, `docs/agents/cantrips-loop.md`, keeps the roadmap in GitHub issues, or where this session parked a roadmap candidate in another repo, the round also drains the roadmap inbox as `/roadmap`'s [REFERENCE.md](../roadmap/REFERENCE.md) says for this round; its hits are `/roadmap`'s own writes, made without asking, and only its proposals join step 4's gate.
+If neither the bar nor the drain leaves anything, say so in one line and stop.
 
 ## 3. Route each survivor
 

@@ -285,7 +285,9 @@ agent's behavior in a different session, and is it non-obvious and stable?_ Sess
 dies there. Survivors go to the cheapest store that serves them: the project's `AGENTS.md`, a
 `docs/adr/` record, a `docs/solutions/` entry, a rules file, a skill, or your user-global memory
 file. It fires from `/commit`'s opening scan, from `/diagnosing-bugs`' close, or when you ask to
-capture or remember something.
+capture or remember something. On a GitHub roadmap it also drains the roadmap inbox: a candidate
+that matches an existing item is written during the drain as a hit on it, without asking, and only
+new items join the list you approve.
 
 It garbage-collects the stores too, but only when you ask for a refresh (`/compound refresh`). A
 refresh audits `AGENTS.md` for bloat, contradictions and staleness, and every `docs/solutions/` doc
@@ -337,7 +339,8 @@ holds a secret or an email address is not published. On the default local file i
 there. Agents load it too when asked what the roadmap holds. On the GitHub backend, an agent that
 meets a gap mid-task parks it as a file in the target repo's git-ignored `.scratch/roadmap-inbox/`
 and goes on without asking you, so the candidate survives a context summary or a session that ends
-early.
+early. `/compound` or a bare `/roadmap` drains that inbox: matches become hits, new items wait for
+your approval.
 
 ### `/handoff`
 

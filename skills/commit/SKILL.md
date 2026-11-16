@@ -2,7 +2,7 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.4.1
+version: 1.5.0
 source: EveryInc/compound-engineering-plugin@3.38.1 (ce-commit)
 ---
 
@@ -14,6 +14,7 @@ Scan the whole session for candidate learnings: root causes uncovered, gotchas h
 
 Judge each against compound's quality bar — _would it change a future agent's behavior in a different session, and is it non-obvious and stable?_
 Session-specific trivia dies here.
+Where the repo's loop config, `docs/agents/cantrips-loop.md`, keeps the roadmap in GitHub issues, a candidate file in `.scratch/roadmap-inbox/` counts as a candidate, which `/compound` drains as `/roadmap` says.
 
 - Any candidate might clear the bar → invoke `/compound` with the candidates; it routes each to a destination and gates every write.
   Once the approved writes land, present their diff and wait for the user's verdict on the wording — approve, edit, or drop each document — since the destination gate cleared a one-line proposal, not the prose itself.

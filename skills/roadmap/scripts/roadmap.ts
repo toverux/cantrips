@@ -10,6 +10,11 @@ import process from 'node:process';
 const CONFIG = 'docs/agents/cantrips-loop.md';
 const LOCAL_FILE = '.scratch/ROADMAP.md';
 const INBOX = '.scratch/roadmap-inbox';
+const CLAIMED = `${INBOX}/claimed`;
+// A claim another session holds is taken up once it is older than this.
+const STALE_MS = 24 * 60 * 60 * 1000;
+// The local git config key setup sets in a clone where agents may write to the roadmap without asking.
+const MARK = 'cantrips.roadmapWrites';
 const ROADMAP_LABEL = 'roadmap';
 const STANDARD_LABELS = [
   ROADMAP_LABEL,
@@ -29,12 +34,21 @@ Reads the roadmap section of ${CONFIG}; the tracker commands need its GitHub bac
 Commands:
   list                    Print every open roadmap item, one line each: #<number> <title> [<labels>].
   search <words>...       Print the roadmap items, open and closed, a search on the words finds, in list's form.
-  add <title> [--label <name>]...
+  add <title> [--label <name>]... [--candidate <file>]
                           Create one roadmap item, its body read from stdin as written, with the roadmap label
                           and the labels given. Refuses a title or body holding what looks like a secret or an email.
+                          With --candidate, settles that claimed candidate: its file is removed once the item exists.
   park <title> [--label <name>]...
                           Write one candidate into ${INBOX}/, its body read from stdin: what was met and
                           the evidence. The labels given are suggestions. Makes no tracker call.
+  claim [<file>]...       Claim the inbox for a drain: the new candidates, this session's claims, and other
+                          sessions' claims older than a day; given files, only those of the new candidates.
+                          Prints each claimed file, its text, and the items a search on its title finds.
+  hit <number> [--candidate <file>] [--approved]
+                          Comment a hit on the item: the running count and the date, the one line of evidence
+                          read from stdin, and the session. Posts only in a clone marked by ${MARK} or with
+                          --approved, otherwise prints the hit to propose. With --candidate, settles it as add does.
+  drop <file>             Settle a claimed candidate as declined: remove its file, writing nothing.
   labels                  Create the roadmap labels the tracker lacks: the standard set and the repo's own.
   --help                  Print this help.
 `;
@@ -142,15 +156,53 @@ function checkPublishable(text: string): void {
   if (hit) throw new Fault(`not published: the text holds what looks like ${hit[0]}; reword it`);
 }
 
-function titleAndLabels(command: string, args: string[]): { title: string; labels: string[] } {
-  const [title, ...rest] = args;
-  if (!title?.trim()) throw new Fault(`${command} needs a title: ${command} <title> [--label <name>]...`);
-  const labels: string[] = [];
-  for (let i = 0; i < rest.length; i += 2) {
-    if (rest[i] !== '--label' || rest[i + 1] === undefined) throw new Fault(`${command} takes only --label <name> after the title, got "${rest[i]}"`);
-    labels.push(rest[i + 1]);
+// The first argument, then the flags allowed after it; `--label` repeats, a flag absent from `valued` takes no value.
+function parse(command: string, args: string[], valued: string[], bare: string[] = []) {
+  const [first, ...rest] = args;
+  if (!first?.trim()) throw new Fault(`${command} needs its argument: see --help`);
+  const flags: Record<string, string[]> = {};
+  for (let i = 0; i < rest.length; i++) {
+    const flag = rest[i];
+    if (bare.includes(flag)) {
+      flags[flag] = [];
+    } else if (valued.includes(flag) && rest[i + 1] !== undefined) {
+      (flags[flag] ??= []).push(rest[++i]);
+    } else {
+      throw new Fault(`${command} takes ${[...valued.map((f) => `${f} <value>`), ...bare].join(', ')} after its argument, got "${flag}"`);
+    }
   }
-  return { title, labels };
+  return { first, flags };
+}
+
+function session(): string {
+  // Codex exports its conversation as CODEX_THREAD_ID and its root session as CODEX_SESSION_ID.
+  return process.env.CLAUDE_CODE_SESSION_ID || process.env.CODEX_THREAD_ID || process.env.CODEX_SESSION_ID || 'unknown';
+}
+
+// The session as a claimed file's name carries it.
+function owner(): string {
+  return session().replace(/[^\w-]/g, '-');
+}
+
+// A claimed file is named <candidate>.<session>.<ms>.md: the rename that claims it records who and when in one step.
+const CLAIM_NAME = /^(.+)\.([\w-]+)\.(\d+)\.md$/;
+
+function claimedName(base: string): string {
+  return `${base}.${owner()}.${Date.now()}.md`;
+}
+
+// The candidate file a settle names, checked to be a claim this session holds; the file stays until the write succeeds.
+function claimedCandidate(file: string | undefined): string | undefined {
+  if (file === undefined) return undefined;
+  const full = path.resolve(file);
+  const holder = CLAIM_NAME.exec(path.basename(full))?.[2];
+  if (path.dirname(full) !== path.join(repoRoot(), CLAIMED) || holder === undefined) {
+    throw new Fault(`not settled: ${file} is no claimed candidate in ${CLAIMED}/`);
+  }
+  if (holder !== owner() || !fs.existsSync(full)) {
+    throw new Fault(`not settled: another drain took up the claim on ${path.basename(full)}`);
+  }
+  return full;
 }
 
 function stdin(): string {
@@ -158,31 +210,33 @@ function stdin(): string {
 }
 
 function add(roadmap: Roadmap, args: string[]): string {
-  const { title, labels } = titleAndLabels('add', args);
+  const { first: title, flags } = parse('add', args, ['--label', '--candidate']);
+  const candidate = claimedCandidate(flags['--candidate']?.[0]);
   const body = stdin();
   checkPublishable(`${title}\n${body}`);
-  const url = gh('issue', 'create', '--repo', roadmap.tracker, '--title', title, '--body', body, ...[ROADMAP_LABEL, ...labels].flatMap((l) => ['--label', l])).trim();
+  const labels = [ROADMAP_LABEL, ...(flags['--label'] ?? [])];
+  const url = gh('issue', 'create', '--repo', roadmap.tracker, '--title', title, '--body', body, ...labels.flatMap((l) => ['--label', l])).trim();
+  if (candidate) fs.rmSync(candidate);
   return `${url}\n`;
 }
 
 // One file per candidate, standing alone. Its name starts with a letter, so the panel never reads it as a ticket.
 function park(_roadmap: Roadmap, args: string[]): string {
-  const { title, labels } = titleAndLabels('park', args);
+  const { first: title, flags } = parse('park', args, ['--label']);
+  const labels = flags['--label'] ?? [];
   const root = repoRoot();
   if (spawnSync('git', ['-C', root, 'check-ignore', '-q', `${INBOX}/`]).status !== 0) {
     throw new Fault(`not parked: git does not report ${INBOX}/ ignored in ${root}`);
   }
   const body = stdin().trim();
   if (!body) throw new Fault('park needs the candidate on stdin: what was met and the evidence');
-  // Codex exports its conversation as CODEX_THREAD_ID and its root session as CODEX_SESSION_ID.
-  const session = process.env.CLAUDE_CODE_SESSION_ID || process.env.CODEX_THREAD_ID || process.env.CODEX_SESSION_ID || 'unknown';
   const text = [
     `# ${title}`,
     '',
     body,
     '',
     `Labels: ${labels.map((l) => `\`${l}\``).join(', ') || 'none'}`,
-    `Session: ${session}`,
+    `Session: ${session()}`,
     '',
   ].join('\n');
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40).replace(/^-|-$/g, '');
@@ -191,6 +245,76 @@ function park(_roadmap: Roadmap, args: string[]): string {
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(file, text, { flag: 'wx' });
   return `parked in ${file}\n`;
+}
+
+// Each claim is a rename, so of two drains exactly one moves a given file; the loser's rename finds it gone.
+function claim(roadmap: Roadmap, files: string[]): string {
+  const root = repoRoot();
+  const inbox = path.join(root, INBOX);
+  const claimed = path.join(root, CLAIMED);
+  const held: string[] = [];
+  const take = (from: string, base: string) => {
+    const to = path.join(claimed, claimedName(base));
+    fs.mkdirSync(claimed, { recursive: true });
+    try {
+      fs.renameSync(from, to);
+      held.push(to);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+  };
+  const read = (dir: string) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((name) => name.endsWith('.md')).sort() : []);
+  const named = files.map((file) => path.resolve(file));
+  if (named.length === 0) {
+    for (const name of read(claimed)) {
+      const [, base, holder, ms] = CLAIM_NAME.exec(name) ?? [];
+      if (base === undefined) continue;
+      if (holder === owner()) held.push(path.join(claimed, name));
+      else if (Date.now() - Number(ms) > STALE_MS) take(path.join(claimed, name), base);
+    }
+  }
+  for (const name of read(inbox).filter((name) => named.length === 0 || named.includes(path.join(inbox, name)))) {
+    take(path.join(inbox, name), name.replace(/\.md$/, ''));
+  }
+  if (held.length === 0) return 'the roadmap inbox is empty\n';
+  return held
+    .map((file) => {
+      const text = fs.readFileSync(file, 'utf8');
+      const title = /^# (.*)$/m.exec(text)?.[1].trim() ?? '';
+      const matches = title ? issues(roadmap, '--state', 'all', '--search', title) : '';
+      return `== ${path.relative(process.cwd(), file)}\n${text.trimEnd()}\n-- search: ${title}\n${matches || 'no roadmap item matches\n'}`;
+    })
+    .join('\n');
+}
+
+function marked(): boolean {
+  return spawnSync('git', ['-C', repoRoot(), 'config', '--type=bool', '--get', MARK], { encoding: 'utf8' }).stdout.trim() === 'true';
+}
+
+function hit(roadmap: Roadmap, args: string[]): string {
+  const { first: number, flags } = parse('hit', args, ['--candidate'], ['--approved']);
+  if (!/^\d+$/.test(number)) throw new Fault(`hit needs an item number, got "${number}"`);
+  const candidate = claimedCandidate(flags['--candidate']?.[0]);
+  const evidence = stdin().replace(/\s+/g, ' ').trim();
+  if (!evidence) throw new Fault('hit needs one line of evidence on stdin');
+  checkPublishable(evidence);
+  if (!marked() && !flags['--approved']) {
+    return `not posted: this clone lacks the ${MARK} mark, so propose the hit on #${number}, and post it with --approved once approved\n`;
+  }
+  const comments = (JSON.parse(gh('issue', 'view', number, '--repo', roadmap.tracker, '--json', 'comments')) as { comments: { body: string }[] }).comments;
+  const last = comments.map((c) => /^Hit (\d+) ·/.exec(c.body)?.[1]).filter((n) => n !== undefined).at(-1);
+  const count = Number(last ?? 0) + 1;
+  const body = `Hit ${count} · ${new Date().toISOString().slice(0, 10)}\n${evidence}\nSession: ${session()}\n`;
+  const url = gh('issue', 'comment', number, '--repo', roadmap.tracker, '--body', body).trim();
+  if (candidate) fs.rmSync(candidate);
+  return `hit ${count} on #${number}: ${url}\n`;
+}
+
+function drop(_roadmap: Roadmap, args: string[]): string {
+  const { first } = parse('drop', args, []);
+  const candidate = claimedCandidate(first)!;
+  fs.rmSync(candidate);
+  return `dropped ${path.basename(candidate)}\n`;
 }
 
 // Creates only what the tracker lacks, so a second run changes nothing; GitHub matches label names regardless of case.
@@ -208,7 +332,7 @@ function labels(roadmap: Roadmap): string {
   return created.length > 0 ? `created on ${roadmap.tracker}: ${created.join(', ')}\n` : `every roadmap label exists on ${roadmap.tracker}\n`;
 }
 
-const COMMANDS: Record<string, (roadmap: Roadmap, args: string[]) => string> = { list, search, add, park, labels };
+const COMMANDS: Record<string, (roadmap: Roadmap, args: string[]) => string> = { list, search, add, park, claim, hit, drop, labels };
 
 function main(args: string[]): void {
   const [command, ...rest] = args;

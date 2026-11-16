@@ -12,7 +12,7 @@ Labels:
 
 ## A hit
 
-A hit is a comment on the item, when the item is met again:
+A hit is a comment on the item, when the item is met again, which the script's `hit` writes:
 
 ```
 Hit <N> · <YYYY-MM-DD>
@@ -20,8 +20,11 @@ Hit <N> · <YYYY-MM-DD>
 Session: <the session's transcript identifier>
 ```
 
-`<N>` is the count of the item's last hit comment plus one, or 1.
-A match closed as completed takes no hit: file the idea as a new item naming it.
+## In `/compound`'s round
+
+The round drains this repo's inbox as a bare [`/roadmap`](SKILL.md) does, and from each other repo's checkout `claim`s the candidates this session parked there, as far as it still knows them.
+Its proposals follow the knowledge candidates in `/compound`'s list, continuing their numbering, and the closing line goes under the list.
+They are judged on the roadmap bar in place of `/compound`'s: a gap that no existing item, ticket or commit already holds.
 
 ## Plain `gh`
 
@@ -29,6 +32,5 @@ Check a text for secrets and email addresses before writing it, since only the s
 Every command takes `--repo <the config's tracker>`.
 
 - Read an item and its hits: `gh issue view <N> --comments`.
-- Post a hit: `gh issue comment <N> --body-file -`, the comment on stdin.
 - Re-triage: `gh issue edit <N> --add-label "priority: high" --remove-label "priority: low"`.
 - Close: `gh issue close <N> --reason completed`, or `--reason "not planned"`.
