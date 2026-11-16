@@ -1,12 +1,19 @@
 ---
 name: compound
-description: Capture this session's durable learnings and route each to the right knowledge store, every write gated on the user or their deputy. Use at loop end when /commit's opening scan finds candidates, when /diagnosing-bugs closes out a fix, or when the user wants to capture, remember, or write down a learning, convention, gotcha, decision, or preference.
-argument-hint: '[optional: what to capture; blank scans the whole session]'
-version: 1.5.0
+description: Capture this session's durable learnings and route each to the right knowledge store, every write gated on the user or their deputy. Use at loop end when /commit's opening scan finds candidates, when /diagnosing-bugs closes out a fix, or when the user wants to capture, remember, or write down a learning, convention, gotcha, decision, or preference, or asks for a refresh: an audit of the knowledge stores against the current code.
+argument-hint: '[optional: what to capture, or refresh and a scope; blank scans the whole session]'
+version: 1.6.0
+source: EveryInc/compound-engineering-plugin@3.38.1 (ce-compound)
 ---
 
 Harvest what this session learned so future sessions inherit it.
 Only knowledge that compounds gets written; every write is approved first, by the user or by a deputy engaged in their place.
+
+## Choosing the job
+
+This skill does one of two jobs.
+**Refresh** audits the stores already written against the current code, and runs only where the user's own request asks for it — `/compound refresh`, or asking to audit, clean up or garbage-collect the stores: read [`refresh.md`](refresh.md) and follow it instead of the rest of this file.
+Anything else is a **capture**, the rest of this file — a caller's invocation included, and a request whose context merely mentions refreshing.
 
 ## 1. Scan the session
 

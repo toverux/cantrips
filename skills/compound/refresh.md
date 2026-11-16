@@ -1,11 +1,4 @@
----
-name: compound-refresh
-description: Garbage-collect the knowledge stores — audit AGENTS.md, and docs/solutions/ where that store is enabled, against the current code.
-argument-hint: '[optional: scope — directory, module, or keyword; blank audits everything]'
-disable-model-invocation: true
-version: 1.5.0
-source: EveryInc/compound-engineering-plugin@3.33.2 (ce-compound-refresh)
----
+# Refresh
 
 Audit the knowledge stores against the current codebase and prune what no longer earns its place.
 Two stores: the project's `AGENTS.md`, always, and `docs/solutions/` when the loop config enables it.
@@ -15,13 +8,28 @@ Every change is gated on the user, or on a deputy engaged in their place.
 
 ## Scope
 
-An argument narrows the sweep to matching `docs/solutions/` docs — try it as a filename, then a frontmatter `area`/`tags` value, then a content keyword.
-No argument → every doc plus `AGENTS.md`.
-`AGENTS.md` is in scope on every run: when the solutions store is off, or no doc matches the argument, say so in one line and audit `AGENTS.md` alone.
+A scope named in the request narrows the sweep to matching `docs/solutions/` docs — try it as a filename, then a frontmatter `area`/`tags` value, then a content keyword.
+No scope → every doc plus `AGENTS.md`.
+`AGENTS.md` is in scope on every run: when the solutions store is off, or no doc matches the scope, say so in one line and audit `AGENTS.md` alone.
+
+## Judgment rules
+
+These bind both audits below:
+
+- **Match docs to reality, never the reverse.**
+  When code and doc disagree, the doc changes; whether the code should have changed is outside this skill.
+- **Age alone is clean.**
+  A two-year-old doc that still matches the code is a Keep; age only prompts a closer look.
+- **Unverifiable is not false.**
+  A claim the repo cannot corroborate — a schema fact, an operational practice, an environment behavior — is not thereby wrong; repos rarely witness their own operations.
+  Never delete content, or strip it during a merge, solely because no in-repo artifact confirms it.
+  Act only on contradiction, where the code demonstrably does otherwise; an unverifiable-but-plausible claim is a Keep with the verification gap noted in the report.
+- **Skip cosmetic churn.**
+  Typos and wording polish are edits without evidence value.
 
 ## Audit docs/solutions/
 
-The format contract is [`../compound/solutions-format.md`](../compound/solutions-format.md).
+The format contract is [`solutions-format.md`](solutions-format.md).
 For each doc in scope, cross-check its claims against the current code — cited paths and names still exist, the fix still matches how the code works today, snippets reflect the current implementation — and against its sibling docs for overlap and contradiction.
 Verdict per file:
 
@@ -34,22 +42,14 @@ Verdict per file:
 - **Delete** — both the implementation _and_ the problem domain are gone, or the doc is fully redundant.
   On approval: delete the file — git history is the archive.
 
-Judgment rules:
+Judgment rules of this store:
 
-- **Match docs to reality, never the reverse.**
-  When code and doc disagree, the doc changes; whether the code should have changed is outside this skill.
-- **Age alone is clean.**
-  A two-year-old doc that still matches the code is a Keep; age only prompts a closer look.
-- **Unverifiable is not false.**
-  A claim the repo cannot corroborate — a schema fact, an operational practice, an environment behavior — is not thereby wrong; repos rarely witness their own operations.
-  Never delete content, or strip it during a merge, solely because no in-repo artifact confirms it.
-  Act only on contradiction, where the code demonstrably does otherwise; an unverifiable-but-plausible claim is a Keep with the verification gap noted in the report.
 - **A met retirement condition is contradicting evidence, not age.**
   Where a doc declares `retire_when`, check the condition through the source it names; the result and the date checked land in the report, never in the doc.
   A met condition reaches the gate as a contradiction, and while the code still carries the workaround the verdict is Update: the doc rewritten to say its premise is gone.
   An unmet condition decides nothing on its own; one whose source cannot be reached is recorded as unchecked, a Keep with the gap noted.
 - **Redundant needs a quoted artifact.**
-  A doc is fully redundant only when a named in-repo artifact states its reasoning in its own text — a test, a code comment, `AGENTS.md`, a sibling doc — and the verdict quotes it; topical overlap is not coverage.
+  A doc is fully redundant only when a named in-repo artifact states its reasoning in its own text — a test, a lint rule, a code comment, `AGENTS.md`, a sibling doc — and the verdict quotes it; topical overlap is not coverage.
   Reasoning only partly recoverable → Update instead: cut what the artifact states, point at it in one line, and keep the measured facts, cross-file invariants, and rejected alternatives nothing else records.
 - **Shared code is not shared problem.**
   Two accurate docs on different sub-problems stay separate even when they cite the same file.
@@ -58,15 +58,13 @@ Judgment rules:
 - **Before a Delete, check the problem domain and the inbound links.**
   Implementation gone but the domain still alive (the app still handles what the doc addresses) → Update to the current truth instead.
   Other markdown citing the doc substantively (relying on it for content not stated inline) → Update instead; decorative "see also" citations are cleaned up alongside the delete.
-- **Skip cosmetic churn.**
-  Typos and wording polish are edits without evidence value.
 
 ## Audit AGENTS.md
 
 Read the project's `AGENTS.md` (or the substantive file when one of `AGENTS.md`/`CLAUDE.md` merely includes the other) through three lenses:
 
 - **Bloat** — lines that stopped earning their always-loaded cost: no-ops the model does by default, sediment from finished migrations, duplication of what rules files or skills already say.
-  An outgrown glossary section is bloat with a home — propose graduating it to `CONCEPTS.md`, per `/compound`'s convention.
+  An outgrown glossary section is bloat with a home — propose graduating it to `CONCEPTS.md`, per capture's routing.
 - **Contradictions** — entries that conflict with each other, with rules files, or with what the code actually does.
 - **Staleness** — references to renamed, moved, or deleted files, tools, or workflows.
 

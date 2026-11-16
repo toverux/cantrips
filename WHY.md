@@ -77,8 +77,8 @@ Learnings route to the cheapest store that serves them: the project's `AGENTS.md
 a problem-shaped solution doc, a rules file, a skill, or your own global memory file. The knowledge
 stores are opt-in, and skills skip reads and writes against a store that is off.
 
-`/compound-refresh` garbage-collects, because memory that is never pruned eventually lies. Its prime
-directive is *match docs to reality, never the reverse*.
+A refresh (`/compound refresh`) garbage-collects, because memory that is never pruned eventually
+lies. Its prime directive is *match docs to reality*.
 
 ### A spec is a point-in-time record
 

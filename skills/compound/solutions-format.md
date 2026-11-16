@@ -1,7 +1,7 @@
 # The docs/solutions/ format
 
 One small markdown file per solved problem, under `docs/solutions/` at the project root.
-This file is the single source of truth for the format; `/compound` writes against it and `/compound-refresh` audits against it.
+This file is the single source of truth for the format; `/compound` writes against it, and its refresh audits against it.
 
 ## Naming
 

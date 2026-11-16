@@ -141,7 +141,7 @@ authoritative source. 🧑 you type it; 🤖 the agent loads it on its own when 
 | [`/simplify`](#simplify)               | 🧑         | Optional preserving quality pass before review.                              |
 | [`/review-gate`](#review-gate)         | 🧑         | The gate: effort-scaled finder angles, every finding independently verified. |
 | [`/commit`](#commit)                   | 🧑         | Scan the session for learnings, then craft the commit(s).                    |
-| [`/compound`](#compound)               | 🧑🤖       | Route each learning to the right store, gated on you or your deputy.         |
+| [`/compound`](#compound)               | 🧑🤖       | Route learnings to the right store; refresh the stores when asked.           |
 | [`/diagnosing-bugs`](#diagnosing-bugs) | 🧑🤖       | The bug entry point: diagnosis loop replacing grill/spec.                    |
 | [`/deputy`](#deputy)                   | 🧑         | Answer in your place for the rest of the session: the loop, unattended.      |
 
@@ -151,7 +151,6 @@ authoritative source. 🧑 you type it; 🤖 the agent loads it on its own when 
 | ------------------------------------------------------------------ | ---------- | -------------------------------------------------------------------------- |
 | [`/setup-cantrips-loop`](#setup-cantrips-loop)                     | 🧑         | Configure a repo's storage backend and opt-in knowledge stores.            |
 | [`/setup-git-guardrails`](#setup-git-guardrails)                   | 🧑         | Install a hook that blocks dangerous git commands before they run.         |
-| [`/compound-refresh`](#compound-refresh)                           | 🧑         | Garbage-collect `AGENTS.md`, and `docs/solutions/` where enabled.          |
 | [`/handoff`](#handoff)                                             | 🧑         | Compact the session into a handoff for a fresh context.                    |
 | [`/wait-what`](#wait-what)                                         | 🧑         | Interrupt: re-pitch a message that did not land.                           |
 | [`/afk`](#afk)                                                     | 🧑         | Keep the session's prompt cache warm across a break.                       |
@@ -285,6 +284,12 @@ dies there. Survivors go to the cheapest store that serves them: the project's `
 file. It fires from `/commit`'s opening scan, from `/diagnosing-bugs`' close, or when you ask to
 capture or remember something.
 
+It garbage-collects the stores too, but only when you ask for a refresh (`/compound refresh`). A
+refresh audits `AGENTS.md` for bloat, contradictions and staleness, and every `docs/solutions/` doc
+against the current code where that store is enabled. Each doc gets a verdict (keep, update,
+consolidate, or delete) under the prime directive _match docs to reality_, and every change is gated
+on you or your deputy.
+
 ### `/diagnosing-bugs`
 
 **The bug entry point: a feedback-loop-first diagnosis discipline that replaces grill/spec.** A
@@ -317,13 +322,6 @@ doc.
 Claude Code, Codex CLI, or both, for this project or every project, that denies what matches a
 short list of destructive-git patterns: extended regexes shipped narrow and yours to widen at
 install time. On Codex the hook stays inert until you trust it under `/hooks`.
-
-### `/compound-refresh`
-
-**Garbage collection for the knowledge stores.** Audits `AGENTS.md` for bloat, contradictions and
-staleness, and every `docs/solutions/` doc against the current code where that store is enabled.
-Each doc gets a verdict (keep, update, consolidate, or delete) under the prime directive _match
-docs to reality, never the reverse_, and every change is gated on you or your deputy.
 
 ### `/handoff`
 

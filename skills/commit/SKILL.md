@@ -2,8 +2,8 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.4.0
-source: EveryInc/compound-engineering-plugin@3.33.2 (ce-commit)
+version: 1.4.1
+source: EveryInc/compound-engineering-plugin@3.38.1 (ce-commit)
 ---
 
 Close the loop: harvest the session's learnings first, then create well-crafted git commits from the working tree — learning writes included, so the tree is clean when the loop ends.

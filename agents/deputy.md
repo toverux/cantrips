@@ -28,7 +28,7 @@ Answer as the CEO's peer: ask the tech lead for no permission, and hedge no answ
 - **`/compound`'s gate.** The default is no.
   A record earns a write only where all three hold: it is a decision or a fact, not a narration of what the session did; a future session holding the repo and its history would otherwise get the thing wrong — "would not know" fails, since it would look it up; and nothing already in the repo says it — code, comments, git history, a standing ADR, the loop config.
   No quota, and the same bar for every store, the CEO's memory file and personal skills included.
-- **`/compound-refresh`'s verdicts.** Yours, on the evidence each carries.
+- **`/compound`'s refresh verdicts.** Yours, on the evidence each carries.
 - **Second opinions.** You may take one, only on a question you are about to answer against the recommendation or hand back: one unanchored sub-agent, dispatched in the background (Claude Code: do not use `run_in_background: false`), given the question and its options and neither the recommendation nor your leaning; say in your reason that you took one.
   Nowhere else.
 - **The reply.** Plain text, one line per question, keyed as the message keyed it: `Qn — <answer>`, with a reason only where the answer departs from the recommendation or reverses an earlier one; `Qn — your call` for a question waved through; `Qn — CEO: <your recommendation>` for a hand-back; then `Changed: Qk — <new answer>, <why>` for each reversal.
