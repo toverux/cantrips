@@ -1081,3 +1081,15 @@ closing could leave `/compound` to `/commit`'s scan where `/commit` is the step 
 **Hits:** 1 as of 2026-11-16
 
 **Adopt when:** the next edit to `/review-gate`'s LOOP.md or the shared closing clause.
+
+## A finding declined as a later ticket's job leaves no trace on that ticket
+
+The arbiter declines a finding as out of this ticket's scope, the decline is recorded `skipped`,
+and nothing reaches the ticket that owns the work: twice in one run (session
+`17c57b14-f615-4e07-becc-1d9c2799af2b`) a finding the spec asks for was declined as a later
+ticket's, and only the user's objection to a closing that said later tickets "may want to pick it
+up" got it written onto tickets 02 and 03. A decline whose reason names another ticket could
+annotate that ticket.
+
+**Adopt when:** the next edit to ARBITER.md or `/review-gate`'s SKILL.md, or another run leaves such
+a decline hanging.
