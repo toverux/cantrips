@@ -63,6 +63,16 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: mise x communique@1.8.0 -- communique generate "$TAG" --github-release
 
+      # A model that answers in text instead of calling communique's submit tool leaves its JSON
+      # as the release body, its first line as the title; put both fields where they belong.
+      - name: Unpack notes the model returned as JSON text
+        if: steps.communique.outcome == 'success'
+        run: |
+          body=$(gh release view "$TAG" --json body --jq .body)
+          if title=$(jq -er .release_title <<<"$body" 2>/dev/null); then
+            gh release edit "$TAG" --title "$TAG: $title" --notes "$(jq -r .release_body <<<"$body")"
+          fi
+
       - name: Warn when the notes were not rewritten
         if: always()
         env:
