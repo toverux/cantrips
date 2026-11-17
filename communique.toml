@@ -1,0 +1,41 @@
+# communique writes the GitHub release notes and title once release-please has created the
+# release (see .github/workflows/release-please.yml). Rewrite a release's notes by hand with
+# `communique generate <tag> --github-release`.
+
+context = """
+cantrips is a plugin of agent skills for Claude Code and Codex CLI: one engineering loop
+(/grilling, /spec, /tickets, /implement with /tdd, /simplify, /review-gate, /commit, /compound)
+plus supporting skills, and a loop panel mod for Claude Code.
+Its readers are developers who run that loop in their own projects. They want to know which
+skills behave differently after the upgrade and what they have to do about it.
+Many skills are forks of mattpocock/skills and EveryInc/compound-engineering-plugin; FORKS.md
+records how each one differs from its upstream.
+"""
+
+system_extra = """
+Write for the plugin's users, not as a commit log: say what changed in the way they use it.
+Describe a small release briefly and plainly; a release with one fix needs a sentence or two.
+Leave out CI, dependency, docs and internal changes that users don't notice.
+Leave out how the repository tracks its forks (FORKS.md, deferred findings); keep only what a
+skill now does differently.
+Use plain words and state facts. No selling, no superlatives, no hype: never "major",
+"enhanced", "powerful", "seamless", "more effective".
+Keep the title short: name the one or two changes that matter most, not every change.
+Credit no authors and cite no commit hashes; the project has one maintainer.
+
+Keep the research cheap; every tool call resends the whole conversation and costs money.
+- You already have the commit list. Start from it and the release pull request's description.
+- Call git_show only on a commit whose message doesn't say what changed for users, and at most
+  once per commit.
+- Never call git_show on a commit that syncs the forks with an upstream release: summarize it
+  from its commit message alone.
+- Never call read_file, list_files, grep or get_commits.
+- Make at most 6 tool calls in total, then call submit_release_notes. Notes that miss a detail
+  are fine; more research is not.
+"""
+
+[defaults]
+# gpt-4.1 shuts down on 2027-01-14; move to gpt-6.1-terra once jdx/communique#457 is fixed.
+model = "gpt-4.1"
+emoji = false
+match_style = false

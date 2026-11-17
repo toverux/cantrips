@@ -1,5 +1,6 @@
 # Maintains a rolling release PR that bumps versions and changelogs from Conventional Commits.
-# Merging that PR tags and creates the GitHub Releases.
+# Merging that PR tags and creates the GitHub Release as a draft; the notes job then rewrites its
+# body with communique and publishes it, falling back to release-please's notes on any failure.
 
 name: release-please
 
@@ -7,15 +8,73 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: write
-  pull-requests: write
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+permissions: {}
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: googleapis/release-please-action@v5
+        id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  notes:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: jdx/mise-action@v5
+        with:
+          install: false
+
+      - name: Save release-please's body
+        run: gh release view "$TAG" --json body --jq .body > "$RUNNER_TEMP/body-before"
+
+      - name: Write release notes
+        id: communique
+        continue-on-error: true
+        timeout-minutes: 15
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: mise x communique@1.8.0 -- communique generate "$TAG" --github-release
+
+      - name: Warn when the notes were not rewritten
+        if: always()
+        env:
+          OUTCOME: ${{ steps.communique.outcome }}
+        run: |
+          if [ "$OUTCOME" != success ]; then
+            echo "::warning::communique failed ($OUTCOME); $TAG keeps release-please's notes."
+          elif gh release view "$TAG" --json body --jq .body |
+            cmp -s - "$RUNNER_TEMP/body-before"; then
+            echo "::warning::communique left $TAG unchanged; it keeps release-please's notes."
+          fi
+
+      - name: Publish the draft
+        if: always()
+        run: gh release edit "$TAG" --draft=false
