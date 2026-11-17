@@ -1,5 +1,34 @@
 # Changelog
 
+## [5.0.0](https://github.com/toverux/cantrips/compare/v4.0.0...v5.0.0) (2026-11-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* **compound:** /compound-refresh is removed; run /compound refresh instead.
+
+### Features
+
+* **compound:** fold /compound-refresh into /compound's refresh job and sync to CE v3.38.1 ([1419632](https://github.com/toverux/cantrips/commit/1419632be5dd268eee17da1c95ca5c47d3a956ff))
+* **roadmap:** close a mirrored feature's GitHub issues when it ends, from the commit or on cleanup ([847fba1](https://github.com/toverux/cantrips/commit/847fba17ce952a419da2e8d362cd0615cd77095f))
+* **roadmap:** close delivered roadmap items from the commit, and mark a spec's items in flight ([d188758](https://github.com/toverux/cantrips/commit/d188758d3dcf8651f30403b251112d80cbabde1f))
+* **roadmap:** drain the roadmap inbox at /compound or a bare /roadmap, recording hits without asking ([11f727a](https://github.com/toverux/cantrips/commit/11f727a322a7fa9610a2bc023dfe97b4265aca95))
+* **roadmap:** file an idea on the roadmap at once with `/roadmap <an idea>` ([c07f533](https://github.com/toverux/cantrips/commit/c07f53375405021617d8f8c539a56a1a667bf127))
+* **roadmap:** keep a mirrored feature's GitHub issues in step with its folder as the work goes on ([eb17839](https://github.com/toverux/cantrips/commit/eb17839bd32c8e5941c95757ad442382c7d85b35))
+* **roadmap:** let a repo declare its roadmap and list it from GitHub issues in one call ([ba88023](https://github.com/toverux/cantrips/commit/ba880239f2d16502debd44b5ae8cb60673c90712))
+* **roadmap:** mirror a feature folder to GitHub issues so its spec and tickets outlive it ([36336f0](https://github.com/toverux/cantrips/commit/36336f034fdc860808de34884747851dd7c1ebb4))
+* **roadmap:** park a roadmap candidate met mid-task so a summary or an early end cannot lose it ([7c14465](https://github.com/toverux/cantrips/commit/7c14465a1af468e1b9cb742f17360480293ccd65))
+* **setup-cantrips-loop:** offer the GitHub mirror at setup, with a look at what goes public first ([1cc63b3](https://github.com/toverux/cantrips/commit/1cc63b383456b5522cfe164c1f1db7125c84d8f9))
+* **storage:** keep a mirrored feature in step with GitHub on its own, in a skill of its own ([899282d](https://github.com/toverux/cantrips/commit/899282d3278be451cae97b8162a122c54c6fb131))
+
+
+### Bug Fixes
+
+* **mod:** let the plugin pass validation by declaring AgentStatus inside the panel's contract ([7553b4b](https://github.com/toverux/cantrips/commit/7553b4bd8d646691f2d2b1f883a184f2abf8e5ec))
+* **roadmap:** create labels on a tracker that has none ([da258ed](https://github.com/toverux/cantrips/commit/da258ed7207cba88b6979328c52e15e55b6056b2))
+* **roadmap:** stop close telling the agent to add a Closes keyword for the issue it closes itself ([ad8496f](https://github.com/toverux/cantrips/commit/ad8496fd01dffa7ce261eb1c31fcecc4bf8ddb77))
+* **storage:** drop the dash after a ticket's number from its mirrored issue title ([0a146db](https://github.com/toverux/cantrips/commit/0a146db5e2c8c1dd1f08d4041963811351fa3998))
+
 ## [4.0.0](https://github.com/toverux/cantrips/compare/v3.2.1...v4.0.0) (2026-10-30)
 
 
