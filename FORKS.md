@@ -300,7 +300,7 @@ Not ported. Upstream marks it in-progress; `/handoff` forks the finished variant
 
 ### domain-modeling
 
-Not ported. Deferred in IDEAS.md; the AGENTS.md glossary section and its CONCEPTS.md graduation path (via `/compound`) cover the need.
+Not ported. Deferred in [#37](https://github.com/toverux/cantrips/issues/37); the AGENTS.md glossary section and its CONCEPTS.md graduation path (via `/compound`) cover the need.
 
 ### grill-me
 
@@ -352,11 +352,11 @@ Not ported. Upstream marks it in-progress, and it wires one stack's lint tooling
 
 ### triage
 
-Not ported. Needs an issue tracker and an inbound issue flow; deferred in IDEAS.md.
+Not ported. Needs an issue tracker and an inbound issue flow; deferred in [#33](https://github.com/toverux/cantrips/issues/33).
 
 ### wayfinder
 
-Not ported. A local-files adaptation is sketched in IDEAS.md; adopt when a decision surface outgrows `/grilling` → `/spec`.
+Not ported. A local-files adaptation is sketched in [#32](https://github.com/toverux/cantrips/issues/32); adopt when a decision surface outgrows `/grilling` → `/spec`.
 
 ### wizard
 
@@ -484,7 +484,7 @@ Verified against `compound-engineering-v3.38.1`.
 
 ### ce-babysit-pr
 
-Not ported. GitHub PR shepherding; deferred in IDEAS.md until work routinely ships through reviewed PRs.
+Not ported. GitHub PR shepherding; deferred in [#34](https://github.com/toverux/cantrips/issues/34) until work routinely ships through reviewed PRs.
 
 ### ce-bakeoff
 
@@ -492,7 +492,7 @@ Not ported. Develops competing solutions to a brief inside CE's outer loop; `/gr
 
 ### ce-brainstorm
 
-Not ported. Part of CE's autonomous outer loop (IDEAS.md); `/grilling` covers exploratory framing with the user in the loop.
+Not ported. Part of CE's autonomous outer loop ([#35](https://github.com/toverux/cantrips/issues/35)); `/grilling` covers exploratory framing with the user in the loop.
 
 ### ce-code-review
 
@@ -544,7 +544,7 @@ Not ported.
 
 ### ce-plan
 
-Not ported. Part of CE's outer loop (IDEAS.md); `/spec` is this pipeline's plan artifact.
+Not ported. Part of CE's outer loop ([#35](https://github.com/toverux/cantrips/issues/35)); `/spec` is this pipeline's plan artifact.
 
 ### ce-polish
 
@@ -572,7 +572,7 @@ Not ported. `/prototype` (forked from Pocock) is this pipeline's prototyping ste
 
 ### ce-resolve-pr-feedback
 
-Not ported. GitHub PR lifecycle; deferred in IDEAS.md with ce-babysit-pr.
+Not ported. GitHub PR lifecycle; deferred in [#34](https://github.com/toverux/cantrips/issues/34) with ce-babysit-pr.
 
 ### ce-retro
 
@@ -612,7 +612,7 @@ Not ported. Platform-specific test harness outside the loop's scope.
 
 ### ce-work
 
-Not ported. Part of CE's outer loop (IDEAS.md); `/implement` executes with the user in the loop.
+Not ported. Part of CE's outer loop ([#35](https://github.com/toverux/cantrips/issues/35)); `/implement` executes with the user in the loop.
 
 ### ce-worktree
 
@@ -620,7 +620,7 @@ Not ported. Harness workflow tooling outside the loop's scope.
 
 ### lfg
 
-Not ported. CE's hands-off ship-to-PR wrapper; deferred in IDEAS.md as a possible autonomous tier.
+Not ported. CE's hands-off ship-to-PR wrapper; deferred in [#35](https://github.com/toverux/cantrips/issues/35) as a possible autonomous tier.
 
 ### wtf
 

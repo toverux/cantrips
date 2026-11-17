@@ -180,8 +180,9 @@ one drifts. [AGENTS.md](AGENTS.md) lists them.
   is a design choice, not a missing feature. If you want an autonomous outer loop, CE's is the
   better fit.
 - **Not a superset of its upstreams.** Roughly half of each upstream is deliberately not ported.
-  [FORKS.md](FORKS.md) says which and why; [IDEAS.md](IDEAS.md) holds what was deferred rather than
-  rejected.
+  [FORKS.md](FORKS.md) says which and why; the
+  [roadmap](https://github.com/toverux/cantrips/issues?q=label%3Aroadmap) holds what was deferred
+  rather than rejected.
 - **Not team-scale tooling.** It targets a solo workflow. PR shepherding, issue triage and inbound
   flows are deferred, not built.
 - **Not battle-tested by many people yet.** It is dogfooded daily on this repository and a handful of
@@ -209,6 +210,6 @@ implement → `/review-gate` → `/commit`. Skip what does not earn its place.
 
 - [README.md](README.md) — what each skill does, and how to install.
 - [FORKS.md](FORKS.md) — every divergence from upstream, with its reason.
-- [IDEAS.md](IDEAS.md) — what was considered and deliberately deferred.
+- [The roadmap](https://github.com/toverux/cantrips/issues?q=label%3Aroadmap) — what was considered and deliberately deferred.
 - [AGENTS.md](AGENTS.md) — the authoring standard and the invariants held by hand.
 - `skills/<name>/SKILL.md` — the authoritative source for any skill. They are meant to be read.

@@ -3,7 +3,7 @@
 ## Project overview
 
 `cantrips` is a multi-harness (Claude Code + Codex) plugin of curated agent skills: the core engineering loop (/grilling → /spec → /tickets → /implement + /tdd → /simplify → /review-gate → /commit → /compound) plus its supporting skills.
-A feature's spec and tickets are disposable working material under a gitignored `.scratch/`, deleted once the feature closes ([docs/agents/cantrips-loop.md](docs/agents/cantrips-loop.md)); what survives is the skills, git history, the decision records in `docs/adr/`, and the deferred ideas in [IDEAS.md](IDEAS.md).
+A feature's spec and tickets are disposable working material under a gitignored `.scratch/`, deleted once the feature closes ([docs/agents/cantrips-loop.md](docs/agents/cantrips-loop.md)); what survives is the skills, git history, the decision records in `docs/adr/`, and the deferred ideas on the roadmap, kept in GitHub issues through `/roadmap`.
 
 The plugin also ships a Claude Code mod, the loop panel under `mod/`: a pane beside the chat that shows the loop's stage, the feature's spec and ticket board, and a band chip that opens it.
 The repository **is** the plugin: the manifests, the skills tree, the mod, and the catalog files that publish it all sit at the root, and an install copies the whole checkout.
@@ -80,7 +80,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
    In docs and prose, skill names always carry the `/` prefix, whatever the invocation mode.
 8. Markdown intended for agents (SKILL.md files and their references, AGENTS.md, specs) goes one sentence per line, and is exempt from the 100-column guide.
    Text carried from an upstream is the exception rule 2 already covers: its line breaks stay upstream's, however long its lines run, since reflowing re-creates the whole paragraph as a diff at every sync.
-   Human-facing docs (README.md, WHY.md, NOTICE.md, IDEAS.md) wrap at ~100 columns instead.
+   Human-facing docs (README.md, WHY.md, NOTICE.md) wrap at ~100 columns instead.
 9. A gate branches on what the agent can observe in what it holds, never on how that material was produced.
    "Working from a spec that folded in the standing decisions" is observable; "arriving from `/implement`" and "working from a spec" are provenance, and an agent that got there another way matches neither branch and invents the behavior.
    Where a gate has a second branch, both branch on the one test, so the pair partitions every route into the skill.
@@ -145,6 +145,6 @@ Ask first before:
 ## Preferred agent behavior
 
 - Start by inspecting existing patterns: read a neighboring skill before writing a new one.
-- Before editing a file, check IDEAS.md's `Adopt when` triggers for one naming it, and propose each entry that fires as a related change, for the user to include or leave.
+- Before editing a file, search the roadmap for its name through `/roadmap`, and propose each item whose `Adopt when` fires as a related change, for the user to include or leave.
 - CLAUDE.md here is a committed relative symlink to AGENTS.md; edit AGENTS.md, never the symlink.
 - Propose updates to this file when you notice a pattern or introduce changes that deserve to be documented for future sessions.

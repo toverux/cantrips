@@ -490,8 +490,9 @@ manifests, a few scripts, and the loop panel's TypeScript, which Claude Code loa
 session that shows the panel while you edit it, and `mise run dev:mod-shot <out.png>` renders that
 pane to an image, which is how the capture above was taken. [AGENTS.md](AGENTS.md) holds the
 layout, the authoring standard and the release process, [mod/CLAUDE.md](mod/CLAUDE.md) the panel's,
-and [IDEAS.md](IDEAS.md) the deferred ideas; cantrips runs its own loop on itself, and
-[docs/agents/cantrips-loop.md](docs/agents/cantrips-loop.md) is the config that says how.
+and the [roadmap](https://github.com/toverux/cantrips/issues?q=label%3Aroadmap) the deferred ideas;
+cantrips runs its own loop on itself, and [docs/agents/cantrips-loop.md](docs/agents/cantrips-loop.md)
+is the config that says how.
 
 ### Trying your changes locally
 
