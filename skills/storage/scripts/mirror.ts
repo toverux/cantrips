@@ -83,7 +83,7 @@ function specHeading(folder: string, spec: string): string {
 // A ticket's issue title: the feature, then the file's number and the title line without that number, or the file's slug.
 function ticketHeading(folder: string, name: string, text: string): string {
   const [, number, slug] = /^(\d+)-(.+)\.md$/.exec(name)!;
-  const title = titleOf(text)?.replace(new RegExp(`^0*${Number(number)}:?\\s+`), '');
+  const title = titleOf(text)?.replace(new RegExp(`^0*${Number(number)}(?:\\s*[:–—-])?\\s+`), '');
   return `${featureOf(folder)} ticket ${number}: ${title || slug}`;
 }
 

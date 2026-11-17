@@ -82,6 +82,22 @@ test('a ticket is titled with its file\'s number and its title line\'s name, or 
   ]);
 });
 
+test('a ticket\'s number leaves its title line with the dash after it', () => {
+  const { sync } = mirrorable({
+    'spec.md': SPEC,
+    '01-hyphen.md': '# 01 - Named with a hyphen\n',
+    '02-en.md': '# 02 – Named with an en dash\n',
+    '03-em.md': '# 03 — Named with an em dash\n',
+  });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(creates(out.calls).slice(1).map((c) => flagValues(c, '--title')[0]), [
+    '[first-sync] ticket 01: Named with a hyphen',
+    '[first-sync] ticket 02: Named with an en dash',
+    '[first-sync] ticket 03: Named with an em dash',
+  ]);
+});
+
 test('a second sync with nothing changed makes no gh call and leaves the numbers file untouched', () => {
   const { sync, folder } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1 });
   assert.equal(sync('--tracker', 'acme/widgets').status, 0);
