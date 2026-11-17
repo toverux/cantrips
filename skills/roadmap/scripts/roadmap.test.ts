@@ -1,147 +1,15 @@
-// CLI tests for roadmap.ts, through the command line the agent calls. Run: mise run test.
-// Each test runs the script in a fresh folder with a stand-in `gh` first on PATH: it records every call it
-// receives and replays the answers the test gives it, applying `--limit` the way the real one does.
+// CLI tests for roadmap.ts, through the command line the agent calls, in the sandbox of storage's sandbox.ts.
+// Run: mise run test.
 
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
-import * as os from 'node:os';
 import * as path from 'node:path';
-import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { flagValues, gitInit, GITHUB, issue, loopConfig, oneLine, sandboxFor, SESSION } from '../../storage/scripts/sandbox.ts';
 
-const SCRIPT = fileURLToPath(new URL('./roadmap.ts', import.meta.url));
-
-// The stand-in: answers `issue list` and `label list` from the canned state, applies `--state` (default open),
-// `--search` (every word in the title) and `--limit` (default 30), answers `issue view` with the item's canned
-// comments and state, records `issue create` (numbering the issues it creates from 101), `issue comment` (numbering its comments from 901), `issue edit`, `issue close`, `issue reopen`, `api` and `label create`, and fails every call with the canned error
-// where one is set, or the calls holding the canned `failOn` text.
-const FAKE_GH = `
-const fs = require('node:fs');
-const args = process.argv.slice(2);
-fs.appendFileSync(process.env.FAKE_GH_LOG, JSON.stringify(args) + '\\n');
-const state = JSON.parse(fs.readFileSync(process.env.FAKE_GH_STATE, 'utf8'));
-if (state.fail || (state.failOn && args.join(' ').includes(state.failOn))) {
-  process.stderr.write((state.fail || 'HTTP 502: Bad Gateway') + '\\n');
-  process.exit(1);
-}
-const flag = (name) => {
-  const i = args.indexOf(name);
-  return i === -1 ? undefined : args[i + 1];
-};
-const limit = Number(flag('--limit') ?? 30);
-const [group, verb] = args;
-if (group === 'issue' && verb === 'list') {
-  const fields = flag('--json').split(',');
-  const wanted = flag('--state') ?? 'open';
-  const words = (flag('--search') ?? '').toLowerCase().split(' ').filter(Boolean);
-  const rows = state.issues
-    .map((issue) => ({ state: 'OPEN', stateReason: '', ...issue }))
-    .filter((issue) => wanted === 'all' || issue.state === wanted.toUpperCase())
-    .filter((issue) => words.every((w) => issue.title.toLowerCase().includes(w)))
-    .slice(0, limit).map((issue) => Object.fromEntries(fields.map((f) => [f, issue[f]])));
-  process.stdout.write(JSON.stringify(rows));
-} else if (group === 'label' && verb === 'list') {
-  // The real gh prints nothing, not [], for a tracker with no label.
-  if (state.labels.length > 0) process.stdout.write(JSON.stringify(state.labels.slice(0, limit).map((name) => ({ name }))));
-} else if (group === 'issue' && verb === 'create') {
-  const created = fs.readFileSync(process.env.FAKE_GH_LOG, 'utf8').split('\\n').filter((l) => l.startsWith('["issue","create"')).length;
-  process.stdout.write('https://github.com/' + flag('--repo') + '/issues/' + (100 + created) + '\\n');
-} else if (group === 'issue' && verb === 'view') {
-  const issue = state.issues.find((i) => String(i.number) === args[2]);
-  process.stdout.write(JSON.stringify({ state: issue?.state ?? 'OPEN', comments: (state.comments[args[2]] ?? []).map((body) => ({ body })) }));
-} else if (group === 'issue' && verb === 'comment') {
-  const posted = fs.readFileSync(process.env.FAKE_GH_LOG, 'utf8').split('\\n').filter((l) => l.startsWith('["issue","comment"')).length;
-  process.stdout.write('https://github.com/' + flag('--repo') + '/issues/' + args[2] + '#issuecomment-' + (900 + posted) + '\\n');
-} else if (!(group === 'label' && verb === 'create') && !(group === 'issue' && ['edit', 'close', 'reopen'].includes(verb)) && group !== 'api') {
-  process.stderr.write('unexpected call\\n');
-  process.exit(2);
-}
-`;
-
-interface Run {
-  status: number | null;
-  stdout: string;
-  stderr: string;
-  calls: string[][];
-}
-
-const SESSION = '0f3c2a9e-1b2d-4c5e-8f9a-0b1c2d3e4f5a';
-
-type State = { issues?: unknown[]; labels?: string[]; comments?: Record<string, string[]>; fail?: string; failOn?: string };
-
-function sandbox(config: string | null, state: State = {}) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'roadmap-test-'));
-  const bin = path.join(tmp, 'bin');
-  const repo = path.join(tmp, 'repo');
-  fs.mkdirSync(bin);
-  fs.mkdirSync(repo);
-  fs.writeFileSync(path.join(bin, 'gh'), `#!${process.execPath}\n${FAKE_GH}`, { mode: 0o755 });
-  const log = path.join(tmp, 'calls.jsonl');
-  fs.writeFileSync(log, '');
-  const stateFile = path.join(tmp, 'state.json');
-  const setState = (next: State) => fs.writeFileSync(stateFile, JSON.stringify({ issues: [], labels: [], comments: {}, ...next }));
-  setState(state);
-  if (config !== null) {
-    fs.mkdirSync(path.join(repo, 'docs/agents'), { recursive: true });
-    fs.writeFileSync(path.join(repo, 'docs/agents/cantrips-loop.md'), config);
-  }
-  const env = (session: string) => ({
-    ...process.env,
-    PATH: `${bin}${path.delimiter}${process.env.PATH}`,
-    FAKE_GH_LOG: log,
-    FAKE_GH_STATE: stateFile,
-    GIT_CEILING_DIRECTORIES: tmp,
-    GIT_CONFIG_GLOBAL: '/dev/null',
-    XDG_CONFIG_HOME: tmp,
-    CLAUDE_CODE_SESSION_ID: session,
-  });
-  const calls = () => fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line));
-  const run = (...args: string[]): Run => runWith('', ...args);
-  const runWith = (input: string, ...args: string[]): Run => {
-    const result = spawnSync(process.execPath, [SCRIPT, ...args], { cwd: repo, input, env: env(SESSION), encoding: 'utf8' });
-    return { status: result.status, stdout: result.stdout, stderr: result.stderr, calls: calls() };
-  };
-  // Started without waiting, so two drains run at once.
-  const start = (session: string, ...args: string[]): Promise<Run> =>
-    new Promise((resolve) => {
-      const child = spawn(process.execPath, [SCRIPT, ...args], { cwd: repo, env: env(session) });
-      let stdout = '';
-      let stderr = '';
-      child.stdout.on('data', (chunk) => (stdout += chunk));
-      child.stderr.on('data', (chunk) => (stderr += chunk));
-      child.on('close', (status) => resolve({ status, stdout, stderr, calls: calls() }));
-    });
-  return { run, runWith, start, repo, setState, calls };
-}
-
-function loopConfig(roadmap: string) {
-  return `# The cantrips loop in this repo\n\n## Storage backend\n\nLocal markdown.\n\n${roadmap}\n## Knowledge stores\n\n- \`docs/adr/\` — **disabled**.\n`;
-}
-
-const GITHUB = loopConfig(`## Roadmap
-
-Read and write this repo's roadmap through \`/roadmap\`.
-
-- Backend: GitHub issues
-- Tracker: \`acme/widgets\`
-- Labels: \`area: mod\`, \`area: skills\`
-- Note: the development backlog, not the public roadmap.
-`);
-
-function issue(number: number, title: string, ...labels: string[]) {
-  return { number, title, labels: ['roadmap', ...labels].map((name) => ({ name })) };
-}
-
-function flagValues(call: string[], name: string) {
-  return call.flatMap((arg, i) => (arg === name ? [call[i + 1]] : []));
-}
-
-function oneLine(text: string) {
-  assert.ok(text.trim(), 'expected one line, got nothing');
-  assert.equal(text.trimEnd().split('\n').length, 1, `expected one line, got:\n${text}`);
-}
+const sandbox = sandboxFor(fileURLToPath(new URL('./roadmap.ts', import.meta.url)));
 
 test('--help lists the commands', () => {
   const { run } = sandbox(null);
@@ -152,6 +20,7 @@ test('--help lists the commands', () => {
   assert.match(out.stdout, /\bsearch\b/);
   assert.match(out.stdout, /\badd\b/);
   for (const command of ['park', 'claim', 'hit', 'drop']) assert.match(out.stdout, new RegExp(`\\b${command}\\b`));
+  assert.doesNotMatch(out.stdout, /\bsync\b|--tracker/);
   assert.deepEqual(out.calls, []);
 });
 
@@ -279,18 +148,18 @@ test('add lets a session identifier, a commit hash and git remote addresses thro
   assert.equal(out.calls.length, 1);
 });
 
-for (const [name, config] of [
-  ['no loop config', null],
-  ['no roadmap section', loopConfig('')],
-  ['the local-file backend', loopConfig('## Roadmap\n\nRead and write this repo\'s roadmap through `/roadmap`.\n\n- Backend: local file\n')],
+for (const [name, config, said] of [
+  ['no loop config', null, /keeps no roadmap: write to \.scratch\/ROADMAP\.md only on the user's own request/],
+  ['no roadmap section', loopConfig(''), /keeps no roadmap: write to \.scratch\/ROADMAP\.md only on the user's own request/],
+  ['the local-file backend', loopConfig('## Roadmap\n\nRead and write this repo\'s roadmap through `/roadmap`.\n\n- Backend: local file\n'), /roadmap is the local file \.scratch\/ROADMAP\.md/],
 ] as const) {
   test(`tracker commands refuse in one line on ${name}`, () => {
     const { run } = sandbox(config);
-    for (const command of ['list', 'labels', 'search', 'add', 'park', 'claim', 'hit', 'drop']) {
+    for (const command of ['list', 'labels', 'search', 'add', 'park', 'claim', 'hit', 'drop', 'in-flight', 'close']) {
       const out = run(command);
       assert.notEqual(out.status, 0);
       oneLine(out.stderr);
-      assert.match(out.stderr, /\.scratch\/ROADMAP\.md/);
+      assert.match(out.stderr, said);
       assert.deepEqual(out.calls, []);
     }
   });
@@ -336,11 +205,6 @@ test('an unknown command faults in one line', () => {
   assert.match(out.stderr, /--help/);
 });
 
-// A git repo at the sandbox's folder, ignoring what the given .gitignore says.
-function gitInit(repo: string, gitignore: string) {
-  assert.equal(spawnSync('git', ['init', '-q', repo]).status, 0);
-  fs.writeFileSync(path.join(repo, '.gitignore'), gitignore);
-}
 
 // The panel's own reading of a feature file, from mod/core/feature.ts.
 const FEATURE_FILE = (name: string) => name === 'spec.md' || /^(\d{2,})-.+\.md$/.test(name);
@@ -393,7 +257,7 @@ const CLAIMED = `${INBOX}/claimed`;
 function drainable(state: Parameters<typeof sandbox>[1] = {}, { candidates = ['panel shows the inbox'], mark = true } = {}) {
   const box = sandbox(GITHUB, state);
   gitInit(box.repo, '.scratch/\n');
-  if (mark) assert.equal(spawnSync('git', ['-C', box.repo, 'config', 'cantrips.roadmapWrites', 'true']).status, 0);
+  if (mark) assert.equal(spawnSync('git', ['-C', box.repo, 'config', 'cantrips.trackerWrites', 'true']).status, 0);
   fs.mkdirSync(path.join(box.repo, INBOX), { recursive: true });
   for (const [i, title] of candidates.entries()) {
     fs.writeFileSync(path.join(box.repo, INBOX, `candidate-${i}.md`), `# ${title}\n\nWhat was met.\n\nLabels: none\nSession: earlier\n`);
@@ -589,6 +453,7 @@ test('close clears the mark from the feature\'s open items and leaves closed one
   oneLine(out.stdout);
   const edits = out.calls.filter((c) => c[1] === 'edit');
   assert.deepEqual(edits.map((c) => [c[2], c[c.indexOf('--remove-label') + 1]]), [['7', 'in flight']]);
+  assert.equal(out.stdout, 'in-flight mark cleared: #7, left open for a commit\'s Fixes line to close\n');
 });
 
 test('without the clone\'s mark, in-flight and close make no tracker call and say so in one line', () => {
@@ -596,7 +461,7 @@ test('without the clone\'s mark, in-flight and close make no tracker call and sa
     const out = feature('#7', { mark: false }).run(command, '.scratch/feat');
     assert.equal(out.status, 0, out.stderr);
     oneLine(out.stdout);
-    assert.match(out.stdout, /cantrips\.roadmapWrites/);
+    assert.match(out.stdout, /cantrips\.trackerWrites/);
     assert.deepEqual(out.calls, []);
   }
 });
@@ -608,401 +473,3 @@ test('a spec listing no roadmap items makes no tracker call', () => {
   assert.deepEqual(out.calls, []);
 });
 
-// A feature folder in a marked clone, its files as given; the sync reads no loop config.
-function mirrorable(files: Record<string, string>, { mark = true, state = {} as Parameters<typeof sandbox>[1], config = null as string | null } = {}) {
-  const box = sandbox(config, state);
-  gitInit(box.repo, '.scratch/\n');
-  if (mark) assert.equal(spawnSync('git', ['-C', box.repo, 'config', 'cantrips.roadmapWrites', 'true']).status, 0);
-  const folder = path.join(box.repo, '.scratch/first-sync');
-  fs.mkdirSync(folder, { recursive: true });
-  const write = (name: string, text: string) => fs.writeFileSync(path.join(folder, name), text);
-  for (const [name, text] of Object.entries(files)) write(name, text);
-  const sync = (...args: string[]) => box.run('sync', '.scratch/first-sync', ...args);
-  return { ...box, folder, write, sync };
-}
-
-const SPEC = '# A first sync\n\n## Problem Statement\n\nWhy.\n\n## Comments\n\n- 2026-11-16: a note.\n';
-const TICKET_1 = '# 01: Publish the spec\n\n**Blocked by:** None.\n\n- [ ] It works.\n';
-const TICKET_2 = '# 02: Publish the tickets\n\n**Blocked by:** 01\n\n- [ ] It works.\n';
-
-function creates(calls: string[][]) {
-  return calls.filter((c) => c[0] === 'issue' && c[1] === 'create');
-}
-
-test('a first sync creates the spec\'s issue, then each ticket as its sub-issue in number order, with their labels', () => {
-  const { sync } = mirrorable({ '02-tickets.md': TICKET_2, 'spec.md': SPEC, '01-spec.md': TICKET_1 });
-  const out = sync('--tracker', 'acme/widgets');
-  assert.equal(out.status, 0, out.stderr);
-  const made = creates(out.calls);
-  assert.deepEqual(made.map((c) => [flagValues(c, '--repo')[0], flagValues(c, '--title')[0], flagValues(c, '--label'), flagValues(c, '--parent')]), [
-    ['acme/widgets', 'first-sync: A first sync', ['spec'], []],
-    ['acme/widgets', '01: Publish the spec', ['ticket'], ['101']],
-    ['acme/widgets', '02: Publish the tickets', ['ticket'], ['101']],
-  ]);
-  assert.equal(flagValues(made[0], '--body')[0], '# A first sync\n\n## Problem Statement\n\nWhy.\n\n');
-  assert.equal(flagValues(made[2], '--body')[0], TICKET_2);
-});
-
-test('a first sync with no tracker passed, the catch-all form, publishes nothing and says so in one line', () => {
-  const { sync, folder } = mirrorable({ 'spec.md': SPEC });
-  const out = sync();
-  assert.equal(out.status, 0, out.stderr);
-  oneLine(out.stdout);
-  assert.match(out.stdout, /not mirrored yet/);
-  assert.deepEqual(out.calls, []);
-  assert.ok(!fs.existsSync(path.join(folder, 'mirror.json')));
-});
-
-test('a spec with no title line is titled with the feature\'s name alone', () => {
-  const { sync } = mirrorable({ 'spec.md': '## Problem Statement\n\nWhy.\n' });
-  const out = sync('--tracker', 'acme/widgets');
-  assert.equal(out.status, 0, out.stderr);
-  assert.deepEqual(creates(out.calls).map((c) => flagValues(c, '--title')[0]), ['first-sync']);
-});
-
-test('a second sync with nothing changed makes no gh call and leaves the numbers file untouched', () => {
-  const { sync, folder } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1 });
-  assert.equal(sync('--tracker', 'acme/widgets').status, 0);
-  const numbers = path.join(folder, 'mirror.json');
-  const before = fs.statSync(numbers).mtimeMs;
-  const calls = sync('--tracker', 'acme/widgets').calls.length;
-  const out = sync();
-  assert.equal(out.status, 0, out.stderr);
-  oneLine(out.stdout);
-  assert.equal(out.calls.length, calls);
-  assert.equal(fs.statSync(numbers).mtimeMs, before);
-});
-
-test('a changed file rewrites its issue\'s body and an unchanged one is left alone', () => {
-  const { sync, write } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1 });
-  const first = sync('--tracker', 'acme/widgets').calls.length;
-  write('01-spec.md', TICKET_1.replace('[ ]', '[x]'));
-  const out = sync();
-  assert.equal(out.status, 0, out.stderr);
-  const later = out.calls.slice(first);
-  assert.deepEqual(later.map((c) => [c[1], c[2], flagValues(c, '--repo')[0], flagValues(c, '--body')[0]]), [
-    ['edit', '102', 'acme/widgets', TICKET_1.replace('[ ]', '[x]')],
-  ]);
-});
-
-test('a blocked-by line sets a relation for every other ticket number it names, and a line opening with none sets none', () => {
-  const { sync } = mirrorable({
-    'spec.md': SPEC,
-    '01-spec.md': TICKET_1.replace('None.', 'None within this feature; see 03'),
-    '02-tickets.md': TICKET_2.replace('01', '01 and 03'),
-    '03-last.md': '# 03: Last\n\n**Blocked by:** 02, and 03 itself\n',
-  });
-  const out = sync('--tracker', 'acme/widgets');
-  assert.equal(out.status, 0, out.stderr);
-  const relations = out.calls.filter((c) => c.includes('--add-blocked-by'));
-  assert.deepEqual(relations.map((c) => [c[2], flagValues(c, '--repo')[0], flagValues(c, '--add-blocked-by')[0]]), [
-    ['103', 'acme/widgets', '102,104'],
-    ['104', 'acme/widgets', '103'],
-  ]);
-  assert.equal(sync().calls.length, out.calls.length);
-});
-
-test('a file holding a secret or an email is skipped and reported in one line until its text changes', () => {
-  const leaky = TICKET_1.replace('It works.', 'Ask jane.doe@example.com.');
-  const { sync, write } = mirrorable({ 'spec.md': SPEC, '01-spec.md': leaky, '02-tickets.md': TICKET_2 });
-  const out = sync('--tracker', 'acme/widgets');
-  assert.equal(out.status, 0, out.stderr);
-  oneLine(out.stderr);
-  assert.match(out.stderr, /01-spec\.md.*an email address/);
-  assert.deepEqual(creates(out.calls).map((c) => flagValues(c, '--title')[0]), ['first-sync: A first sync', '02: Publish the tickets']);
-  assert.ok(!out.calls.some((c) => c.includes('--add-blocked-by')));
-
-  write('01-spec.md', TICKET_1);
-  const later = sync().calls.slice(out.calls.length);
-  assert.deepEqual(later.map((c) => [c[1], flagValues(c, '--title')[0] ?? c[2], flagValues(c, '--add-blocked-by')[0]]), [
-    ['create', '01: Publish the spec', undefined],
-    ['edit', '102', '103'],
-  ]);
-});
-
-test('a spec holding a secret is skipped, and its tickets wait for its issue', () => {
-  const { sync } = mirrorable({ 'spec.md': SPEC.replace('Why.', 'Why. token = abcd1234efgh'), '01-spec.md': TICKET_1 });
-  const out = sync('--tracker', 'acme/widgets');
-  assert.equal(out.status, 0, out.stderr);
-  oneLine(out.stderr);
-  assert.match(out.stderr, /spec\.md.*a secret assignment/);
-  assert.deepEqual(out.calls, []);
-});
-
-test('in a clone without the mark, sync makes no tracker call and says so in one line', () => {
-  const { sync, folder, write } = mirrorable({ 'spec.md': SPEC }, { mark: false });
-  const out = sync('--tracker', 'acme/widgets');
-  assert.equal(out.status, 0, out.stderr);
-  oneLine(out.stdout);
-  assert.match(out.stdout, /cantrips\.roadmapWrites/);
-  assert.deepEqual(out.calls, []);
-  assert.ok(!fs.existsSync(path.join(folder, 'mirror.json')));
-
-  write('01-spec.md', '# 01: Done\n\nStatus: resolved\n');
-  write('mirror.json', JSON.stringify({ tracker: 'acme/widgets', files: { 'spec.md': { issue: 101, pushed: '' } } }));
-  const mirrored = sync();
-  assert.match(mirrored.stdout, /cantrips\.roadmapWrites/);
-  assert.doesNotMatch(mirrored.stdout, /Closes/);
-});
-
-test('a sync failed after some creations ends in one line, and the next run completes it creating nothing twice', () => {
-  const { sync, setState, folder } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1, '02-tickets.md': TICKET_2 }, { state: { failOn: '02: Publish' } });
-  const out = sync('--tracker', 'acme/widgets');
-  assert.notEqual(out.status, 0);
-  oneLine(out.stderr);
-  assert.match(out.stderr, /HTTP 502/);
-  const numbers = JSON.parse(fs.readFileSync(path.join(folder, 'mirror.json'), 'utf8'));
-  assert.deepEqual(Object.fromEntries(Object.entries(numbers.files).map(([name, file]) => [name, (file as { issue: number }).issue])), { 'spec.md': 101, '01-spec.md': 102 });
-
-  setState({});
-  const again = sync();
-  assert.equal(again.status, 0, again.stderr);
-  const later = again.calls.slice(out.calls.length);
-  assert.deepEqual(later.map((c) => [c[1], flagValues(c, '--title')[0] ?? c[2], flagValues(c, '--parent')[0] ?? flagValues(c, '--add-blocked-by')[0]]), [
-    ['create', '02: Publish the tickets', '101'],
-    ['edit', '104', '102'],
-  ]);
-});
-
-test('a sync of a folder with no spec ends in one line and a non-zero exit', () => {
-  const { sync } = mirrorable({ '01-spec.md': TICKET_1 });
-  const out = sync('--tracker', 'acme/widgets');
-  assert.notEqual(out.status, 0);
-  oneLine(out.stderr);
-  assert.match(out.stderr, /cannot read .*spec\.md/);
-  assert.deepEqual(out.calls, []);
-});
-
-test('each annotation, a bullet, a heading or a paragraph opening on its date, is posted once as a dated comment across repeated syncs, on a closed issue too', () => {
-  const { sync, write, folder } = mirrorable({ 'spec.md': SPEC }, { state: { issues: [{ ...issue(101, 'first-sync'), state: 'CLOSED' }] } });
-  const first = sync('--tracker', 'acme/widgets');
-  assert.equal(first.status, 0, first.stderr);
-  write('spec.md', `${SPEC}- 2026-11-17: a second note,\n  on two lines.\n### 2026-11-18 — a dated heading\n\nIts text.\n2026-11-19: a dated paragraph.\n`);
-  const out = sync();
-  assert.equal(out.status, 0, out.stderr);
-  assert.equal(sync().calls.length, out.calls.length);
-  const comments = out.calls.filter((c) => c[1] === 'comment');
-  assert.deepEqual(comments.map((c) => [c[2], flagValues(c, '--repo')[0], flagValues(c, '--body')[0]]), [
-    ['101', 'acme/widgets', '2026-11-16: a note.\n'],
-    ['101', 'acme/widgets', '2026-11-17: a second note,\n  on two lines.\n'],
-    ['101', 'acme/widgets', '2026-11-18 — a dated heading\n\nIts text.\n'],
-    ['101', 'acme/widgets', '2026-11-19: a dated paragraph.\n'],
-  ]);
-  assert.equal(JSON.parse(fs.readFileSync(path.join(folder, 'mirror.json'), 'utf8')).annotations, 4);
-});
-
-test('a ticket marked resolved has its issue closed as completed, and one no longer resolved reopened', () => {
-  const resolved = TICKET_1.replace('\n\n', '\n\nStatus: resolved\n\n').replace('[ ]', '[x]');
-  const { sync, write } = mirrorable({ 'spec.md': SPEC, '01-spec.md': resolved });
-  const first = sync('--tracker', 'acme/widgets');
-  assert.equal(first.status, 0, first.stderr);
-  const states = (calls: string[][]) => calls.filter((c) => ['close', 'reopen'].includes(c[1])).map((c) => [c[1], c[2], flagValues(c, '--repo')[0], flagValues(c, '--reason')[0]]);
-  assert.deepEqual(states(first.calls), [['close', '102', 'acme/widgets', 'completed']]);
-  assert.equal(sync().calls.length, first.calls.length);
-
-  write('01-spec.md', TICKET_1);
-  const out = sync();
-  assert.equal(out.status, 0, out.stderr);
-  assert.deepEqual(states(out.calls.slice(first.calls.length)), [['reopen', '102', 'acme/widgets', undefined]]);
-});
-
-test('an issue whose ticket file no longer exists is closed as not planned with a one-line comment', () => {
-  const { sync, folder } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1, '02-tickets.md': TICKET_2 });
-  const first = sync('--tracker', 'acme/widgets');
-  assert.equal(first.status, 0, first.stderr);
-  fs.renameSync(path.join(folder, '02-tickets.md'), path.join(folder, '03-tickets.md'));
-  const out = sync();
-  assert.equal(out.status, 0, out.stderr);
-  const closes = out.calls.slice(first.calls.length).filter((c) => c[1] === 'close');
-  assert.deepEqual(closes.map((c) => [c[2], flagValues(c, '--repo')[0], flagValues(c, '--reason')[0]]), [['103', 'acme/widgets', 'not planned']]);
-  oneLine(flagValues(closes[0], '--comment')[0]);
-  const again = sync();
-  assert.equal(again.calls.filter((c) => c[1] === 'close').length, 1);
-  assert.ok(!('02-tickets.md' in JSON.parse(fs.readFileSync(path.join(folder, 'mirror.json'), 'utf8')).files));
-});
-
-test('a blocker the "Blocked by" line stops naming has its relation removed', () => {
-  const { sync, write } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1, '02-tickets.md': TICKET_2, '03-last.md': '# 03: Last\n\n**Blocked by:** 01, 02\n' });
-  const first = sync('--tracker', 'acme/widgets');
-  assert.equal(first.status, 0, first.stderr);
-  write('03-last.md', '# 03: Last\n\n**Blocked by:** 01\n');
-  const out = sync();
-  assert.equal(out.status, 0, out.stderr);
-  const relations = out.calls.slice(first.calls.length).filter((c) => c.includes('--remove-blocked-by'));
-  assert.deepEqual(relations.map((c) => [c[2], flagValues(c, '--repo')[0], flagValues(c, '--remove-blocked-by')[0]]), [['104', 'acme/widgets', '103']]);
-  assert.equal(sync().calls.length, out.calls.length);
-});
-
-test('a body over GitHub\'s limit continues in comments cut at a heading, edited in place by later syncs', () => {
-  const long = (b: string) => `# Long\n\n## Part A\n\n${'a'.repeat(40000)}\n\n## Part B\n\n${b.repeat(40000)}\n`;
-  const { sync, write } = mirrorable({ 'spec.md': long('b') });
-  const first = sync('--tracker', 'acme/widgets');
-  assert.equal(first.status, 0, first.stderr);
-  assert.equal(flagValues(creates(first.calls)[0], '--body')[0], `# Long\n\n## Part A\n\n${'a'.repeat(40000)}\n\n`);
-  const posted = first.calls.filter((c) => c[1] === 'comment');
-  assert.deepEqual(posted.map((c) => [c[2], flagValues(c, '--body')[0]]), [['101', `## Part B\n\n${'b'.repeat(40000)}\n`]]);
-
-  write('spec.md', long('c'));
-  const edited = sync();
-  assert.equal(edited.status, 0, edited.stderr);
-  const api = (calls: string[][]) => calls.filter((c) => c[0] === 'api').map((c) => [c[2], c[3], c[5]]);
-  assert.deepEqual(api(edited.calls.slice(first.calls.length)), [['PATCH', 'repos/acme/widgets/issues/comments/901', `body=## Part B\n\n${'c'.repeat(40000)}\n`]]);
-  assert.equal(edited.calls.filter((c) => c[1] === 'comment').length, 1);
-
-  write('spec.md', '# Long\n\nShort now.\n');
-  const shrunk = sync();
-  assert.equal(shrunk.status, 0, shrunk.stderr);
-  assert.deepEqual(api(shrunk.calls.slice(edited.calls.length)), [['DELETE', 'repos/acme/widgets/issues/comments/901', undefined]]);
-  assert.equal(sync().calls.length, shrunk.calls.length);
-});
-
-test('a first sync through a linked folder refuses in one line, naming the repo holding the real folder', () => {
-  const { sync, repo, folder } = mirrorable({});
-  const home = path.join(path.dirname(repo), 'home');
-  fs.mkdirSync(path.join(home, '.scratch/shared'), { recursive: true });
-  assert.equal(spawnSync('git', ['init', '-q', home]).status, 0);
-  fs.writeFileSync(path.join(home, '.scratch/shared/spec.md'), SPEC);
-  fs.rmdirSync(folder);
-  fs.symlinkSync(path.join(home, '.scratch/shared'), folder);
-  const out = sync('--tracker', 'acme/widgets');
-  assert.notEqual(out.status, 0);
-  oneLine(out.stderr);
-  assert.ok(out.stderr.includes(home), out.stderr);
-  assert.deepEqual(out.calls, []);
-  assert.ok(!fs.existsSync(path.join(home, '.scratch/shared/mirror.json')));
-});
-
-test('a folder carrying the strike marker is never synced, whenever the marker was added', () => {
-  const { sync } = mirrorable({ 'spec.md': SPEC, 'no-mirror': '' });
-  for (const args of [['--tracker', 'acme/widgets'], []]) {
-    const struck = sync(...args);
-    assert.equal(struck.status, 0, struck.stderr);
-    assert.equal(struck.stdout + struck.stderr, '');
-    assert.deepEqual(struck.calls, []);
-  }
-
-  const other = mirrorable({ 'spec.md': SPEC });
-  const first = other.sync('--tracker', 'acme/widgets');
-  other.write('no-mirror', '');
-  other.write('spec.md', `${SPEC}- 2026-11-17: later.\n`);
-  const later = other.sync();
-  assert.equal(later.status, 0, later.stderr);
-  assert.equal(later.calls.length, first.calls.length);
-});
-
-const RESOLVED_1 = TICKET_1.replace('\n\n', '\n\nStatus: resolved\n\n');
-const RESOLVED_2 = TICKET_2.replace('\n\n', '\n\nStatus: resolved\n\n');
-
-test('once every ticket is resolved, a sync prints the closing keyword, bare where the repo is the tracker', () => {
-  const box = mirrorable({ 'spec.md': SPEC, '01-spec.md': RESOLVED_1, '02-tickets.md': TICKET_2 });
-  assert.equal(box.sync('--tracker', 'acme/widgets').status, 0);
-  assert.doesNotMatch(box.sync().stdout, /Closes/);
-  box.write('02-tickets.md', RESOLVED_2);
-  assert.match(box.sync().stdout, /"Closes acme\/widgets#101"/);
-  spawnSync('git', ['-C', box.repo, 'remote', 'add', 'origin', 'git@github.com:Acme/widgets.git']);
-  assert.match(box.sync().stdout, /"Closes #101"/);
-});
-
-// A mirrored feature whose spec lists #7 on its `Roadmap items:` line, first synced with its tickets as given.
-function mirrored(tickets: Record<string, string>, { config = GITHUB as string | null } = {}) {
-  const box = mirrorable({ 'spec.md': SPEC.replace('Why.', 'Why.\n\n**Roadmap items:** #7'), ...tickets }, { config });
-  assert.equal(box.sync('--tracker', 'acme/widgets').status, 0);
-  const close = (...args: string[]) => {
-    const before = box.calls().length;
-    const out = box.run('close', '.scratch/first-sync', ...args);
-    return { ...out, calls: out.calls.slice(before) };
-  };
-  return { ...box, close };
-}
-
-const closes = (calls: string[][]) => calls.filter((c) => c[1] === 'close').map((c) => [c[2], flagValues(c, '--reason')[0]]);
-
-test('close closes as done the open issues of a feature whose tickets are all resolved, and clears its in-flight marks', () => {
-  const { close } = mirrored({ '01-spec.md': RESOLVED_1, '02-tickets.md': RESOLVED_2 });
-  const out = close();
-  assert.equal(out.status, 0, out.stderr);
-  assert.deepEqual(closes(out.calls), [['101', 'completed']]);
-  assert.doesNotMatch(out.stdout, /Closes/);
-  assert.deepEqual(out.calls.filter((c) => c[1] === 'edit').map((c) => [c[2], flagValues(c, '--remove-label')[0]]), [['7', 'in flight']]);
-});
-
-test('close says --not-planned or --done for a feature whose tickets are not all resolved', () => {
-  const { close } = mirrored({ '01-spec.md': RESOLVED_1, '02-tickets.md': TICKET_2 });
-  assert.deepEqual(closes(close('--not-planned').calls), [['101', 'not planned'], ['103', 'not planned']]);
-  assert.deepEqual(closes(close('--done').calls), [['101', 'completed'], ['103', 'completed']]);
-});
-
-test('without a word, close refuses in one line and changes nothing for unresolved tickets or none', () => {
-  for (const tickets of [{ '01-spec.md': TICKET_1 }, {}]) {
-    const out = mirrored(tickets).close();
-    assert.notEqual(out.status, 0);
-    oneLine(out.stderr);
-    assert.match(out.stderr, /--not-planned/);
-    assert.deepEqual(out.calls, []);
-  }
-});
-
-test('in a repo whose config has no roadmap section, close closes the mirrored issues and touches no item', () => {
-  const out = mirrored({ '01-spec.md': RESOLVED_1 }, { config: loopConfig('') }).close();
-  assert.equal(out.status, 0, out.stderr);
-  assert.deepEqual(out.calls.map((c) => c.slice(0, 3)), [['issue', 'close', '101']]);
-});
-
-test('without the clone\'s mark, close of a mirrored feature makes no tracker call and says so in one line', () => {
-  const box = mirrored({ '01-spec.md': RESOLVED_1 });
-  spawnSync('git', ['-C', box.repo, 'config', '--unset', 'cantrips.roadmapWrites']);
-  const out = box.close();
-  assert.equal(out.status, 0, out.stderr);
-  oneLine(out.stdout);
-  assert.deepEqual(out.calls, []);
-});
-
-test('close is right after a skipped sync: a dropped ticket closes as not planned with its comment, a resolved one as completed', () => {
-  const box = mirrored({ '01-spec.md': TICKET_1, '02-tickets.md': TICKET_2, '03-more.md': TICKET_2.replace('# 02', '# 03') });
-  fs.rmSync(path.join(box.folder, '03-more.md'));
-  box.write('01-spec.md', RESOLVED_1);
-  const out = box.close('--not-planned');
-  assert.equal(out.status, 0, out.stderr);
-  assert.deepEqual(closes(out.calls), [['102', 'completed'], ['104', 'not planned'], ['101', 'not planned'], ['103', 'not planned']]);
-  assert.match(flagValues(out.calls.find((c) => c[2] === '104')!, '--comment')[0], /dropped or renumbered/);
-});
-
-test('the dry run lists each title it would publish with its flags, and publishes nothing', () => {
-  const { sync, folder } = mirrorable({
-    'spec.md': SPEC.replace('Why.', 'Why, in /home/jane/notes.'),
-    '01-spec.md': TICKET_1.replace('It works.', 'Ask jane.doe@example.com, token = abcd1234efgh.'),
-    '02-tickets.md': TICKET_2,
-  });
-  const out = sync('--dry-run');
-  assert.equal(out.status, 0, out.stderr);
-  assert.deepEqual(out.stdout.trimEnd().split('\n').slice(1), [
-    '  first-sync: A first sync — flagged: a home path',
-    '  01: Publish the spec — flagged: a secret assignment, an email address',
-    '  02: Publish the tickets',
-  ]);
-  assert.deepEqual(out.calls, []);
-  assert.ok(!fs.existsSync(path.join(folder, 'mirror.json')));
-});
-
-test('a home path blocks no push', () => {
-  const { sync } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1.replace('It works.', 'Reads /Users/jane/x.') });
-  const out = sync('--tracker', 'acme/widgets');
-  assert.equal(out.status, 0, out.stderr);
-  assert.equal(out.stderr, '');
-  assert.equal(creates(out.calls).length, 2);
-});
-
-test('labels creates its set on a tracker that has no label at all', () => {
-  const out = sandbox(null, { labels: [] }).run('labels', '--tracker', 'acme/mirror');
-  assert.equal(out.status, 0, out.stderr);
-  assert.deepEqual(out.calls.filter((c) => c[1] === 'create').map((c) => c[2]), ['spec', 'ticket']);
-});
-
-test('labels with a tracker creates the mirror\'s spec and ticket labels there, needing no config, and a second run creates nothing', () => {
-  const out = sandbox(null, { labels: ['bug'] }).run('labels', '--tracker', 'acme/mirror');
-  assert.equal(out.status, 0, out.stderr);
-  assert.deepEqual(out.calls.filter((c) => c[1] === 'create').map((c) => [c[2], flagValues(c, '--repo')[0]]), [['spec', 'acme/mirror'], ['ticket', 'acme/mirror']]);
-  const again = sandbox(null, { labels: ['Spec', 'ticket'] }).run('labels', '--tracker', 'acme/mirror');
-  assert.equal(again.status, 0, again.stderr);
-  assert.deepEqual(again.calls.filter((c) => c[1] === 'create'), []);
-});

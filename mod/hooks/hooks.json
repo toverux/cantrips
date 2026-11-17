@@ -1,4 +1,16 @@
 {
-  "hooks": {},
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/storage/scripts/hook.mjs\" catch-up; exit 0",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  },
   "modules": ["./register.tsx"]
 }

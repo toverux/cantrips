@@ -2,10 +2,11 @@
 // Runs as-is under node >= 22.18: strippable TypeScript, no dependencies.
 
 import { spawnSync } from 'node:child_process';
-import { createHash, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import process from 'node:process';
+import { ALL, checkPublishable, Fault, gh, labels, MARK, marked, parse, readSpec, repoRoot, TRACKER } from '../../storage/scripts/tracker.ts';
 
 const CONFIG = 'docs/agents/cantrips-loop.md';
 const LOCAL_FILE = '.scratch/ROADMAP.md';
@@ -13,8 +14,6 @@ const INBOX = '.scratch/roadmap-inbox';
 const CLAIMED = `${INBOX}/claimed`;
 // A claim another session holds is taken up once it is older than this.
 const STALE_MS = 24 * 60 * 60 * 1000;
-// The local git config key setup sets in a clone where agents may write to the roadmap without asking.
-const MARK = 'cantrips.roadmapWrites';
 const ROADMAP_LABEL = 'roadmap';
 const STANDARD_LABELS = [
   ROADMAP_LABEL,
@@ -22,19 +21,6 @@ const STANDARD_LABELS = [
   ...['trivial', 'cheap', 'moderate', 'large'].map((c) => `cost: ${c}`),
   'in flight',
 ];
-// Enough for any roadmap: gh pages through the tracker up to this many items, where its default stops at 30.
-const ALL = '100000';
-// A tracker, as owner/repo.
-const TRACKER = /^[\w.-]+\/[\w.-]+$/;
-// gh's own words when the network or a write was refused, which a sandbox is the likely cause of.
-const REFUSED = /error connecting|dial tcp|could not resolve|network is unreachable|operation not permitted|permission denied|EACCES|EPERM|ENOTFOUND|ECONNREFUSED/i;
-
-// The file the sync owns in a feature folder. Its name is neither spec.md nor NN-*.md, so the panel never reads it.
-const NUMBERS = 'mirror.json';
-// The file whose presence strikes a feature folder from the mirror.
-const STRUCK = 'no-mirror';
-// GitHub's limit on an issue's or a comment's body, in characters.
-const BODY_LIMIT = 65536;
 
 const HELP = `Usage: node roadmap.ts <command>
 
@@ -60,70 +46,36 @@ Commands:
   drop <file>             Settle a claimed candidate as declined: remove its file, writing nothing.
   in-flight <folder>      Mark in flight the items on the \`Roadmap items:\` line of the feature folder's spec.md:
                           #N on the tracker, owner/repo#N on that repo. Only in a clone marked by ${MARK}.
-  close <folder> [--done | --not-planned]
-                          Before the folder is deleted: sync it, close its mirrored issues still open, and clear
-                          the in-flight mark from its items still open. Without a word, closes as done only a feature
-                          whose tickets are all resolved. Reads no roadmap section where the config has none.
-  sync <folder> [--tracker <owner/repo>] [--dry-run]
-                          Make the tracker's issues match the feature folder: the spec as an issue, each ticket as
-                          its sub-issue. The tracker is required on the first sync; ${NUMBERS} in the folder holds it after,
-                          so without it the sync only catches up a mirrored folder. Once every ticket is resolved, prints
-                          the closing keyword a commit uses to close the spec's issue.
-                          A folder holding a file named ${STRUCK} is never synced. With --dry-run, lists every title
-                          it would publish, each with what looks like a secret, an email or a home path, and calls nothing.
-  labels [--tracker <owner/repo>]
-                          Create the roadmap labels the tracker lacks: the standard set and the repo's own.
-                          With --tracker, creates there the mirror's spec and ticket labels instead, reading no config.
+  close <folder>          Before the folder is deleted: clear the in-flight mark from the items still open on the
+                          \`Roadmap items:\` line of its spec.md. Only in a clone marked by ${MARK}.
+  labels                  Create the roadmap labels the tracker lacks: the standard set and the repo's own.
   --help                  Print this help.
 `;
-
-// What a text must never carry onto a tracker. Commit hashes and session identifiers match none of these;
-// a git remote's `git@host:` or `ssh://git@host/` is no email.
-const SECRETS: [string, RegExp][] = [
-  ['a private key', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
-  ['a GitHub token', /\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_\w{20,})/],
-  ['an API key', /\b(?:sk-[\w-]{20,}|AKIA[0-9A-Z]{16}\b|AIza[\w-]{35}|xox[abposr]-[\w-]{10,})/],
-  ['a JSON web token', /\beyJ[\w-]{10,}\.[\w-]{10,}\.[\w-]{10,}/],
-  ['a password in a URL', /\b\w+:\/\/[^\s/:@]+:[^\s/@]+@/],
-  ['a secret assignment', /\b(?:password|passwd|secret|token|api[_-]?key)\s*[:=]\s*['"]?(?=[^\s'"]*\d)[^\s'"]{8,}/i],
-  ['an email address', /(?<![\w.+-]|:\/\/)[\w.+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}(?![\w.-]*:\S)/],
-];
-
-// Flagged by the dry run only: a home path names a user, but blocks no push.
-const HOME_PATH = /(?:\/home\/|\/Users\/|\b[A-Za-z]:\\Users\\)\w/;
-
-class Fault extends Error {}
-// The config keeps no GitHub roadmap.
-class NoRoadmap extends Fault {}
 
 interface Roadmap {
   tracker: string;
   labels: string[];
 }
 
-function repoRoot(): string {
-  const git = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' });
-  return git.status === 0 ? git.stdout.trim() : process.cwd();
-}
-
 // The GitHub roadmap the config declares; anything else refuses or faults in one line.
 function readRoadmap(): Roadmap {
   const file = path.join(repoRoot(), CONFIG);
   const local = `this repo's roadmap is the local file ${LOCAL_FILE}: edit it directly, no tracker command applies`;
+  const none = `this repo keeps no roadmap: write to ${LOCAL_FILE} only on the user's own request, editing it directly`;
   let text: string;
   try {
     text = fs.readFileSync(file, 'utf8');
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new NoRoadmap(local);
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new Fault(none);
     throw new Fault(`cannot read ${CONFIG}: ${(error as Error).message}`);
   }
   const section = /^## Roadmap[ \t]*\r?\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(text)?.[1];
-  if (section === undefined) throw new NoRoadmap(local);
+  if (section === undefined) throw new Fault(none);
   const field = (name: string) => new RegExp(`^- ${name}:[ \\t]*(.*)$`, 'm').exec(section)?.[1].trim();
   const unquote = (value: string) => value.trim().replace(/^`(.*)`$/, '$1').trim();
 
   const backend = unquote(field('Backend') ?? '').toLowerCase();
-  if (backend === 'local file') throw new NoRoadmap(local);
+  if (backend === 'local file') throw new Fault(local);
   if (backend !== 'github issues') {
     throw new Fault(`${CONFIG}: the roadmap section's "- Backend:" line must read "local file" or "GitHub issues"`);
   }
@@ -133,20 +85,6 @@ function readRoadmap(): Roadmap {
   }
   const labels = (field('Labels') ?? '').split(',').map(unquote).filter(Boolean);
   return { tracker, labels };
-}
-
-function gh(...args: string[]): string {
-  const run = spawnSync('gh', args, { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
-  if (run.error) {
-    const reason = (run.error as NodeJS.ErrnoException).code === 'ENOENT' ? 'gh is not on PATH' : run.error.message;
-    throw new Fault(`gh ${args[0]} ${args[1]} failed: ${reason}`);
-  }
-  if (run.status !== 0) {
-    const message = run.stderr.trim().split('\n').map((l) => l.trim()).filter(Boolean).join(' ') || `exit ${run.status}`;
-    const hint = REFUSED.test(message) ? ' (a sandbox blocking the network or the write is the likely cause)' : '';
-    throw new Fault(`gh ${args[0]} ${args[1]} failed: ${message}${hint}`);
-  }
-  return run.stdout;
 }
 
 interface Item {
@@ -178,29 +116,6 @@ function list(roadmap: Roadmap): string {
 function search(roadmap: Roadmap, words: string[]): string {
   if (words.length === 0) throw new Fault('search needs the words to search for');
   return issues(roadmap, '--state', 'all', '--search', words.join(' ')) || 'no roadmap item matches\n';
-}
-
-function checkPublishable(text: string): void {
-  const hit = SECRETS.find(([, pattern]) => pattern.test(text));
-  if (hit) throw new Fault(`not published: the text holds what looks like ${hit[0]}; reword it`);
-}
-
-// The first argument, then the flags allowed after it; `--label` repeats, a flag absent from `valued` takes no value.
-function parse(command: string, args: string[], valued: string[], bare: string[] = []) {
-  const [first, ...rest] = args;
-  if (!first?.trim()) throw new Fault(`${command} needs its argument: see --help`);
-  const flags: Record<string, string[]> = {};
-  for (let i = 0; i < rest.length; i++) {
-    const flag = rest[i];
-    if (bare.includes(flag)) {
-      flags[flag] = [];
-    } else if (valued.includes(flag) && rest[i + 1] !== undefined) {
-      (flags[flag] ??= []).push(rest[++i]);
-    } else {
-      throw new Fault(`${command} takes ${[...valued.map((f) => `${f} <value>`), ...bare].join(', ')} after its argument, got "${flag}"`);
-    }
-  }
-  return { first, flags };
 }
 
 function session(): string {
@@ -316,10 +231,6 @@ function claim(roadmap: Roadmap, files: string[]): string {
     .join('\n');
 }
 
-function marked(): boolean {
-  return spawnSync('git', ['-C', repoRoot(), 'config', '--type=bool', '--get', MARK], { encoding: 'utf8' }).stdout.trim() === 'true';
-}
-
 function hit(roadmap: Roadmap, args: string[]): string {
   const { first: number, flags } = parse('hit', args, ['--candidate'], ['--approved']);
   if (!/^\d+$/.test(number)) throw new Fault(`hit needs an item number, got "${number}"`);
@@ -346,15 +257,6 @@ function drop(_roadmap: Roadmap, args: string[]): string {
   return `dropped ${path.basename(candidate)}\n`;
 }
 
-function readSpec(folder: string): string {
-  const spec = path.join(folder, 'spec.md');
-  try {
-    return fs.readFileSync(spec, 'utf8');
-  } catch (error) {
-    throw new Fault(`cannot read ${spec}: ${(error as Error).message}`);
-  }
-}
-
 // The items on the `Roadmap items:` line of a feature folder's spec, each with the repo whose tracker holds it.
 function featureItems(roadmap: Roadmap, folder: string | undefined): { name: string; repo: string; number: string }[] {
   if (!folder?.trim()) throw new Fault('needs the feature folder: see --help');
@@ -373,263 +275,22 @@ function flight(roadmap: Roadmap, folder: string | undefined, set: boolean): str
     gh('issue', 'edit', item.number, '--repo', item.repo, set ? '--add-label' : '--remove-label', 'in flight');
     done.push(item.name);
   }
-  return `${set ? 'in flight' : 'in-flight mark cleared'}: ${done.join(', ') || 'none, every item is closed'}\n`;
+  if (set) return `in flight: ${done.join(', ')}\n`;
+  return `in-flight mark cleared: ${done.length > 0 ? `${done.join(', ')}, left open for a commit's Fixes line to close` : 'none, every item is closed'}\n`;
 }
 
-// Creates only what the tracker lacks, so a second run changes nothing; GitHub matches label names regardless of case.
-// gh prints nothing, not [], for a tracker with no label.
-function labels(tracker: string, names: string[]): string {
-  const existing = new Set(
-    (JSON.parse(gh('label', 'list', '--repo', tracker, '--limit', ALL, '--json', 'name') || '[]') as { name: string }[]).map((l) => l.name.toLowerCase()),
-  );
-  const created: string[] = [];
-  for (const name of names) {
-    if (existing.has(name.toLowerCase())) continue;
-    gh('label', 'create', name, '--repo', tracker);
-    existing.add(name.toLowerCase());
-    created.push(name);
-  }
-  return created.length > 0 ? `created on ${tracker}: ${created.join(', ')}\n` : `every label exists on ${tracker}\n`;
-}
-
-interface Numbers {
-  tracker: string;
-  // Each mirrored file's issue, a hash of what was last pushed for it, the blocking issues set on it, and whether the sync closed it.
-  // The continuation comments of a body over the limit are recorded so a later sync edits them in place.
-  files: Record<string, { issue: number; pushed: string; blockedBy?: number[]; closed?: boolean; continued?: number[] }>;
-  // How many of the spec's annotations are posted: they only ever append, so a count is exact.
-  annotations?: number;
-}
-
-// A body cut into pieces within the limit, each cut made before the last heading that fits.
-function pieces(body: string): string[] {
-  const out: string[] = [];
-  while (body.length > BODY_LIMIT) {
-    const cut = [...body.slice(0, BODY_LIMIT).matchAll(/\n(?=#{1,6} )/g)].at(-1)?.index;
-    const end = cut ? cut + 1 : BODY_LIMIT;
-    out.push(body.slice(0, end));
-    body = body.slice(end);
-  }
-  return [...out, body];
-}
-
-const titleOf = (text: string) => /^# (.+)/.exec(text)?.[1].trim();
-
-// The spec's issue title: the feature's name, then the spec's title line where it has one.
-function specHeading(folder: string, spec: string): string {
-  const feature = path.basename(path.resolve(folder));
-  const title = titleOf(spec);
-  return title ? `${feature}: ${title}` : feature;
-}
-
-// What a first sync would publish, each title with its flags, read from the files alone.
-function preview(folder: string): string {
-  const spec = readSpec(folder);
-  const files = [
-    [specHeading(folder, spec), spec],
-    ...ticketNames(folder).map((name) => {
-      const text = fs.readFileSync(path.join(folder, name), 'utf8');
-      return [titleOf(text) ?? name.replace(/\.md$/, ''), text];
-    }),
-  ];
-  const flagged: [string, RegExp][] = [...SECRETS, ['a home path', HOME_PATH]];
-  const lines = files.map(([heading, text]) => {
-    const flags = flagged.filter(([, pattern]) => pattern.test(text)).map(([name]) => name);
-    return `  ${heading}${flags.length > 0 ? ` — flagged: ${flags.join(', ')}` : ''}\n`;
-  });
-  return `${folder} would publish, nothing sent:\n${lines.join('')}`;
-}
-
-// Read as the panel reads them.
-const RESOLVED = /^Status:\s*resolved\b/im;
-
-function ticketNames(folder: string): string[] {
-  return fs.readdirSync(folder).filter((name) => /^\d{2,}-.+\.md$/.test(name)).sort((a, b) => parseInt(a) - parseInt(b));
-}
-
-function allResolved(folder: string): boolean {
-  const tickets = ticketNames(folder);
-  return tickets.length > 0 && tickets.every((name) => RESOLVED.test(fs.readFileSync(path.join(folder, name), 'utf8')));
-}
-
-function readNumbers(folder: string): Numbers | undefined {
-  const file = path.join(folder, NUMBERS);
-  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : undefined;
-}
-
-// The keyword a commit closes the spec's issue with once every ticket is resolved, bare where this repo is the tracker.
-function closing(folder: string, numbers: Numbers): string {
-  const spec = numbers.files['spec.md']?.issue;
-  if (spec === undefined || !allResolved(folder)) return '';
-  const origin = spawnSync('git', ['-C', repoRoot(), 'remote', 'get-url', 'origin'], { encoding: 'utf8' }).stdout.trim();
-  const here = /github\.com[:/]([\w.-]+\/[\w.-]+?)(?:\.git)?\/?$/.exec(origin)?.[1];
-  const ref = `${here?.toLowerCase() === numbers.tracker.toLowerCase() ? '' : numbers.tracker}#${spec}`;
-  return `every ticket is resolved: the commit's message closes the spec's issue with "Closes ${ref}"\n`;
-}
-
-function close(args: string[]): string {
-  const { first: folder, flags } = parse('close', args, [], ['--done', '--not-planned']);
-  if (flags['--done'] && flags['--not-planned']) throw new Fault('close takes --done or --not-planned, not both');
-  let roadmap: Roadmap | undefined;
-  try {
-    roadmap = readRoadmap();
-  } catch (error) {
-    if (!(error instanceof NoRoadmap)) throw error;
-  }
-  const openIssues = () => Object.values(readNumbers(folder)?.files ?? {}).filter((file) => !file.closed).map((file) => file.issue);
-  const mirrored = openIssues().length > 0;
-  const reason = flags['--not-planned'] ? 'not planned' : flags['--done'] || allResolved(folder) ? 'completed' : undefined;
-  if (mirrored && !reason) throw new Fault(`not closed: not every ticket of ${folder} is resolved; say --done or --not-planned`);
-  if (!marked()) return `not closed: this clone lacks the ${MARK} mark, so ${folder}'s issues and items keep their state\n`;
-  // A sync first closes what the folder settles itself: a resolved ticket as completed, a dropped one as not planned.
-  const synced = mirrored ? sync([folder], false) : '';
-  const open = openIssues();
-  const tracker = readNumbers(folder)?.tracker;
-  for (const issue of open) gh('issue', 'close', String(issue), '--repo', tracker!, '--reason', reason!);
-  const closed = open.length > 0 ? `closed as ${reason} on ${tracker}: ${open.map((n) => `#${n}`).join(', ')}\n` : '';
-  return synced + closed + (roadmap ? flight(roadmap, folder, false) : '');
-}
-
-function sync(args: string[], keyword = true): string {
-  const { first: folder, flags } = parse('sync', args, ['--tracker'], ['--dry-run']);
-  if (fs.existsSync(path.join(folder, STRUCK))) return '';
-  if (flags['--dry-run']) return preview(folder);
-  const numbersFile = path.join(folder, NUMBERS);
-  const numbers: Numbers = readNumbers(folder) ?? { tracker: flags['--tracker']?.[0] ?? '', files: {} };
-  // Not an error: /commit's catch-all meets a feature no write verb has mirrored yet, and says so in one line.
-  if (!numbers.tracker) return `not synced: ${folder} is not mirrored yet, so nothing was published; a first sync takes --tracker <owner/repo>\n`;
-  if (!TRACKER.test(numbers.tracker)) throw new Fault(`not synced: "${numbers.tracker}" is no <owner/repo>`);
-  // A folder two repos share is mirrored from the repo that holds it, so a link never publishes it a second time.
-  const real = fs.existsSync(folder) ? fs.realpathSync(folder) : folder;
-  if (!fs.existsSync(numbersFile) && path.relative(repoRoot(), real).startsWith('..')) {
-    const holder = spawnSync('git', ['-C', real, 'rev-parse', '--show-toplevel'], { encoding: 'utf8' }).stdout.trim() || real;
-    throw new Fault(`not synced: ${folder} is linked from ${holder}; run its first sync there`);
-  }
-  if (!marked()) return `not synced: this clone lacks the ${MARK} mark, so nothing of ${folder} was published\n`;
-  const read = (name: string) => fs.readFileSync(path.join(folder, name), 'utf8');
-  let created = 0;
-  let updated = 0;
-  // Each push is saved at once, so a failed call leaves the file true to what the tracker holds.
-  const save = () => fs.writeFileSync(numbersFile, `${JSON.stringify(numbers, null, 2)}\n`);
-  const leaks = (name: string, text: string) => {
-    const secret = SECRETS.find(([, pattern]) => pattern.test(text));
-    if (secret) process.stderr.write(`not published: ${name} holds what looks like ${secret[0]}; reword it\n`);
-    return secret !== undefined;
-  };
-  const push = (name: string, heading: string, body: string, extra: string[]) => {
-    const pushed = createHash('sha256').update(`${heading}\0${body}`).digest('hex');
-    const known = numbers.files[name];
-    if (known?.pushed === pushed) return;
-    if (leaks(name, `${heading}\n${body}`)) return;
-    const [first, ...more] = pieces(body);
-    let file = known;
-    if (file) {
-      gh('issue', 'edit', String(file.issue), '--repo', numbers.tracker, '--title', heading, '--body', first);
-    } else {
-      const url = gh('issue', 'create', '--repo', numbers.tracker, '--title', heading, '--body', first, ...extra);
-      file = numbers.files[name] = { issue: Number(/(\d+)\s*$/.exec(url)![1]), pushed: '' };
-      save();
-    }
-    const ids = (file.continued ??= []);
-    const comment = (id: number) => `repos/${numbers.tracker}/issues/comments/${id}`;
-    for (const [i, text] of more.entries()) {
-      if (i < ids.length) {
-        gh('api', '-X', 'PATCH', comment(ids[i]), '-f', `body=${text}`);
-      } else {
-        ids.push(Number(/issuecomment-(\d+)/.exec(gh('issue', 'comment', String(file.issue), '--repo', numbers.tracker, '--body', text))![1]));
-        save();
-      }
-    }
-    while (ids.length > more.length) {
-      gh('api', '-X', 'DELETE', comment(ids.at(-1)!));
-      ids.pop();
-      save();
-    }
-    if (ids.length === 0) delete file.continued;
-    file.pushed = pushed;
-    if (known) updated++;
-    else created++;
-    save();
-  };
-
-  const spec = readSpec(folder);
-  const [specBody, notes = ''] = spec.split(/^##\s+comments\s*$/im);
-  push('spec.md', specHeading(folder, spec), specBody, ['--label', 'spec']);
-  const tickets = ticketNames(folder);
-  const parent = numbers.files['spec.md']?.issue;
-  // Each entry under the comments heading opening on its date, as a bullet, a heading or a bare line, posted once, in order;
-  // a flagged one holds back those after it.
-  const annotations = notes.split(/^(?:- |#+ )?(?=\d{4}-\d{2}-\d{2})/m).slice(1);
-  for (const note of parent === undefined ? [] : annotations.slice(numbers.annotations ?? 0)) {
-    if (leaks('an annotation of spec.md', note)) break;
-    gh('issue', 'comment', String(parent), '--repo', numbers.tracker, '--body', `${note.trimEnd()}\n`);
-    numbers.annotations = (numbers.annotations ?? 0) + 1;
-    updated++;
-    save();
-  }
-  for (const name of parent === undefined ? [] : tickets) {
-    const text = read(name);
-    push(name, titleOf(text) ?? name.replace(/\.md$/, ''), text, ['--label', 'ticket', '--parent', String(parent)]);
-    const resolved = RESOLVED.test(text);
-    const known = numbers.files[name];
-    if (!known || !!known.closed === resolved) continue;
-    gh('issue', resolved ? 'close' : 'reopen', String(known.issue), '--repo', numbers.tracker, ...(resolved ? ['--reason', 'completed'] : []));
-    known.closed = resolved;
-    updated++;
-    save();
-  }
-  // A ticket file dropped or renumbered closes its issue, unless the issue closed as resolved.
-  for (const name of Object.keys(numbers.files).filter((name) => name !== 'spec.md' && !tickets.includes(name))) {
-    const { issue, closed } = numbers.files[name];
-    if (!closed) gh('issue', 'close', String(issue), '--repo', numbers.tracker, '--reason', 'not planned', '--comment', `The ticket ${name} was dropped or renumbered.`);
-    delete numbers.files[name];
-    updated++;
-    save();
-  }
-  // Read as the panel reads it: every other ticket number the "Blocked by" line names, none where it opens with "none",
-  // each once its issue exists. A blocker the line stops naming loses its relation.
-  const issueOf = (number: number) => numbers.files[tickets.find((name) => parseInt(name) === number) ?? '']?.issue;
-  for (const name of tickets) {
-    const known = numbers.files[name];
-    if (!known) continue;
-    const prose = /^\*\*Blocked by:\*\*[ \t]*(.*?)[ \t]*(?:\*\*Blocks:\*\*|$)/m.exec(read(name))?.[1] ?? '';
-    const named = /^none\b/i.test(prose) ? [] : [...prose.matchAll(/\b(\d{2,3})\b/g)];
-    const blockers = named.map(([, number]) => issueOf(Number(number))).filter((issue): issue is number => issue !== undefined && issue !== known.issue);
-    const had = known.blockedBy ?? [];
-    const added = [...new Set(blockers)].filter((issue) => !had.includes(issue));
-    const removed = had.filter((issue) => !blockers.includes(issue));
-    if (added.length + removed.length === 0) continue;
-    const change = (flag: string, issues: number[]) => (issues.length > 0 ? [flag, issues.join(',')] : []);
-    gh('issue', 'edit', String(known.issue), '--repo', numbers.tracker, ...change('--add-blocked-by', added), ...change('--remove-blocked-by', removed));
-    known.blockedBy = [...had.filter((issue) => !removed.includes(issue)), ...added];
-    updated++;
-    save();
-  }
-  const done = created + updated === 0 ? `${folder} already matches ${numbers.tracker}\n` : `synced ${folder} to ${numbers.tracker}: ${created} created, ${updated} updated\n`;
-  return done + (keyword ? closing(folder, numbers) : '');
-}
 
 const COMMANDS: Record<string, (roadmap: Roadmap, args: string[]) => string> = {
   list, search, add, park, claim, hit, drop,
   labels: (roadmap) => labels(roadmap.tracker, [...STANDARD_LABELS, ...roadmap.labels]),
   'in-flight': (roadmap, [folder]) => flight(roadmap, folder, true),
+  close: (roadmap, [folder]) => flight(roadmap, folder, false),
 };
 
 function main(args: string[]): void {
   const [command, ...rest] = args;
   if (command === undefined || command === '--help') {
     process.stdout.write(HELP);
-    return;
-  }
-  // A mirror repo may keep its roadmap in a local file: the sync reads no loop config, and close reads it only where it can.
-  if (command === 'sync' || command === 'close') {
-    process.stdout.write((command === 'sync' ? sync : close)(rest));
-    return;
-  }
-  if (command === 'labels' && rest[0] === '--tracker') {
-    const tracker = rest[1] ?? '';
-    if (!TRACKER.test(tracker)) throw new Fault('labels --tracker takes an <owner/repo>');
-    process.stdout.write(labels(tracker, ['spec', 'ticket']));
     return;
   }
   const run = COMMANDS[command];

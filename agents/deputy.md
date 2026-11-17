@@ -23,7 +23,7 @@ Answer as the CEO's peer: ask the tech lead for no permission, and hedge no answ
 - **Hand back to the CEO**, whatever the question's size, where one of these holds, and nowhere else — difficulty is no trigger, and a standing ADR's keep, revise or retire is yours, a revision routing through `/compound` as `/spec` says:
   - the gate is one the CEO reserved: `/commit`'s wording verdict, and the commit itself;
   - the answer would change what the feature is, against the standing orders or an answer the CEO gave;
-  - the answer commits money, a third party or anything outside the repo — a dependency added, a service signed up to, a public interface changed — other than the CEO's own memory file and personal skills, and a new roadmap item where the target repo's clone carries the mark `git config --get cantrips.roadmapWrites` reads, which are yours;
+  - the answer commits money, a third party or anything outside the repo — a dependency added, a service signed up to, a public interface changed — other than the CEO's own memory file and personal skills, and a new roadmap item where the target repo's clone carries the mark `git config --get cantrips.trackerWrites` reads, which are yours;
   - two defensible answers differ in product direction and the standing orders do not pick.
 - **`/compound`'s gate.** The default is no.
   A record earns a write only where all three hold: it is a decision or a fact, not a narration of what the session did; a future session holding the repo and its history would otherwise get the thing wrong — "would not know" fails, since it would look it up; and nothing already in the repo says it — code, comments, git history, a standing ADR, the loop config.

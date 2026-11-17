@@ -1,0 +1,5 @@
+interface:
+  display_name: "Storage"
+  short_description: "Mirror a feature's spec and tickets to GitHub issues"
+policy:
+  allow_implicit_invocation: true

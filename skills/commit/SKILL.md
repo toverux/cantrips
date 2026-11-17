@@ -14,7 +14,6 @@ Scan the whole session for candidate learnings: root causes uncovered, gotchas h
 
 Judge each against compound's quality bar — _would it change a future agent's behavior in a different session, and is it non-obvious and stable?_
 Session-specific trivia dies here.
-Where the repo's loop config, `docs/agents/cantrips-loop.md`, keeps the roadmap in GitHub issues or mirrors features to them, a candidate file in `.scratch/roadmap-inbox/` counts as a candidate, which `/compound` drains, the message closes the roadmap items the commit delivers, and the session's feature is synced once more and its spec's issue closed, all as `/roadmap`'s [REFERENCE.md](../roadmap/REFERENCE.md) says.
 
 - Any candidate might clear the bar → invoke `/compound` with the candidates; it routes each to a destination and gates every write.
   Once the approved writes land, present their diff and wait for the user's verdict on the wording — approve, edit, or drop each document — since the destination gate cleared a one-line proposal, not the prose itself.
@@ -33,6 +32,7 @@ Gather context with each command as its **own** shell tool call (program + args 
 - `git log --oneline -10` — recent commit style.
 - `git rev-parse --abbrev-ref origin/HEAD` — the default branch (strip the `origin/` prefix).
   If unset, fall back to `main`.
+- `Roadmap items:` on a ticket the commit resolved — add `Fixes #N` to the message for each item it lists, as `owner/repo#N` where the commit's repo is not the item's tracker, which `docs/agents/cantrips-loop.md` names.
 
 Treat this as a snapshot. Re-read branch and staged set immediately before committing if anything may have changed.
 
@@ -72,7 +72,7 @@ Scan the changed files for naturally distinct concerns; if they clearly group in
 Keep it lightweight: group at the file level only (no hunk splitting), split only when the separation is obvious, and stay at two or three commits at most.
 
 For each group, stage specific files by name, never `git add -A` or `git add .` — that keeps sensitive files (.env, credentials) and unrelated changes out.
-Write the full message — subject line, blank line, optional body — to a file outside the repo with your file-write tool, then stage and commit as two calls per commit group:
+Write the full message — subject line, blank line, optional body — to `cantrips-commit-msg` in the directory `git rev-parse --absolute-git-dir` prints, which no other repo or worktree shares, with your file-write tool, then stage and commit as two calls per commit group:
 
 ```bash
 git add file1 file2 file3

@@ -4,7 +4,7 @@ The plugin's one hooks module: a pane beside the chat that shows the loop, a ban
 
 ## Layout
 
-- `mod/hooks/hooks.json`: what the Claude Code manifest's `hooks` field names, an empty `hooks` object beside the `modules` entry, so a Claude Code older than mods validates the file and loads the skills.
+- `mod/hooks/hooks.json`: what the Claude Code manifest's `hooks` field names, its `hooks` object holding only `/storage`'s Stop hook beside the `modules` entry, so a Claude Code older than mods validates the file and loads the skills; that hook is the plugin's, not the mod's, and its `timeout` is what `LOCK_MS` in `skills/storage/scripts/mirror.ts` matches, so change both.
 - `mod/types/index.d.ts`: the `$.state` contract, which the manifest's `types` field names.
 - `mod/core/`: the pure core — state functions and text, importing only its own files and types, no Node built-ins, enums or JSX — tested from `tests/mod/` under `node --test`.
 - `mod/hooks/register.tsx`: wires the core to the engine; a function that takes `$` is declared at the file's top level, never inside `register`, since the engine refuses to load a module that passes `$` anywhere else, so per-activation state it needs travels as an argument.

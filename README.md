@@ -105,13 +105,19 @@ No skill hard-codes where a spec or a ticket lives. The storage-touching skills 
 verbs** — _publish_, _fetch_, and _annotate_ the spec; _publish_, _fetch_, and _resolve_ the
 ticket — and one per-repo doc, `docs/agents/cantrips-loop.md`, translates each verb for the repo's
 backend, lists which knowledge stores are enabled, and says where the roadmap lives in a `## Roadmap`
-section: a git-ignored `.scratch/ROADMAP.md` by default, or the repo's GitHub issues, one issue per
-item. When that doc is absent, the plugin's defaults govern, so a bare install runs with no
-configuration step.
+section, if the repo keeps one: a git-ignored `.scratch/ROADMAP.md`, or the repo's GitHub issues, one
+issue per item. Without that section agents file nothing on their own, and `/roadmap <an idea>` still
+writes to the local file. When that doc is absent, the plugin's defaults govern, so a bare install
+runs with no configuration step.
 
 A repo can also mirror its features to GitHub issues. The spec and tickets stay local files, and
-after each write verb `/roadmap`'s script copies the feature one way to the tracker: the spec becomes
-an issue, and each ticket a sub-issue of it. A folder holding a `no-mirror` file is never published.
+`/storage`'s script copies each feature one way to the tracker: the spec becomes an issue, and each
+ticket a sub-issue of it. A folder holding a `no-mirror` file is never published. On Claude Code a
+Stop hook the plugin ships runs that copy at the end of every turn, so it never depends on the agent
+remembering; it first publishes a feature once it holds a ticket, since a spec alone may still be a
+draft, and a spec never ticketed is published only when the agent syncs it after publishing it.
+Codex CLI runs no plugin hook, so there the agent syncs after each write verb, as the loop config
+says.
 
 | Artifact  | Default home                                  | Role                                                                           |
 | --------- | --------------------------------------------- |--------------------------------------------------------------------------------|
@@ -128,9 +134,9 @@ an issue, and each ticket a sub-issue of it. A folder holding a `no-mirror` file
 A spec's body **freezes once implementation starts**, and afterthoughts arrive as **dated
 annotations**. No skill ever closes a spec; closing a feature is your act through the backend's
 native machinery, on local markdown by deleting the feature's `.scratch/` folder. In a repo that
-mirrors its features to GitHub issues, the local spec stays open too; its issue closes with the
-commit that resolves the last ticket, or when you run `/roadmap`'s close command before you delete
-the folder.
+mirrors its features to GitHub issues, the local spec stays open too; its issue closes once every
+ticket is resolved and reopens if one is added or reopened, and `/storage`'s close command closes
+it for a feature that ends with tickets unresolved.
 
 ## The skills
 
@@ -161,6 +167,7 @@ authoritative source. 🧑 you type it; 🤖 the agent loads it on its own when 
 | [`/setup-cantrips-loop`](#setup-cantrips-loop)                     | 🧑         | Configure a repo's storage backend, knowledge stores and roadmap.          |
 | [`/setup-git-guardrails`](#setup-git-guardrails)                   | 🧑         | Install a hook that blocks dangerous git commands before they run.         |
 | [`/roadmap`](#roadmap)                                             | 🧑🤖       | File an idea on the repo's roadmap, or read what it holds.                 |
+| [`/storage`](#storage)                                             | 🧑🤖       | Mirror a feature's spec and tickets to GitHub issues.                      |
 | [`/handoff`](#handoff)                                             | 🧑         | Compact the session into a handoff for a fresh context.                    |
 | [`/wait-what`](#wait-what)                                         | 🧑         | Interrupt: re-pitch a message that did not land.                           |
 | [`/afk`](#afk)                                                     | 🧑         | Keep the session's prompt cache warm across a break.                       |
@@ -323,14 +330,14 @@ do not settle. A later `/deputy` takes new orders, a switch of mode, or a dismis
 
 ### `/setup-cantrips-loop`
 
-**Configure how a repo runs the loop.** Asks which opt-in knowledge stores to enable, which
-backend seed translates the six storage verbs (local markdown, GitHub through the `gh` CLI, local
-markdown mirrored to GitHub issues, or freeform), and where the roadmap lives (a git-ignored local
-file, or the repo's GitHub issues), then writes `docs/agents/cantrips-loop.md`. On GitHub issues or
-the mirror it creates the labels and marks the clone as one where agents may write to GitHub
-without asking. When you pick the mirror in a repo that already has feature folders, it lists what
-would go public, flagging secrets, email addresses and home paths, and publishes only the folders you
-keep. Re-runnable: a second run edits the existing doc.
+**Configure how a repo runs the loop.** Asks which opt-in knowledge stores to enable, which backend
+seed translates the six storage verbs (local markdown, GitHub through the `gh` CLI, local markdown
+mirrored to GitHub issues, or freeform), and whether the repo keeps a roadmap (none by default, a
+git-ignored local file, or the repo's GitHub issues), then writes `docs/agents/cantrips-loop.md`. On
+GitHub issues or the mirror it creates the labels and marks the clone as one where agents may write
+to GitHub without asking. When you pick the mirror in a repo that already has feature folders, it
+lists what would go public, flagging secrets, email addresses and home paths, and publishes only the
+folders you keep. Re-runnable: a second run edits the existing doc.
 
 ### `/setup-git-guardrails`
 
@@ -344,14 +351,22 @@ install time. On Codex the hook stays inert until you trust it under `/hooks`.
 **The repo's roadmap, kept off the commit history.** Type `/roadmap` followed by an idea and it is
 filed at once: on the GitHub backend it searches the tracker first, records a hit on an item that
 already holds the idea, and otherwise opens an issue with its labels; a text that looks like it
-holds a secret or an email address is not published. On the default local file it adds the entry
-there. Agents load it too when asked what the roadmap holds. On the GitHub backend, an agent that
-meets a gap mid-task parks it as a file in the target repo's git-ignored `.scratch/roadmap-inbox/`
-and goes on without asking you, so the candidate survives a context summary or a session that ends
-early. `/compound` or a bare `/roadmap` drains that inbox: matches become hits, new items wait for
-your approval. A spec names the roadmap items its feature delivers. They are marked in flight while
-the work is under way, the commit that delivers a ticket closes its items with a `Fixes` line, and
-closing an abandoned feature puts its open items back in the pool.
+holds a secret or an email address is not published. On the local file, or in a repo that keeps no
+roadmap, it adds the entry to `.scratch/ROADMAP.md`. Agents load it too when asked what the roadmap
+holds. On the GitHub backend, an agent that meets a gap mid-task parks it as a file in the target
+repo's git-ignored `.scratch/roadmap-inbox/` and goes on without asking you, so the candidate
+survives a context summary or a session that ends early. `/compound` or a bare `/roadmap` drains
+that inbox: matches become hits, new items wait for your approval. A spec names the roadmap items
+its feature delivers. They are marked in flight while the work is under way, the commit that
+delivers a ticket closes its items with a `Fixes` line, and closing an abandoned feature puts its
+open items back in the pool.
+
+### `/storage`
+
+**The mirror's script.** In a repo that mirrors its features to GitHub issues, the plugin's Stop
+hook runs it at each turn's end on Claude Code, and elsewhere the agent loads it after each write
+verb. Its script copies the feature folder one way to the tracker, and its close command closes the
+feature's issues before you delete the folder.
 
 ### `/handoff`
 
@@ -421,7 +436,7 @@ prune sediment. Loaded before editing any skill, `AGENTS.md`, or rules file.
 ## Install
 
 Register this repository as a plugin source once, then install cantrips from it. The scripts of
-`/review-gate` and `/roadmap` need `node` 22.18 or later.
+`/review-gate`, `/roadmap` and `/storage` need `node` 22.18 or later.
 
 > [!IMPORTANT]
 > **Migrating from the upstreams?** Cantrips _replaces_ the Matt Pocock skills and the

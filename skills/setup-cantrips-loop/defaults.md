@@ -33,8 +33,4 @@ A store is on only when `docs/agents/cantrips-loop.md` lists it as enabled; skil
 
 ## Roadmap
 
-Read and write this repo's roadmap through `/roadmap`.
-
-- Backend: local file
-
-The roadmap is `.scratch/ROADMAP.md`, git-ignored: agents read and edit it directly, with no script, no inbox and no approval round.
+None: with no `## Roadmap` section, agents file nothing on their own, and a user's own request goes to the git-ignored `.scratch/ROADMAP.md`, read and edited directly, with no script, no inbox and no approval round.

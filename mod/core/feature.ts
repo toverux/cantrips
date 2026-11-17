@@ -13,7 +13,7 @@ export const SCRATCH = '.scratch'
 export const SPEC_FILE = 'spec.md'
 export const LOOP_CONFIG = 'docs/agents/cantrips-loop.md'
 
-// /roadmap's sync (skills/roadmap/scripts/roadmap.ts) copies TICKET_FILE, COMMENTS_HEADING and
+// /storage's sync (skills/storage/scripts/mirror.ts) copies TICKET_FILE, COMMENTS_HEADING and
 // the BLOCKED_BY reading: change both.
 const TICKET_FILE = /^(\d{2,})-.+\.md$/
 const COMMENTS_HEADING = /^##\s+comments\s*$/i
