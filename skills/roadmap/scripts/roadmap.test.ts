@@ -43,7 +43,8 @@ if (group === 'issue' && verb === 'list') {
     .slice(0, limit).map((issue) => Object.fromEntries(fields.map((f) => [f, issue[f]])));
   process.stdout.write(JSON.stringify(rows));
 } else if (group === 'label' && verb === 'list') {
-  process.stdout.write(JSON.stringify(state.labels.slice(0, limit).map((name) => ({ name }))));
+  // The real gh prints nothing, not [], for a tracker with no label.
+  if (state.labels.length > 0) process.stdout.write(JSON.stringify(state.labels.slice(0, limit).map((name) => ({ name }))));
 } else if (group === 'issue' && verb === 'create') {
   const created = fs.readFileSync(process.env.FAKE_GH_LOG, 'utf8').split('\\n').filter((l) => l.startsWith('["issue","create"')).length;
   process.stdout.write('https://github.com/' + flag('--repo') + '/issues/' + (100 + created) + '\\n');
@@ -989,6 +990,12 @@ test('a home path blocks no push', () => {
   assert.equal(out.status, 0, out.stderr);
   assert.equal(out.stderr, '');
   assert.equal(creates(out.calls).length, 2);
+});
+
+test('labels creates its set on a tracker that has no label at all', () => {
+  const out = sandbox(null, { labels: [] }).run('labels', '--tracker', 'acme/mirror');
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(out.calls.filter((c) => c[1] === 'create').map((c) => c[2]), ['spec', 'ticket']);
 });
 
 test('labels with a tracker creates the mirror\'s spec and ticket labels there, needing no config, and a second run creates nothing', () => {

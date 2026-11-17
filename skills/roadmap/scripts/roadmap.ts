@@ -377,9 +377,10 @@ function flight(roadmap: Roadmap, folder: string | undefined, set: boolean): str
 }
 
 // Creates only what the tracker lacks, so a second run changes nothing; GitHub matches label names regardless of case.
+// gh prints nothing, not [], for a tracker with no label.
 function labels(tracker: string, names: string[]): string {
   const existing = new Set(
-    (JSON.parse(gh('label', 'list', '--repo', tracker, '--limit', ALL, '--json', 'name')) as { name: string }[]).map((l) => l.name.toLowerCase()),
+    (JSON.parse(gh('label', 'list', '--repo', tracker, '--limit', ALL, '--json', 'name') || '[]') as { name: string }[]).map((l) => l.name.toLowerCase()),
   );
   const created: string[] = [];
   for (const name of names) {
