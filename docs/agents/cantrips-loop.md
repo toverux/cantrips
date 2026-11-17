@@ -1,12 +1,18 @@
 # The cantrips loop in this repo
 
-What the six storage verbs translate to here, and which knowledge stores are enabled.
+What the six storage verbs translate to here, which knowledge stores are enabled, and where the roadmap lives.
 Storage-touching skills read this doc instead of the plugin defaults.
 `/setup-cantrips-loop` wrote it; re-run that skill to change it.
 
 ## Storage backend
 
-Local markdown under a gitignored `.scratch/`; closing a feature means deleting `.scratch/<feature>/`.
+Local markdown under a gitignored `.scratch/`, each feature copied one way to GitHub issues by `/storage`'s script, the local files ruling.
+After publish-spec, and outside Claude Code after any write verb, sync the feature through `/storage` without asking, since its script publishes only in a clone the user marked; a spec opens with a one-line title, a level-one heading on its first line.
+A spec or a ticket delivering roadmap items names them on a `Roadmap items:` line, and publishing a spec marks its items in flight through `/roadmap`.
+To close a feature, close it through `/storage`, with `--done` or `--not-planned` where its tickets are not all resolved, and through `/roadmap`, then delete its folder.
+
+- Mirror: `toverux/cantrips`
+- Features: `.scratch/`
 
 - **Publish the spec** (`publish-spec`) — write it to `.scratch/<feature>/spec.md`, `<feature>` a kebab-case slug.
 - **Fetch the spec** (`fetch-spec`) — read `.scratch/<feature>/spec.md`.
@@ -21,6 +27,13 @@ Invariants, here as on any backend: an annotation appends without disturbing wha
 
 - `docs/adr/` — **enabled**.
 - `docs/solutions/` — **disabled**.
+
+## Roadmap
+
+Read and write this repo's roadmap through `/roadmap`.
+
+- Backend: `GitHub issues`
+- Tracker: `toverux/cantrips`
 
 ## Deputy/Arbiter instructions
 
