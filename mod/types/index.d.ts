@@ -1,8 +1,6 @@
 // The loop panel's state contract: the values the module keeps in `$.state`, declared under the
 // plugin's name, and the types the pure core and the module share.
 
-import type { AgentStatus } from 'claude-code'
-
 export type Stage =
   | 'grilling'
   | 'spec'
@@ -68,8 +66,8 @@ export type FlightRow = {
   resume: string | null
 }
 
-/** Where an agent's loop stands, as the engine's agent list says. */
-export type { AgentStatus }
+/** Where an agent's loop stands: the engine's own `AgentStatus`, restated since this contract may import nothing. */
+export type AgentStatus = 'pending' | 'running' | 'waiting' | 'idle' | 'completed' | 'failed' | 'killed'
 
 /** A cantrips sub-agent, known by its scoped plugin name on spawn. */
 export type AgentRole = 'finder' | 'verifier' | 'arbiter' | 'deputy'
