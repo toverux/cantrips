@@ -680,7 +680,7 @@ withSandbox('the loop queues everything found, sizes each batch by the cap, and 
   assert.match(first.agent, /^next: apply F1–F4$/m);
   s.write('src/a.ts', 'export const a = 2;\n');
   const outcome = s.call('outcomes', { outcomes: [1, 2, 3, 4].map((id) => ({ id, outcome: 'fixed' })) });
-  assert.match(outcome.agent, /^then: a delta round over `git diff [0-9a-f]{40} [0-9a-f]{40}` at inline; call report with delta_over \["F1","F2","F3","F4"\] and that level and, where it has a candidate, the arbiter's reply$/m);
+  assert.match(outcome.agent, /^then: a delta round over `git diff [0-9a-f]{40} [0-9a-f]{40}` at inline; call report with delta_over \["F1","F2","F3","F4"\] \(F1 `src\/f1\.ts:1`, F2 `src\/f2\.ts:2`, F3 `src\/f3\.ts:3`, F4 `src\/f4\.ts:4`\) and that level and, where it has a candidate, the arbiter's reply$/m);
   const delta = s.call('report', { spec: true, checks: 'none', level: 'inline', delta_over: ['F1', 'F2', 'F3', 'F4'], candidates: [bug(7)] });
   assert.match(delta.user, /^\*\*R2\*\* 🔬 delta over F1–F4 · inline · 1 found · 1 new · no checks · ⚖️ unjudged: F7$/m);
   assert.match(delta.user, /^- \*\*F7\*\* /m);
@@ -857,9 +857,13 @@ withSandbox('fourth_novel_round counts rounds past the first whose novelty survi
   delta(5, []); // R6
   const fourth = certifying([fix(6)]); // R7 novel: the stop waits for the round's end
   assert.match(fourth.agent, /^next: apply F6$/m);
-  assert.match(fourth.agent, /^then: call close once this round ends; the run stops on fourth_novel_round — R2, R4, R5, R7 if work is still standing then$/m);
+  assert.match(fourth.agent, /^stop: fourth_novel_round — R2, R4, R5, R7; call close once this round ends if work is still standing then$/m);
+  // The stop leads the step and the ledger closes it, so a reader cutting a long section short still meets the stop.
+  const handed = s.call('outcomes', { outcomes: [{ id: 'F6', outcome: 'fixed' }] }).agent.split('\n').filter((l) => !l.startsWith('paste:'));
+  assert.match(handed[0], /^stop: fourth_novel_round/);
+  assert.match(handed.at(-1) ?? '', /^- F3 `src\/f3\.ts:3`: bug 3 — skipped: /);
   // The round ends with nothing left: the run has converged, and the stop lapses.
-  assert.match(delta(6, []).agent, /^next: call close$/m);
+  assert.match(s.call('report', { ...VERIFIED, delta_over: ['F6'], ...judged([]) }).agent, /^next: call close$/m);
   assert.match(s.call('close').user, /^`GREEN: /);
   s.call('outcomes', { outcomes: [{ id: 'F3', outcome: 'fixed' }] });
   const fifth = delta(3, [fix(7)]); // R9 novel, with work standing
@@ -896,10 +900,10 @@ withSandbox('an answer during a stopping certifying pass leaves its batch to lan
   delta(3, [fix(4)]);
   delta(4, [fix(5)]);
   delta(5, []);
-  assert.match(certifying([fix(6)]).agent, /^then: call close once this round ends; the run stops on fourth_novel_round/m);
+  assert.match(certifying([fix(6)]).agent, /^stop: fourth_novel_round — .*; call close once this round ends/m);
   const out = s.call('answers', { answers: [{ id: 'F2', action: 'skip', reason: 'no' }] });
   assert.match(out.agent, /^next: apply F6$/m);
-  assert.match(out.agent, /^then: call close once this round ends; the run stops on fourth_novel_round/m);
+  assert.match(out.agent, /^stop: fourth_novel_round — .*; call close once this round ends/m);
 });
 
 withSandbox('a parked item prints in full when found and the loop keeps working', (s) => {
@@ -1255,12 +1259,13 @@ withSandbox('a --fsd pickup switches the run hands off first: a question of wort
 withSandbox('ledger prints the finder-brief block for the agent only', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
   assert.equal(s.call('ledger').agent, 'ledger: empty, nothing skipped or refuted yet');
+  assert.equal(s.call('ledger', { same_as: true }).agent, 'ledger: the run holds no other findings yet');
   s.call('report', {
     ...VERIFIED,
     ...judged([
       { ...REUSE, ruling: 'decline', opinion: 'no abort signal there' },
       { ...bug(9), verdict: 'refuted', evidence: 'guarded at `f9.ts:3`' },
-      fix(1),
+      fix(1, { also: ['src/g1.ts:5'] }),
     ]),
   });
   const out = s.call('ledger');
@@ -1270,12 +1275,19 @@ withSandbox('ledger prints the finder-brief block for the agent only', (s) => {
     [
       'ledger, for every finder brief:',
       'Omit a candidate matching an entry below — same defect at the same location for the same reason; a different mechanism at a listed location, or a refuted entry whose proving line the tree no longer holds, is new.',
-      '- F1 `src/api/client.ts:88`: reimplements `retry()` from `utils/retry.ts` — skipped: ⚖️ declined: no abort signal there',
+      '- F1 `src/api/client.ts:88`, `src/api/admin.ts:12`: reimplements `retry()` from `utils/retry.ts` — skipped: ⚖️ declined: no abort signal there',
       '- `src/f9.ts:9`: bug 9 — refuted: guarded at `f9.ts:3`',
     ].join('\n'),
   );
+  // What the finder-brief block leaves out, listed on request for the session's own same_as tags.
+  const others = (status: string) =>
+    ["the run's other findings, for your same_as tags and never for a finder brief:", `- F2 \`src/f1.ts:1\`, \`src/g1.ts:5\`: bug 1 — ${status}`].join('\n');
+  assert.equal(s.call('ledger', { same_as: true }).agent, others('queued'));
   const next = s.call('outcomes', { outcomes: [{ id: 'F2', outcome: 'fixed' }] });
   assert.ok(next.agent.includes(out.agent), 'the ledger rides with the suggestion of a gate call');
+  assert.match(next.agent, /delta_over \["F2"\] \(F2 `src\/f1\.ts:1` \+ `src\/g1\.ts:5`\)/);
+  assert.ok(!next.agent.includes("the run's other findings"), 'the same_as listing never rides with a gate call');
+  assert.equal(s.call('ledger', { same_as: true }).agent, others('fixed'));
   s.call('report', { ...VERIFIED, delta_over: ['F2'], arbiter: {}, candidates: [{ ...bug(8), verdict: 'refuted', evidence: 'e'.repeat(300) }] });
   assert.match(s.call('ledger').agent, /^- `src\/f8\.ts:8`: bug 8 — refuted: e{200}…$/m);
 });
@@ -1364,11 +1376,11 @@ withSandbox('answers names the overrule route for a finding the arbiter declined
 });
 
 withSandbox("at every level, a delta round with a candidate is reported with the arbiter's reply", (s) => {
-  assert.match(loopWithFix(s).agent, /; call report with delta_over \["F1"\] and that level and, where it has a candidate, the arbiter's reply$/m);
+  assert.match(loopWithFix(s).agent, /; call report with delta_over \["F1"\] \(F1 `src\/f1\.ts:1`\) and that level and, where it has a candidate, the arbiter's reply$/m);
   s.call('start', { level: 'inline', mode: 'loop', target: 't', fresh: true });
   s.call('report', { spec: false, checks: 'baseline', candidates: [bug(1)] });
   s.write('src/a.ts', 'export const a = 3;\n');
-  assert.match(s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] }).agent, /; call report with delta_over \["F1"\] and that level and, where it has a candidate, the arbiter's reply$/m);
+  assert.match(s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] }).agent, /; call report with delta_over \["F1"\] \(F1 `src\/f1\.ts:1`\) and that level and, where it has a candidate, the arbiter's reply$/m);
   const closing = s.call('report', { spec: false, checks: 'baseline', delta_over: ['F1'], candidates: [] });
   assert.match(closing.agent, /^next: call close$/m);
   assert.match(s.call('close').user, /^Checks at baseline · every pass ran unverified · ⚖️ R1 ran unjudged\\$/m);
@@ -1672,7 +1684,7 @@ withSandbox('the run certifies once, and the arbiter may ask for one more pass, 
   // A round with no candidate wakes no arbiter, so its block carries none.
   const delta = s.call('report', { ...VERIFIED, delta_over: ['F2'], candidates: [] });
   assert.doesNotMatch(delta.user, /⚖️/);
-  assert.match(delta.agent, /^next: a certifying pass over the whole target at medium, then call report$/m);
+  assert.match(delta.agent, /^next: a certifying pass over the whole target at medium, then call report, tagging a re-find `same_as` from `ledger` with `same_as: true` where you no longer hold the run's findings$/m);
   const certified = s.call('report', { ...VERIFIED, ...judged([fix(3)], { recertify: true }) });
   assert.match(certified.agent, /^not granted: the arbiter's one extra certifying pass is spent$/m);
   s.call('outcomes', { outcomes: [{ id: 'F3', outcome: 'parked', kind: 'user', options: OPTIONS }] });
@@ -1950,7 +1962,7 @@ withSandbox('a batch that changed nothing the tree shows is handed no diff, and 
   s.write('.scratch/spec.md', 'annotated\n');
   const out = s.call('outcomes', { outcomes: [{ id: 'F1', outcome: 'fixed' }] });
   assert.doesNotMatch(out.agent, /git diff/);
-  assert.match(out.agent, /^then: the batch changed nothing the tree shows; call report with delta_over \["F1"\] and no candidates$/m);
+  assert.match(out.agent, /^then: the batch changed nothing the tree shows; call report with delta_over \["F1"\] \(F1 `src\/f1\.ts:1`\) and no candidates$/m);
   assert.match(s.call('report', { ...VERIFIED, delta_over: ['F1'], candidates: [] }).agent, /^next: call close$/m);
 });
 

@@ -365,12 +365,16 @@ function classCounts(findings: Finding[]): string {
     .join(', ');
 }
 
+// A finding's every location, a merged entry's other sites included.
+function sites(f: Finding, separator = ', '): string {
+  return [f.location, ...f.also].map((l) => `\`${l}\``).join(separator);
+}
+
 function heading(f: Finding): string {
   // A finding no verifier judged is as uncertain as a plausible one, so it carries the same mark.
   const mark = f.verdict === 'confirmed' ? '' : '🤔';
   const lens = QUALITY.includes(f.category) ? ` ${f.category}` : '';
-  const where = [f.location, ...f.also].map((l) => `\`${l}\``).join(', ');
-  return `${classEmoji(f)}${mark}${lens} ${where}: ${f.summary}`;
+  return `${classEmoji(f)}${mark}${lens} ${sites(f)}: ${f.summary}`;
 }
 
 function letter(i: number): string {
@@ -476,6 +480,8 @@ function plural(n: number, word: string): string {
 
 interface Step {
   handoff?: Handoff;
+  // A tripped stop, which leads the agent section so a reader stopping early still meets it.
+  lead: string[];
   lines: string[];
 }
 
@@ -558,7 +564,9 @@ function pickedUp(file: string, state: State, autonomous: true | undefined): str
     const open = openParked(state).filter((f) => !forArbiter(state, f));
     lines.push(`still parked: ${ids(open)}`, `next: hand answers the user's replies to ${ids(open)}, asking for them where the user gave none`);
   } else {
-    lines.push(...next(state, roundEnded(state), () => state.handed ?? snapshot(file)).lines);
+    const step = next(state, roundEnded(state), () => state.handed ?? snapshot(file));
+    lines.unshift(...step.lead);
+    lines.push(...step.lines);
   }
   save(file, state);
   return lines;
@@ -869,7 +877,7 @@ function loopRound(
   const back = retry.filter((f) => !f.came_back);
   if (back.length) agent.push(`retry: ${ids(back)} came back after ${back.length === 1 ? 'its' : 'their'} outcome, queued for one retry`);
   // The block rows only what the run acts on; its declines are a header count.
-  return { user: roundBlock(state, round, queued), agent: [...agent, ...step.lines], handoff: step.handoff };
+  return { user: roundBlock(state, round, queued), agent: [...step.lead, ...agent, ...step.lines], handoff: step.handoff };
 }
 
 function checksText(checks: string): string {
@@ -903,7 +911,7 @@ function next(state: State, roundEnd: boolean, tree: () => string): Step {
   if (stop && (roundEnd || state.stop?.condition === 'fix_not_taking')) {
     const bare = state.queue.filter((id) => !byId(state, id).options);
     const standing = bare.length ? ` with \`standing\` options for ${ids(bare)}` : '';
-    return { handoff: 'close', lines: [`next: call close${standing}; the run stops on ${stop}`] };
+    return { handoff: 'close', lead: [`next: call close${standing}; the run stops on ${stop}`], lines: [] };
   }
   const out: string[] = [];
   // A red the last gate call reported is settled first, lest the next batch take the blame for it.
@@ -914,14 +922,15 @@ function next(state: State, roundEnd: boolean, tree: () => string): Step {
   if (record.length) {
     handoff = 'round';
     state.handed = tree();
-    const over = `call report with delta_over ${JSON.stringify(record.map((f) => `F${f.id}`))}`;
+    // Each ID's locations ride with it, so a session whose context lost the round blocks can still tag a re-find.
+    const where = record.map((f) => `F${f.id} ${sites(f, ' + ')}`).join(', ');
+    const over = `call report with delta_over ${JSON.stringify(record.map((f) => `F${f.id}`))} (${where})`;
     out.push(
       'next: run the checks, settling a red batch as LOOP.md says and then calling outcomes over any edit repaired or backed out, which hands the round a fresh diff',
       // A batch whose edits no snapshot sees, an ignored file's say, would be handed a diff that prints nothing.
       state.base === state.handed
         ? `then: the batch changed nothing the tree shows; ${over} and no candidates`
         : `then: a delta round over \`git diff ${state.base} ${state.handed}\` at ${state.level === 'inline' ? 'inline' : `the level it earns, inline to at most ${state.level}`}; ${over} and that level and, where it has a candidate, the arbiter's reply`,
-      ...ledgerLines(state),
     );
   } else if (state.queue.length) {
     handoff = 'fix';
@@ -944,15 +953,21 @@ function next(state: State, roundEnd: boolean, tree: () => string): Step {
   } else {
     handoff = 'round';
     state.handed = tree();
-    out.push(`next: a certifying pass over the whole target at ${state.level}, then call report`, ...ledgerLines(state));
+    // A pass after a round may re-find a fixed finding, which only a same_as tag lets the run catch.
+    const tag = state.rounds.length ? ", tagging a re-find `same_as` from `ledger` with `same_as: true` where you no longer hold the run's findings" : '';
+    out.push(`next: a certifying pass over the whole target at ${state.level}, then call report${tag}`);
   }
+  // The ledger rides with every suggested gate call, a red one's included.
+  const gateCall = handoff === 'round';
   if (red) handoff = 'fix';
   if (handoff === 'round' && worth.length) {
     const [it, its] = worth.length === 1 ? ['it', 'its'] : ['them', 'their'];
     out.push(`arbiter: ${ids(worth)} await${worth.length === 1 ? 's' : ''} ${its} choice; send ${it} with the gate call's message, where it sends one, and record ${it} through answers`);
   }
-  if (stop) out.push(`then: call close once this round ends; the run stops on ${stop}${novelty ? ' if work is still standing then' : ''}`);
-  return { handoff, lines: out };
+  // The ledger can run to tens of kilobytes, so it closes the section, below every line the agent acts on.
+  if (gateCall) out.push(...ledgerLines(state));
+  const lead = stop ? [`stop: ${stop}; call close once this round ends${novelty ? ' if work is still standing then' : ''}`] : [];
+  return { handoff, lead, lines: out };
 }
 
 // A stop a certifying pass tripped waits for that pass's batch, as the line its report printed says.
@@ -1032,7 +1047,7 @@ function ledgerLines(state: State): string[] {
   const entries = [
     ...state.findings.filter(standing).map((f) => {
       const reason = f.outcome === 'routed' ? `routed: route ${f.route}, ${gist(f.reason)}` : `skipped: ${gist(f.reason)}`;
-      return `- F${f.id} \`${f.location}\`: ${f.summary} — ${reason}`;
+      return `- F${f.id} ${sites(f)}: ${f.summary} — ${reason}`;
     }),
     ...state.refuted.map((r) => `- \`${r.location}\`: ${r.summary} — refuted: ${gist(r.reason)}`),
   ];
@@ -1124,7 +1139,7 @@ function outcomes(file: string, input: Json): Result {
     if (theirs.length) agent.push(`parked: ${ids(theirs)}; keep working, and fold the user's answers in through answers at a round boundary`);
     // A fix after a STOP is re-reviewed only where the user continues the run, never by waking the agent into a round.
     if (!step) return { user, agent: [...agent, 'next: the run stopped; answers or a --loop start continues it'] };
-    return { user, agent: [...agent, ...step.lines], handoff: step.handoff };
+    return { user, agent: [...step.lead, ...agent, ...step.lines], handoff: step.handoff };
   }
   const pending = state.findings.filter((f) => !f.held && !f.outcome);
   const waiting = openParked(state);
@@ -1181,7 +1196,7 @@ function answers(file: string, input: Json): Result {
   // A gate call already in flight keeps the tree it was handed, so an edit made since still shows at its report.
   const step = next(state, roundEnded(state), () => state.handed ?? snapshot(file));
   save(file, state);
-  return { user: '', agent: step.lines };
+  return { user: '', agent: [...step.lead, ...step.lines] };
 }
 
 function close(file: string, input: Json): Result {
@@ -1277,8 +1292,22 @@ function closingReport(state: State, line: string): string {
   return [head, key, settledRows, waiting, compound].filter(Boolean).join('\n\n');
 }
 
-function ledger(file: string): Result {
-  const lines = ledgerLines(load(file));
+function ledger(file: string, input: Json): Result {
+  const state = load(file);
+  if (optionalTrue(input, 'same_as', 'input')) {
+    // What the finder-brief block leaves out, which a context summary loses and a re-find is tagged against.
+    const held = state.findings.filter((f) => !standing(f));
+    if (!held.length) return { user: '', agent: ['ledger: the run holds no other findings yet'] };
+    const status = (f: Finding) => f.outcome ?? (state.queue.includes(f.id) ? 'queued' : 'open');
+    return {
+      user: '',
+      agent: [
+        "the run's other findings, for your same_as tags and never for a finder brief:",
+        ...held.map((f) => `- F${f.id} ${sites(f)}: ${f.summary} — ${status(f)}`),
+      ],
+    };
+  }
+  const lines = ledgerLines(state);
   return { user: '', agent: lines.length ? lines : ['ledger: empty, nothing skipped or refuted yet'] };
 }
 
@@ -1413,7 +1442,7 @@ function main(): void {
     else if (command === 'answers') result = answers(file, readInput());
     else if (command === 'close') result = close(file, readInput(true));
     else if (command === 'held') result = held(file);
-    else if (command === 'ledger') result = ledger(file);
+    else if (command === 'ledger') result = ledger(file, readInput(true));
     else if (command === 'resume') result = resumed(file);
     else {
       throw new InputError(

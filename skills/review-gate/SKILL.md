@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[inline|low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop | --fsd]'
 disable-model-invocation: true
-version: 2.3.3
+version: 2.4.0
 source: mattpocock/skills@1.3.2 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 # `; exit $LASTEXITCODE`, unquoted, keeps node's exit 2 under PowerShell, where Claude Code runs hooks on Windows; bash and sh ignore it.
 hooks:
@@ -42,13 +42,14 @@ Each subcommand reads one JSON object on stdin:
   A `--loop` start over this session's run that has not reached green continues it, and its output says so; `fresh: true` starts over instead, where the user asked for a review of other work.
 - `report` — `spec` (`true` or `false`), `verifiers` (`{"count": 3, "grouping": "file"}`) where any ran, `arbiter` wherever one ran — `{"rulings": […]}`, the `rulings` arrays of this gate call's replies as returned, put end to end — and `candidates` in rank order, refuted ones included.
   Each candidate carries the finder's fields — `file` and `line` (or `section` for a spec anchor), `summary`, `failure_scenario` and `category` — plus `also`, a merged entry's other locations as `file:line` strings, its `verdict` and `evidence`, `settled_inline: true` where triage settled it, the `index` it was last sent to the arbiter under — an array of its members' for a merged entry — which the script joins its ruling by, and a spec finding's `options`.
-  Under `--loop` it also takes `checks` (`baseline`, `red`, or `none` where the project has none), a delta round's `delta_over` (the batch's IDs) and `level` (`inline` to at most the invoked one), `same_as: "F3"` on a candidate re-finding a finding the run already holds, and in `arbiter` its `trajectory`, word for word, its `recertify` where it gave one, and its own `findings`, each `{"against": "F1", "action": "shrink" or "back out", "summary": …, "change": …}`.
+  Under `--loop` it also takes `checks` (`baseline`, `red`, or `none` where the project has none), a delta round's `delta_over` (the batch's IDs) and `level` (`inline` to at most the invoked one), `same_as: "F3"` on a candidate re-finding a finding the run already holds, which `ledger` with `same_as: true` lists where you no longer hold their IDs, and in `arbiter` its `trajectory`, word for word, its `recertify` where it gave one, and its own `findings`, each `{"against": "F1", "action": "shrink" or "back out", "summary": …, "change": …}`.
 - `outcomes` — `outcomes`, each `{"id": "F3", "outcome": …}`: `fixed`, the user's own edit included, `no_change_needed` where the tree already lacks the defect, `skipped` with its `reason` (a declined finding defaults to the arbiter's opinion), `routed` with its `route` letter, a `reason` saying what was done and, where the route annotated the spec, the `revision` the annotation recorded, or `parked` with its `options` and its `kind` — `worth`, a question of whether the fix is worth it, or `user`, what only the user can settle — and `tried` where anything was (`tried_yours: true` for the user's own edit, `with` listing the rest of a reverted batch).
 - `answers` (`--loop`) — `answers`, each `{"id": "F4", "action": "queue"}` for what the user asked fixed or fixed themselves, or `"skip"` with a `reason`; the arbiter's `choices` are recorded the same way, its reason as the `reason`.
   `autonomous: true` switches the run hands off from here on, with or without answers.
 - `close` (`--loop`) — on a stop, `standing`, each `{"id": …, "options": …}` for every queued finding that holds no options yet; otherwise no input.
 - `held` — no input; prints what the cap held back and what the arbiter declined, under the IDs they already have.
-- `ledger` (`--loop`) — no input; prints the finders' do-not-re-raise block, which also rides with every suggested gate call.
+- `ledger` (`--loop`) — with no input, prints the finders' do-not-re-raise block, which also rides with every suggested gate call.
+  `same_as: true` prints instead the run's other findings, those that block leaves out.
 - `resume` — no input; prints the step the last call handed over, where the user resumed the run.
 
 An option is `{"choice": …, "reasoning": …}`, exactly one of a finding's options also carrying `"recommended": true`.

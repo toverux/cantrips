@@ -6,7 +6,7 @@ How a finding is judged, shaped and channelled still comes from the section the 
 
 ## The run
 
-The script paces the run: after each call, do what its `next:` and `then:` lines say, printed or handed over at the turn end — the batch to apply, the delta round or certifying pass to run, the close — and take every judgement they leave from here.
+The script paces the run: after each call, do what its `stop:`, `next:` and `then:` lines say, printed or handed over at the turn end — the batch to apply, the delta round or certifying pass to run, the close — and take every judgement they leave from here.
 
 - **Checks** — the project's own checks (the commands its `AGENTS.md`/`CLAUDE.md` names, or the obvious suite runner), run once before the first gate call as the **baseline**; each `report` says whether a rerun adds to it, a red parked for the user excepted, or that the project has none.
 - **Gate calls** — a **certifying pass** is the full gate over the run's target as the tree now stands; a **delta round** is the gate over the `git diff` the script hands it, taken as Scope's whole target — a file the batch created is inside it, so Scope lists no untracked file beside it — at the highest level that diff earns by what it changes, the invoked level its ceiling and `inline` reachable under every ceiling: a batch of comments, docstrings or one expression earns `inline`, a few lines of logic in one file earn `low`, logic across files or anything other code depends on earns `medium`, a diff nobody would trust to one finder earns the invoked level.
