@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.0.1](https://github.com/toverux/cantrips/compare/v5.0.0...v5.0.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* **review-gate:** give the arbiter the spec's annotation rule and both numberings of past findings ([a55cd4b](https://github.com/toverux/cantrips/commit/a55cd4bd60d1b8940f60930e541a312cf110e1bd))
+* **review-gate:** lead with a tripped stop, and keep a summarized run able to tag what it re-finds ([20752c4](https://github.com/toverux/cantrips/commit/20752c413fc9fb11212fcefbbd323fa7401ad5e2))
+* **review-gate:** name an unread stdin, and spell out the fields and merges report accepts ([22c2c18](https://github.com/toverux/cantrips/commit/22c2c18a3da00dcf1fe5e7b50b3b4584c5f7c51a))
+* **storage:** stop a refused blocker from wedging later syncs, and hand a failed sync to the agent ([393700c](https://github.com/toverux/cantrips/commit/393700cf9e537b7ca003a876c56d4455cdc17bb0))
+* **tickets:** keep a ticket's "Blocked by" line to its blockers, with gated tickets after **Blocks:** ([eddaf56](https://github.com/toverux/cantrips/commit/eddaf56ef2d32e611b70b73554a4a4dae635ccf2))
+
 ## [5.0.0](https://github.com/toverux/cantrips/compare/v4.0.0...v5.0.0) (2026-11-17)
 
 
