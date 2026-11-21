@@ -134,10 +134,41 @@ test('a blocked-by line sets a relation for every other ticket number it names, 
   assert.equal(out.status, 0, out.stderr);
   const relations = out.calls.filter((c) => c.includes('--add-blocked-by'));
   assert.deepEqual(relations.map((c) => [c[2], flagValues(c, '--repo')[0], flagValues(c, '--add-blocked-by')[0]]), [
-    ['103', 'acme/widgets', '102,104'],
+    ['103', 'acme/widgets', '102'],
+    ['103', 'acme/widgets', '104'],
     ['104', 'acme/widgets', '103'],
   ]);
   assert.equal(sync().calls.length, out.calls.length);
+});
+
+test('a blocker GitHub refuses is reported in one line while the others land, one GitHub already holds is never sent, and the fixed line syncs clean', () => {
+  const cycle = 'GraphQL: Validation failed: this dependency would create a cycle where the target is already blocked by the source (addBlockedBy)';
+  const state = { blockedBy: { '104': [102] }, failOn: '--add-blocked-by 103', failWith: cycle };
+  const { sync, write, folder, setState } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1, '02-tickets.md': TICKET_1.replace('# 01', '# 02'), '03-last.md': '# 03: Last\n\n**Blocked by:** 01, 02\n' }, { state });
+  const out = sync('--tracker', 'acme/widgets');
+  assert.equal(out.status, 0, out.stderr);
+  oneLine(out.stderr);
+  assert.match(out.stderr, /#103 .*03-last\.md.*#104.*cycle/);
+  assert.deepEqual(out.calls.filter((c) => c.includes('--add-blocked-by')).map((c) => [c[2], flagValues(c, '--add-blocked-by')[0]]), [['104', '103']]);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(folder, 'mirror.json'), 'utf8')).files['03-last.md'].blockedBy, [102]);
+
+  write('03-last.md', '# 03: Last\n\n**Blocked by:** 01\n');
+  setState({ blockedBy: { '104': [102] } });
+  const fixed = sync();
+  assert.equal(fixed.status, 0, fixed.stderr);
+  assert.equal(fixed.stderr, '');
+  assert.deepEqual(fixed.calls.slice(out.calls.length).map((c) => c.slice(0, 3)), [['issue', 'edit', '104']]);
+  assert.match(sync().stdout, /already matches/);
+});
+
+test('a blocker set by hand from outside the feature is left alone when the line changes', () => {
+  const { sync, write, setState } = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1, '02-tickets.md': TICKET_2 });
+  const first = sync('--tracker', 'acme/widgets');
+  setState({ blockedBy: { '103': [102, 7] } });
+  write('02-tickets.md', TICKET_2.replace('01', 'None.'));
+  const out = sync();
+  assert.equal(out.status, 0, out.stderr);
+  assert.deepEqual(out.calls.slice(first.calls.length).filter((c) => c.includes('--remove-blocked-by')).map((c) => flagValues(c, '--remove-blocked-by')[0]), ['102']);
 });
 
 test('a file holding a secret or an email is skipped and reported in one line until its text changes', () => {
@@ -151,7 +182,7 @@ test('a file holding a secret or an email is skipped and reported in one line un
   assert.ok(!out.calls.some((c) => c.includes('--add-blocked-by')));
 
   write('01-spec.md', TICKET_1);
-  const later = sync().calls.slice(out.calls.length);
+  const later = sync().calls.slice(out.calls.length).filter((c) => c[0] === 'issue');
   assert.deepEqual(later.map((c) => [c[1], flagValues(c, '--title')[0] ?? c[2], flagValues(c, '--add-blocked-by')[0]]), [
     ['create', '[first-sync] ticket 01: Publish the spec', undefined],
     ['edit', '102', '103'],
@@ -194,7 +225,7 @@ test('a sync failed after some creations ends in one line, and the next run comp
   setState({});
   const again = sync();
   assert.equal(again.status, 0, again.stderr);
-  const later = again.calls.slice(out.calls.length);
+  const later = again.calls.slice(out.calls.length).filter((c) => c[0] === 'issue');
   assert.deepEqual(later.map((c) => [c[1], flagValues(c, '--title')[0] ?? c[2], flagValues(c, '--parent')[0] ?? flagValues(c, '--add-blocked-by')[0]]), [
     ['create', '[first-sync] ticket 02: Publish the tickets', '101'],
     ['edit', '104', '102'],
@@ -474,12 +505,13 @@ test('labels with a tracker creates the mirror\'s spec and ticket labels there, 
 // The loop config of a repo whose storage section declares the mirror, as setup writes it.
 const DECLARED = '# The cantrips loop in this repo\n\n## Storage backend\n\nLocal markdown.\n\n- Mirror: `acme/widgets`\n- Features: `.scratch/`\n\n## Knowledge stores\n\n- `docs/adr/` — **disabled**.\n';
 
-// What the Stop hook prints: nothing, or one systemMessage line.
-function message(stdout: string): string | undefined {
+// What the Stop hook prints: nothing, or one line of JSON.
+function answer(stdout: string): { systemMessage?: string; decision?: string; reason?: string } | undefined {
   if (!stdout) return undefined;
   oneLine(stdout);
-  return JSON.parse(stdout).systemMessage;
+  return JSON.parse(stdout);
 }
+const message = (stdout: string) => answer(stdout)?.systemMessage;
 
 test('catch-up is silent and calls nothing without the mark, without the declared mirror, or with nothing changed', () => {
   for (const [mark, config] of [[false, DECLARED], [true, null], [true, GITHUB]] as const) {
@@ -517,16 +549,37 @@ test('catch-up first-publishes a folder holding a spec and a ticket, and leaves 
   assert.deepEqual(creates(out.calls).map((c) => flagValues(c, '--title')[0]), ['[first-sync] A first sync', '[first-sync] ticket 01: Publish the spec']);
 });
 
-test('catch-up never fails a turn: a failed gh call or a flagged file ends in one line and exit 0', () => {
+test('catch-up sends a failed gh call or a flagged file back to the agent in one line, exiting 0', () => {
   const failed = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1 }, { config: DECLARED, state: { fail: 'error connecting to api.github.com' } }).run('catch-up');
   assert.equal(failed.status, 0);
   assert.equal(failed.stderr, '');
-  assert.match(message(failed.stdout)!, /^mirror: .*error connecting.*sandbox/);
+  const blocked = answer(failed.stdout)!;
+  assert.equal(blocked.decision, 'block');
+  assert.match(blocked.reason!, /error connecting.*sandbox.*telling the user/);
+  assert.equal(blocked.systemMessage, undefined);
 
   const leaky = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1.replace('It works.', 'Ask jane.doe@example.com.') }, { config: DECLARED }).run('catch-up');
   assert.equal(leaky.status, 0);
   assert.equal(leaky.stderr, '');
-  assert.match(message(leaky.stdout)!, /01-spec\.md holds what looks like an email address/);
+  assert.match(answer(leaky.stdout)!.reason!, /01-spec\.md holds what looks like an email address/);
+});
+
+test('on the stop that follows a blocked one, catch-up shows a problem still there to the user and blocks no more', () => {
+  const box = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1 }, { config: DECLARED, state: { fail: 'error connecting to api.github.com' } });
+  const out = box.runWith(JSON.stringify({ hook_event_name: 'Stop', stop_hook_active: true }), 'catch-up');
+  assert.equal(out.status, 0);
+  const shown = answer(out.stdout)!;
+  assert.equal(shown.decision, undefined);
+  assert.match(shown.systemMessage!, /^mirror: .*error connecting/);
+});
+
+test('catch-up shows a problem to the user and blocks nothing where it cannot read the hook input', () => {
+  const box = mirrorable({ 'spec.md': SPEC, '01-spec.md': TICKET_1 }, { config: DECLARED, state: { fail: 'error connecting to api.github.com' } });
+  const out = box.runWith('not json', 'catch-up');
+  assert.equal(out.status, 0);
+  const shown = answer(out.stdout)!;
+  assert.equal(shown.decision, undefined);
+  assert.match(shown.systemMessage!, /^mirror: .*error connecting/);
 });
 
 test('catch-up names a corrupt mirror.json and still syncs the folders beside it', () => {
@@ -537,7 +590,9 @@ test('catch-up names a corrupt mirror.json and still syncs the folders beside it
   fs.writeFileSync(path.join(broken, 'mirror.json'), '{');
   const out = box.run('catch-up');
   assert.equal(out.status, 0, out.stderr);
-  assert.match(message(out.stdout)!, /^mirror: \.scratch\/aaa-broken\/mirror\.json is not valid JSON; synced \.scratch\/first-sync .*2 created/);
+  const told = answer(out.stdout)!;
+  assert.match(told.systemMessage!, /^mirror: synced \.scratch\/first-sync .*2 created/);
+  assert.match(told.reason!, /\.scratch\/aaa-broken\/mirror\.json is not valid JSON/);
 });
 
 test('catch-up passes over a run another session holds, and takes up a lock its holder left past expiry', () => {

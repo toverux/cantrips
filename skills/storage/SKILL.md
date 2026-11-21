@@ -1,7 +1,7 @@
 ---
 name: storage
 description: Mirror a feature folder one way to GitHub issues. Use only where the repo's loop config names /storage.
-version: 1.0.0
+version: 1.0.1
 ---
 
 On Claude Code, the plugin's Stop hook syncs every mirrored feature at each turn's end, and first publishes one once it holds a ticket.

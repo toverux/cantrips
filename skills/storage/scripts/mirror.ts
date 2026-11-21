@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import process from 'node:process';
+import { isatty } from 'node:tty';
 import { Fault, gh, labels, MARK, marked, parse, readSpec, repoRoot, SECRETS, TRACKER } from './tracker.ts';
 
 // The file the sync owns in a feature folder. Its name is neither spec.md nor NN-*.md, so the panel never reads it.
@@ -37,12 +38,13 @@ Commands:
   labels --tracker <owner/repo>
                           Create the mirror's spec and ticket labels the tracker lacks.
   catch-up                The Stop hook's run: sync every mirrored folder under the features folder ${CONFIG}
-                          declares, and first publish one holding a ticket. Prints one systemMessage line where it
-                          published or failed, nothing otherwise, and always exits 0.
+                          declares, and first publish one holding a ticket. Prints one line where it published or
+                          failed, nothing otherwise: a failure blocks the stop for the agent to fix, but on a stop
+                          the hook's input marks as following a blocked one. Always exits 0.
   --help                  Print this help.
 `;
 
-// Where a sync reports a file it holds back; catch-up gathers these into its one line.
+// Where a sync reports what it holds back; catch-up gathers these.
 let report = (line: string) => {
   process.stderr.write(line);
 };
@@ -253,21 +255,39 @@ function sync(args: string[]): string {
   }
   // Read as the panel reads it: every other ticket number the "Blocked by" line names, none where it opens with "none",
   // each once its issue exists. A blocker the line stops naming loses its relation.
+  // A change diffs against the issue's blockers on GitHub, which applies a multi-edge edit one edge at a time, and sends one
+  // edge per call: an edge GitHub refuses, a cycle, is reported and the others still land. A blocker from outside the
+  // feature is left alone.
   const issueOf = (number: number) => numbers.files[tickets.find((name) => parseInt(name) === number) ?? '']?.issue;
+  const ours = new Set(Object.values(numbers.files).map((file) => file.issue));
   for (const name of tickets) {
     const known = numbers.files[name];
     if (!known) continue;
     const prose = /^\*\*Blocked by:\*\*[ \t]*(.*?)[ \t]*(?:\*\*Blocks:\*\*|$)/m.exec(read(name))?.[1] ?? '';
     const named = /^none\b/i.test(prose) ? [] : [...prose.matchAll(/\b(\d{2,3})\b/g)];
-    const blockers = named.map(([, number]) => issueOf(Number(number))).filter((issue): issue is number => issue !== undefined && issue !== known.issue);
+    const blockers = [...new Set(named.map(([, number]) => issueOf(Number(number))))].filter((issue): issue is number => issue !== undefined && issue !== known.issue);
     const had = known.blockedBy ?? [];
-    const added = [...new Set(blockers)].filter((issue) => !had.includes(issue));
-    const removed = had.filter((issue) => !blockers.includes(issue));
-    if (added.length + removed.length === 0) continue;
-    const change = (flag: string, issues: number[]) => (issues.length > 0 ? [flag, issues.join(',')] : []);
-    gh('issue', 'edit', String(known.issue), '--repo', numbers.tracker, ...change('--add-blocked-by', added), ...change('--remove-blocked-by', removed));
-    known.blockedBy = [...had.filter((issue) => !removed.includes(issue)), ...added];
-    updated++;
+    if (blockers.length === had.length && blockers.every((issue) => had.includes(issue))) continue;
+    const listed = JSON.parse(gh('api', `repos/${numbers.tracker}/issues/${known.issue}/dependencies/blocked_by?per_page=100`) || '[]') as { number: number; repository_url: string }[];
+    const live = listed.filter((issue) => issue.repository_url.toLowerCase().endsWith(`/repos/${numbers.tracker.toLowerCase()}`)).map((issue) => issue.number);
+    const current = new Set(live.filter((issue) => ours.has(issue) || had.includes(issue)));
+    const edge = (flag: string, issue: number) => {
+      try {
+        gh('issue', 'edit', String(known.issue), '--repo', numbers.tracker, flag, String(issue));
+      } catch (error) {
+        if (!(error instanceof Fault && /validation failed/i.test(error.message))) throw error;
+        report(`not linked: GitHub refused #${issue} as a blocker of ${name}'s issue #${known.issue}: ${error.message}\n`);
+        return;
+      }
+      if (flag === '--add-blocked-by') current.add(issue);
+      else current.delete(issue);
+      known.blockedBy = [...current];
+      updated++;
+      save();
+    };
+    for (const issue of blockers.filter((issue) => !current.has(issue))) edge('--add-blocked-by', issue);
+    for (const issue of [...current].filter((issue) => !blockers.includes(issue))) edge('--remove-blocked-by', issue);
+    known.blockedBy = [...current];
     save();
   }
   return created + updated === 0 ? `${folder} already matches ${numbers.tracker}\n` : `synced ${folder} to ${numbers.tracker}: ${created} created, ${updated} updated\n`;
@@ -275,7 +295,7 @@ function sync(args: string[]): string {
 
 // The Stop hook's run on Claude Code, in the repo of the current directory. A folder not yet mirrored is first published only
 // once it holds a ticket, since /spec drafts at the spec's own path before the user approves it.
-function catchUp(): string {
+function catchUp(retry: boolean): string {
   if (!marked()) return '';
   const root = repoRoot();
   process.chdir(root);
@@ -294,7 +314,8 @@ function catchUp(): string {
     fs.writeFileSync(lock, '');
   }
   const lines: string[] = [];
-  report = (line) => lines.push(line.trim());
+  const problems: string[] = [];
+  report = (line) => problems.push(line.trim());
   try {
     for (const name of fs.readdirSync(features).sort()) {
       const folder = path.join(features, name);
@@ -306,13 +327,26 @@ function catchUp(): string {
         const out = sync(mirrored ? [folder] : [folder, '--tracker', tracker]).trim();
         if (out && !/already matches/.test(out)) lines.push(out);
       } catch (error) {
-        lines.push((error as Error).message);
+        problems.push((error as Error).message);
       }
     }
   } finally {
     fs.rmSync(lock, { force: true });
   }
-  return lines.length > 0 ? `${JSON.stringify({ systemMessage: `mirror: ${lines.join('; ')}` })}\n` : '';
+  return answer(lines, problems, retry);
+}
+
+// What the Stop hook prints: a sync in one line for the user, and a problem sent back to the agent to fix, once a stop:
+// on the stop that follows, a problem still there goes to the user too.
+function answer(lines: string[], problems: string[], retry: boolean): string {
+  const out: Record<string, string> = {};
+  const shown = retry ? [...lines, ...problems] : lines;
+  if (shown.length > 0) out.systemMessage = `mirror: ${shown.join('; ')}`;
+  if (problems.length > 0 && !retry) {
+    out.decision = 'block';
+    out.reason = `The mirror of the feature folders to GitHub issues failed: ${problems.join('; ')}. Fix what you can of it without asking, such as rewording the line of the file it names, then end your turn, since this hook syncs again then. Where it is out of your reach, end your turn telling the user in one line.`;
+  }
+  return Object.keys(out).length > 0 ? `${JSON.stringify(out)}\n` : '';
 }
 
 const COMMANDS: Record<string, (args: string[]) => string> = {
@@ -326,12 +360,19 @@ const COMMANDS: Record<string, (args: string[]) => string> = {
 
 function main(args: string[]): void {
   const [command, ...rest] = args;
-  // A turn's end must never fail: whatever goes wrong is one line for the user, and the exit stays 0.
+  // A turn's end must never fail: whatever goes wrong goes back to the agent or to the user, and the exit stays 0.
   if (command === 'catch-up') {
+    // The hook's input marks a stop that follows a blocked one, whichever Stop hook blocked it. An input it cannot read
+    // counts as one, so a problem goes to the user rather than block every stop. `isatty(0)`, since `process.stdin.isTTY`
+    // makes a piped stdin non-blocking, and the read then throws EAGAIN on an input written late.
+    let retry = true;
     try {
-      process.stdout.write(catchUp());
+      retry = isatty(0) || JSON.parse(fs.readFileSync(0, 'utf8') || '{}').stop_hook_active === true;
+    } catch {}
+    try {
+      process.stdout.write(catchUp(retry));
     } catch (error) {
-      process.stdout.write(`${JSON.stringify({ systemMessage: `mirror: ${(error as Error).message}` })}\n`);
+      process.stdout.write(answer([], [(error as Error).message], retry));
     }
     return;
   }

@@ -11,15 +11,15 @@ import assert from 'node:assert/strict';
 
 // The stand-in: answers `issue list` and `label list` from the canned state, applies `--state` (default open),
 // `--search` (every word in the title) and `--limit` (default 30), answers `issue view` with the item's canned
-// comments and state, records `issue create` (numbering the issues it creates from 101), `issue comment` (numbering its comments from 901), `issue edit`, `issue close`, `issue reopen`, `api` and `label create`, and fails every call with the canned error
-// where one is set, or the calls holding the canned `failOn` text.
+// comments and state, answers the blocked-by dependencies read with the canned `blockedBy` issues, which a blocked-by edit updates, records `issue create` (numbering the issues it creates from 101), `issue comment` (numbering its comments from 901), `issue edit`, `issue close`, `issue reopen`, `api` and `label create`, and fails every call with the canned error
+// where one is set, or the calls holding the canned `failOn` text with the canned `failWith` error or a 502.
 const FAKE_GH = `
 const fs = require('node:fs');
 const args = process.argv.slice(2);
 fs.appendFileSync(process.env.FAKE_GH_LOG, JSON.stringify(args) + '\\n');
 const state = JSON.parse(fs.readFileSync(process.env.FAKE_GH_STATE, 'utf8'));
 if (state.fail || (state.failOn && args.join(' ').includes(state.failOn))) {
-  process.stderr.write((state.fail || 'HTTP 502: Bad Gateway') + '\\n');
+  process.stderr.write((state.fail || state.failWith || 'HTTP 502: Bad Gateway') + '\\n');
   process.exit(1);
 }
 const flag = (name) => {
@@ -50,6 +50,15 @@ if (group === 'issue' && verb === 'list') {
 } else if (group === 'issue' && verb === 'comment') {
   const posted = fs.readFileSync(process.env.FAKE_GH_LOG, 'utf8').split('\\n').filter((l) => l.startsWith('["issue","comment"')).length;
   process.stdout.write('https://github.com/' + flag('--repo') + '/issues/' + args[2] + '#issuecomment-' + (900 + posted) + '\\n');
+} else if (group === 'api' && /\\/dependencies\\/blocked_by\\b/.test(verb)) {
+  const [, repo, number] = /^repos\\/(.+)\\/issues\\/(\\d+)\\//.exec(verb);
+  process.stdout.write(JSON.stringify((state.blockedBy?.[number] ?? []).map((n) => ({ number: n, repository_url: 'https://api.github.com/repos/' + repo }))));
+} else if (group === 'issue' && verb === 'edit' && (flag('--add-blocked-by') || flag('--remove-blocked-by'))) {
+  const held = new Set((state.blockedBy ??= {})[args[2]] ?? []);
+  for (const n of (flag('--add-blocked-by') ?? '').split(',').filter(Boolean)) held.add(Number(n));
+  for (const n of (flag('--remove-blocked-by') ?? '').split(',').filter(Boolean)) held.delete(Number(n));
+  state.blockedBy[args[2]] = [...held];
+  fs.writeFileSync(process.env.FAKE_GH_STATE, JSON.stringify(state));
 } else if (!(group === 'label' && verb === 'create') && !(group === 'issue' && ['edit', 'close', 'reopen'].includes(verb)) && group !== 'api') {
   process.stderr.write('unexpected call\\n');
   process.exit(2);
@@ -65,7 +74,7 @@ export interface Run {
 
 export const SESSION = '0f3c2a9e-1b2d-4c5e-8f9a-0b1c2d3e4f5a';
 
-export type State = { issues?: unknown[]; labels?: string[]; comments?: Record<string, string[]>; fail?: string; failOn?: string };
+export type State = { issues?: unknown[]; labels?: string[]; comments?: Record<string, string[]>; fail?: string; failOn?: string; failWith?: string; blockedBy?: Record<string, number[]> };
 
 // The sandbox of the script at the given path.
 export function sandboxFor(SCRIPT: string) {
