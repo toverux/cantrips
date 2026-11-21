@@ -1296,7 +1296,7 @@ function warnings(findings: Finding[]): string[] {
 
 // ── main ───────────────────────────────────────────────────────────────────────────────────────
 
-function readInput(): Json {
+function readInput(optional = false): Json {
   let raw = '';
   try {
     raw = fs.readFileSync(0, 'utf8');
@@ -1304,7 +1304,10 @@ function readInput(): Json {
     // A call that takes no input may get a stdin nothing writes to, which reads as EAGAIN.
     if ((error as { code?: string }).code !== 'EAGAIN') throw error;
   }
-  if (!raw.trim()) return {};
+  if (!raw.trim()) {
+    if (optional) return {};
+    throw new InputError('stdin: no JSON read; where a pipe delivered it, redirect it from a file outside the repository');
+  }
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -1408,7 +1411,7 @@ function main(): void {
     else if (command === 'report') result = report(file, readInput());
     else if (command === 'outcomes') result = outcomes(file, readInput());
     else if (command === 'answers') result = answers(file, readInput());
-    else if (command === 'close') result = close(file, readInput());
+    else if (command === 'close') result = close(file, readInput(true));
     else if (command === 'held') result = held(file);
     else if (command === 'ledger') result = ledger(file);
     else if (command === 'resume') result = resumed(file);

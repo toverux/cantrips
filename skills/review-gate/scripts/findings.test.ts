@@ -2006,6 +2006,20 @@ withSandbox('a stdin held open with nothing written reads as no input', (s) => {
   assert.match(run.stdout, /^input error: no run in this session and worktree/m);
 });
 
+withSandbox('a call that takes input says so when its stdin delivers none', (s) => {
+  s.call('start', { level: 'medium', mode: 'report', target: 't' });
+  const empty = s.call('report', '');
+  assert.equal(empty.status, 2);
+  assert.match(empty.agent, /^input error: stdin: no JSON read; .*redirect it from a file/);
+  const held = spawnSync('sh', ['-c', 'sleep 1 | "$0" "$1" report', process.execPath, SCRIPT], {
+    env: { ...process.env, CLAUDE_CODE_SESSION_ID: 'test-session', TMPDIR: path.dirname(path.dirname(s.dir)) },
+    cwd: s.repo,
+    encoding: 'utf8',
+  });
+  assert.equal(held.status, 2);
+  assert.match(held.stdout, /^input error: stdin: no JSON read/m);
+});
+
 withSandbox('a rejected call leaves the run as it was', (s) => {
   s.call('start', { level: 'medium', mode: 'report', target: 't' });
   s.call('report', { spec: true, candidates: [LRU, { ...LRU, category: 'style' }] });

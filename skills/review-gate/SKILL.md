@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[inline|low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop | --fsd]'
 disable-model-invocation: true
-version: 2.3.2
+version: 2.3.3
 source: mattpocock/skills@1.3.2 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 # `; exit $LASTEXITCODE`, unquoted, keeps node's exit 2 under PowerShell, where Claude Code runs hooks on Windows; bash and sh ignore it.
 hooks:
@@ -32,7 +32,7 @@ Finders find and verifiers judge — a finder never drops a candidate it half-be
 ## The findings script
 
 [scripts/findings.ts](scripts/findings.ts) holds the run's findings and prints every surface the user reads: the report, each batch reprinted with its outcomes, and under `--loop` each round and the closing report.
-Call it as `node <this skill's directory>/scripts/findings.ts <subcommand>`, the JSON written compact — no indentation, one line per candidate or outcome at most — and piped straight in through a quoted heredoc (`<<'EOF'`).
+Call it as `node <this skill's directory>/scripts/findings.ts <subcommand>` from the root of the repository under review, the JSON written compact — no indentation, one line per candidate or outcome at most — and piped straight in through a quoted heredoc (`<<'EOF'`).
 The first call is `start`, before Scope, and it doubles as the runtime check: where `node` is missing or rejects the file, stop and tell the user the gate needs `node` 22.18 or later.
 The contract below is the script's whole interface: build every call from it alone.
 Each subcommand reads one JSON object on stdin:
@@ -41,7 +41,7 @@ Each subcommand reads one JSON object on stdin:
   Under `--fsd`, `autonomous: true`; left out, a relaunch of a stopped run keeps the run's own.
   A `--loop` start over this session's run that has not reached green continues it, and its output says so; `fresh: true` starts over instead, where the user asked for a review of other work.
 - `report` — `spec` (`true` or `false`), `verifiers` (`{"count": 3, "grouping": "file"}`) where any ran, `arbiter` wherever one ran — `{"rulings": […]}`, the `rulings` arrays of this gate call's replies as returned, put end to end — and `candidates` in rank order, refuted ones included.
-  Each candidate carries the finder's fields — `file` and `line`, or `section` for a spec anchor — plus `also`, a merged entry's other locations as `file:line` strings, its `verdict` and `evidence`, `settled_inline: true` where triage settled it, the `index` it was last sent to the arbiter under — an array of its members' for a merged entry — which the script joins its ruling by, and a spec finding's `options`.
+  Each candidate carries the finder's fields — `file` and `line` (or `section` for a spec anchor), `summary`, `failure_scenario` and `category` — plus `also`, a merged entry's other locations as `file:line` strings, its `verdict` and `evidence`, `settled_inline: true` where triage settled it, the `index` it was last sent to the arbiter under — an array of its members' for a merged entry — which the script joins its ruling by, and a spec finding's `options`.
   Under `--loop` it also takes `checks` (`baseline`, `red`, or `none` where the project has none), a delta round's `delta_over` (the batch's IDs) and `level` (`inline` to at most the invoked one), `same_as: "F3"` on a candidate re-finding a finding the run already holds, and in `arbiter` its `trajectory`, word for word, its `recertify` where it gave one, and its own `findings`, each `{"against": "F1", "action": "shrink" or "back out", "summary": …, "change": …}`.
 - `outcomes` — `outcomes`, each `{"id": "F3", "outcome": …}`: `fixed`, the user's own edit included, `no_change_needed` where the tree already lacks the defect, `skipped` with its `reason` (a declined finding defaults to the arbiter's opinion), `routed` with its `route` letter, a `reason` saying what was done and, where the route annotated the spec, the `revision` the annotation recorded, or `parked` with its `options` and its `kind` — `worth`, a question of whether the fix is worth it, or `user`, what only the user can settle — and `tried` where anything was (`tried_yours: true` for the user's own edit, `with` listing the rest of a reverted batch).
 - `answers` (`--loop`) — `answers`, each `{"id": "F4", "action": "queue"}` for what the user asked fixed or fixed themselves, or `"skip"` with a `reason`; the arbiter's `choices` are recorded the same way, its reason as the `reason`.
@@ -150,7 +150,7 @@ Sweep candidates go through Verify like any others.
 ## Synthesize and report
 
 Rank: correctness and spec findings outrank quality findings; CONFIRMED outranks PLAUSIBLE; severity orders the rest.
-Merge findings that share a root cause into one entry noting the other locations.
+Merge findings that share a root cause into one entry noting the other locations, keeping apart those the arbiter ruled differently.
 Hand the ranked list to `report` and paste its block; the script applies the level's cap.
 
 A spec finding carries its two routes as options, one recommended: align the code with the spec, or — the decision was revised mid-implementation — annotate the spec with the revision (the annotate-spec verb from Scope's loop config) and flag it for `/compound` at loop end.
