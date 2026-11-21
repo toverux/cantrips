@@ -6,7 +6,7 @@ These rules govern every run that applies fixes — `--fix` and `--loop` — at 
 
 ## Dispatch
 
-Dispatch `cantrips:arbiter` once the first round's candidates are deduplicated and triaged, at the same time as any verifiers, its message carrying the scope block, the fetched spec where there is one, and the round's message.
+Dispatch `cantrips:arbiter` once the first round's candidates are deduplicated and triaged, at the same time as any verifiers, its message carrying the scope block, the fetched spec where there is one, with the loop config's annotate-spec line quoted, and the round's message.
 Where the harness loads no plugin agent definitions, read [`arbiter.md`](../../agents/arbiter.md), skip its frontmatter, paste its body into a general-purpose dispatch run in the background, and apply the model its frontmatter names where the dispatch primitive exposes a selector.
 It is one agent for the whole run: keep what the dispatch returned to address it by, send every later batch — a `high` sweep's candidates, each further round under `--loop` — as a follow-up message to that same agent, and close it when the run ends, where the harness has a close step.
 
@@ -21,7 +21,7 @@ The author ruling on its own diff is a bias `inline` accepts.
 
 - The batch's findings, indexed: the candidates still standing after inline triage, whether or not a verifier takes them, sent, and the rulings awaited, before any of them is applied.
   Within one gate call, a follow-up message numbers its findings on from the last index already sent, so no two share an index.
-- Under `--loop`, the drift data — the target's size when the run began and now, and the lines each round's fixes added and removed — and the previous round's verdicts and outcomes, one line per finding.
+- Under `--loop`, the drift data — the target's size when the run began and now, and the lines each round's fixes added and removed — and the previous round's verdicts and outcomes, one line per finding, naming it by both the index it was ruled under and its `F` ID, each labelled.
 - Once the run is hands off, the parked `worth` items `answers` has not yet recorded, each with its options and the recommended one marked, for a `choices` entry each; where the script's `next:` line asks, they go in a message of their own.
 
 A gate call that found nothing sends no message: the next one with a finding carries the drift data of every round since.
