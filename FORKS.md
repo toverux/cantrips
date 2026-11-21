@@ -261,6 +261,7 @@ Verified against `v1.3.2`.
   It also says a first cut underestimates what one window carries and to prefer fewer, larger slices — the window-sized rule alone leaves an agent's first breakdown over-split.
 - The publish step's "Do NOT close or modify any parent issue." says "the parent spec" — this pipeline's parent artifact is the `/spec` document, not a tracker issue.
 - Upstream's "Work the **frontier**" sentence moves out of the publish step into the closing flow pointer — it decides which ticket `/implement` takes next, not how tickets are published.
+- The publish step says the "Blocked by" line names only the ticket's blockers, and a ticket it gates follows a `**Blocks:**` label — the panel and `/storage` read every ticket number before that label as a blocker, and `/storage` mirrors each as a GitHub dependency, which GitHub refuses where it closes a cycle.
 - `mod/core/feature.ts` parses this template's title, `**Blocked by:**` line, checkboxes and status line, so a delta there is checked against it, whatever its disposition.
 
 ### /wait-what (wait-what)
