@@ -2,7 +2,7 @@
 name: roadmap
 description: Read or write this repo's roadmap. Use when asked to file an idea, what it holds or what to work on next, or on meeting a gap worth an item where the loop config has a Roadmap section.
 argument-hint: '[an idea to file]'
-version: 1.0.0
+version: 1.0.1
 ---
 
 The repo's loop config, `docs/agents/cantrips-loop.md`, says where the roadmap lives in its `## Roadmap` section.

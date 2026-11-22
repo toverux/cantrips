@@ -3,7 +3,7 @@ name: implement
 description: Implement a spec or a single ticket, driving TDD at the seams agreed in the spec.
 argument-hint: '[spec or ticket; blank asks]'
 disable-model-invocation: true
-version: 1.7.0
+version: 1.8.0
 source: mattpocock/skills@1.3.2 (implement)
 ---
 
@@ -15,6 +15,9 @@ Where the spec agreed a **test seam**, drive `/tdd` at that seam — the seams a
 Where no seam was agreed, implement directly: state explicit verification criteria up front (what observable result proves it works), then verify against them before calling the work done.
 
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
+
+Where a ticket lays out its work in named steps, annotate it at the end of each, and any ticket before you stop with it unfinished: the annotate-ticket verb.
+Write for the agent who resumes from the ticket alone: what would change what it does next and it could not learn from the code, the tests or the spec, never an account of the work done.
 
 When working from a ticket, tick its acceptance criteria as each one is verified.
 When every criterion is verified, resolve the ticket — the resolve-ticket verb from the same loop config, the ticked criteria standing as evidence.

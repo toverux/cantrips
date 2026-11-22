@@ -2,7 +2,7 @@
 
 The storage contract for a repo where `/setup-cantrips-loop` has never run: skills fall back to this file whenever `docs/agents/cantrips-loop.md` is absent, so a bare install works with no configuration step.
 
-## The six storage verbs
+## The storage verbs
 
 Storage-touching skills speak these verbs and let the repo's config — or this fallback — supply the paths and commands.
 Under the default local-markdown backend they translate as:
@@ -12,6 +12,7 @@ Under the default local-markdown backend they translate as:
 - **Annotate the spec** (`annotate-spec`) — append the note under a `## Comments` heading at the end of the spec file, each entry prefixed with its date; the annotation leaves the body above that heading as written.
 - **Publish the tickets** (`publish-tickets`) — write one file per ticket to `.scratch/<feature>/NN-<slug>.md`, numbered from `01` in dependency order, blocking edges as the ticket body's "Blocked by" prose; the shared folder is what ties a ticket to its parent spec.
 - **Fetch the ticket** (`fetch-ticket`) — read the ticket file.
+- **Annotate the ticket** (`annotate-ticket`) — append the note, undated, under a `## Comments` heading at the end of the ticket file.
 - **Resolve the ticket** (`resolve-ticket`) — add or flip a `Status: resolved` line directly under the ticket's title; the verified acceptance-criterion checkboxes remain as evidence.
 
 Any write under `.scratch/` first makes sure `.scratch/` is listed in `.gitignore`.

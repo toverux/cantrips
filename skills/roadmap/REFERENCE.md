@@ -38,6 +38,6 @@ A spec lists every item its feature delivers on one `Roadmap items:` line, and e
 Check a text for secrets and email addresses before writing it, since only the script checks for you.
 Every command takes `--repo <the config's tracker>`.
 
-- Read an item and its hits: `gh issue view <N> --comments`.
+- Read an item: `gh issue view <N>`, and its hits with a separate `--comments` run.
 - Re-triage: `gh issue edit <N> --add-label "priority: high" --remove-label "priority: low"`.
 - Close: `gh issue close <N> --reason completed`, or `--reason "not planned"`.

@@ -30,7 +30,7 @@ Nothing fails when one drifts, so check them yourself whenever you touch the fil
 - `.claude-plugin/plugin.json` + `.codex-plugin/plugin.json`: the dual manifests; shared fields must stay identical, and the `hooks` and `types` fields are Claude-only.
 - `.claude-plugin/marketplace.json` + `.agents/plugins/marketplace.json`: the catalog files that publish this repo as an installable plugin (Claude Code takes a string `source`, Codex CLI the object form; both point at `./`).
 - `FORKS.md`: the fork divergence ledger — every upstream skill listed, forks with how they deliberately differ and a reason that stays true of the fork as it stands, the rest marked not ported; `/sync-upstream` and human readers both consult it.
-- `docs/agents/cantrips-loop.md`: the per-repo loop config — what the six storage verbs translate to here, and which knowledge stores are enabled (`docs/adr/` on, `docs/solutions/` off).
+- `docs/agents/cantrips-loop.md`: the per-repo loop config — what the storage verbs translate to here, and which knowledge stores are enabled (`docs/adr/` on, `docs/solutions/` off).
   Storage-touching skills read it instead of `skills/setup-cantrips-loop/defaults.md`; `/setup-cantrips-loop` rewrites it.
 - `.scratch/<feature>/`: the spec and tickets of a feature in flight, gitignored and disposable — deleted when the feature closes, which is the human's act.
   `.scratch/sync/` is not feature material but `dev:fork-diff`'s cache of upstream files, outliving any one feature and safe to delete wholesale.

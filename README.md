@@ -101,14 +101,14 @@ engine call it makes.
 
 ## Storage and memory
 
-No skill hard-codes where a spec or a ticket lives. The storage-touching skills speak **six
-verbs** — _publish_, _fetch_, and _annotate_ the spec; _publish_, _fetch_, and _resolve_ the
-ticket — and one per-repo doc, `docs/agents/cantrips-loop.md`, translates each verb for the repo's
-backend, lists which knowledge stores are enabled, and says where the roadmap lives in a `## Roadmap`
-section, if the repo keeps one: a git-ignored `.scratch/ROADMAP.md`, or the repo's GitHub issues, one
-issue per item. Without that section agents file nothing on their own, and `/roadmap <an idea>` still
-writes to the local file. When that doc is absent, the plugin's defaults govern, so a bare install
-runs with no configuration step.
+No skill hard-codes where a spec or a ticket lives. The storage-touching skills speak a set of
+**verbs** — _publish_, _fetch_, and _annotate_ the spec; _publish_, _fetch_, _annotate_, and
+_resolve_ the ticket — and one per-repo doc, `docs/agents/cantrips-loop.md`, translates each verb
+for the repo's backend, lists which knowledge stores are enabled, and says where the roadmap lives
+in a `## Roadmap` section, if the repo keeps one: a git-ignored `.scratch/ROADMAP.md`, or the repo's
+GitHub issues, one issue per item. Without that section agents file nothing on their own, and
+`/roadmap <an idea>` still writes to the local file. When that doc is absent, the plugin's defaults
+govern, so a bare install runs with no configuration step.
 
 A repo can also mirror its features to GitHub issues. The spec and tickets stay local files, and
 `/storage`'s script copies each feature one way to the tracker: the spec becomes an issue, and each
@@ -331,7 +331,7 @@ do not settle. A later `/deputy` takes new orders, a switch of mode, or a dismis
 ### `/setup-cantrips-loop`
 
 **Configure how a repo runs the loop.** Asks which opt-in knowledge stores to enable, which backend
-seed translates the six storage verbs (local markdown, GitHub through the `gh` CLI, local markdown
+seed translates the storage verbs (local markdown, GitHub through the `gh` CLI, local markdown
 mirrored to GitHub issues, or freeform), and whether the repo keeps a roadmap (none by default, a
 git-ignored local file, or the repo's GitHub issues), then writes `docs/agents/cantrips-loop.md`. On
 GitHub issues or the mirror it creates the labels and marks the clone as one where agents may write

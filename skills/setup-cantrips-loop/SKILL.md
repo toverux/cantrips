@@ -2,10 +2,10 @@
 name: setup-cantrips-loop
 description: Configure this repo's cantrips loop — knowledge stores, storage backend and roadmap — by writing docs/agents/cantrips-loop.md.
 disable-model-invocation: true
-version: 1.1.0
+version: 1.2.0
 ---
 
-Configure how this repo runs the cantrips loop: which opt-in knowledge stores are enabled, which backend the six storage verbs translate to, and where the roadmap lives.
+Configure how this repo runs the cantrips loop: which opt-in knowledge stores are enabled, which backend the storage verbs translate to, and where the roadmap lives.
 The result is one prose doc, `docs/agents/cantrips-loop.md`, that storage-touching skills read in place of the plugin defaults ([defaults.md](defaults.md)).
 
 ## Process
@@ -19,12 +19,12 @@ The result is one prose doc, `docs/agents/cantrips-loop.md`, that storage-touchi
      Written only through `/compound`'s user gate; read back by `/spec` as the repo's decision memory.
    - `docs/solutions/` holds problem-shaped learnings — root cause, the gotcha, what didn't work — so the next session that hits the same problem starts from the answer.
 
-3. Ask which backend seed translates the six storage verbs (the verbs and their meaning: [defaults.md](defaults.md)):
+3. Ask which backend seed translates the storage verbs (the verbs and their meaning: [defaults.md](defaults.md)):
 
    - **Local markdown** — the default made explicit: the verb translations in [defaults.md](defaults.md).
      Ask where the artifacts live: gitignored `.scratch/<feature>/` (the default — disposable working material, deleted by the human when the feature closes) or a committed path such as `docs/specs/` for repos whose specs should travel with branches, worktrees, and pull requests.
      For a gitignored location, add the entry to `.gitignore` in this run, so the doc states it as a fact and carries no rule for later writes.
-   - **GitHub** — the `gh` CLI: publish the spec as a GitHub issue holding the spec body; publish the tickets as one issue each, each linking its parent spec issue, blocking edges via native issue links; fetch the spec or a ticket with `gh issue view`; annotate the spec as an issue comment, which appends and carries its own timestamp; resolve the ticket as an issue close with a completion comment.
+   - **GitHub** — the `gh` CLI: publish the spec as a GitHub issue holding the spec body; publish the tickets as one issue each, each linking its parent spec issue, blocking edges via native issue links; fetch the spec or a ticket with `gh issue view`, and its comments with a separate `--comments` run; annotate the spec or a ticket as an issue comment, which appends and carries its own timestamp; resolve the ticket as an issue close with a completion comment.
    - **Mirror** — local markdown as above, each feature copied one way to a GitHub repo's issues by `/storage`'s script, the local files ruling.
      Take it only from an answer the user gives in this run; a choice the existing doc holds carries forward.
      Ask for the tracker as `owner/repo`, and check that `gh issue create --help` lists `--parent` and `gh issue edit --help` lists `--add-blocked-by`, telling the user the mirror needs a newer `gh` where either is missing.
@@ -47,7 +47,7 @@ The result is one prose doc, `docs/agents/cantrips-loop.md`, that storage-touchi
 
 # The cantrips loop in this repo
 
-What the six storage verbs translate to here, which knowledge stores are enabled, and where the roadmap lives.
+What the storage verbs translate to here, which knowledge stores are enabled, and where the roadmap lives.
 Storage-touching skills read this doc instead of the plugin defaults.
 `/setup-cantrips-loop` wrote it; re-run that skill to change it.
 
@@ -60,6 +60,7 @@ Storage-touching skills read this doc instead of the plugin defaults.
 - **Annotate the spec** (`annotate-spec`) — <translation>
 - **Publish the tickets** (`publish-tickets`) — <translation>
 - **Fetch the ticket** (`fetch-ticket`) — <translation>
+- **Annotate the ticket** (`annotate-ticket`) — <translation>
 - **Resolve the ticket** (`resolve-ticket`) — <translation>
 
 <the invariants, carried from defaults.md>
