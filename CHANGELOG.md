@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.1.0](https://github.com/toverux/cantrips/compare/v5.0.1...v5.1.0) (2026-11-22)
+
+
+### Features
+
+* **implement:** annotate a ticket with what resuming it needs, through an annotate-ticket verb ([0e90b4c](https://github.com/toverux/cantrips/commit/0e90b4cc7b8cd5b7ce7e885ed2379e043cb109f4)), closes [#106](https://github.com/toverux/cantrips/issues/106)
+* **review-gate:** say how the finders' candidates became the verifiers' as those launch ([8ba38c1](https://github.com/toverux/cantrips/commit/8ba38c18af34b4c96f6f6aff892faf7ae1d36c24)), closes [#119](https://github.com/toverux/cantrips/issues/119) [#55](https://github.com/toverux/cantrips/issues/55)
+
+
+### Bug Fixes
+
+* **mod:** report a new feature to the loop panel once its spec exists, instead of being refused ([77ee515](https://github.com/toverux/cantrips/commit/77ee51549a740a0c51ea10d6b6b364004db2f41a)), closes [#96](https://github.com/toverux/cantrips/issues/96)
+* **review-gate:** stop narrating each returning agent, and leave the /compound scan to /commit ([7e5f495](https://github.com/toverux/cantrips/commit/7e5f495de5930d9c287aba1417ec3f4cfa672f51)), closes [#69](https://github.com/toverux/cantrips/issues/69) [#108](https://github.com/toverux/cantrips/issues/108) [#110](https://github.com/toverux/cantrips/issues/110)
+* **simplify:** check prose cuts against the text the pass started from, not HEAD ([36147c2](https://github.com/toverux/cantrips/commit/36147c2ba780cf14080a2c5707a2e704bdf9c039)), closes [#85](https://github.com/toverux/cantrips/issues/85)
+* **spec:** reread the draft until a pass finds nothing of substance, instead of three times at most ([ab47fea](https://github.com/toverux/cantrips/commit/ab47fea8dc9260a7cc0ebf6ca15117a79e394296)), closes [#113](https://github.com/toverux/cantrips/issues/113)
+* **tickets:** put the breakdown to the user in one fixed, scannable format ([01a8738](https://github.com/toverux/cantrips/commit/01a87387a576a53d5eb475560439d3d56c10dec0)), closes [#89](https://github.com/toverux/cantrips/issues/89)
+
 ## [5.0.1](https://github.com/toverux/cantrips/compare/v5.0.0...v5.0.1) (2026-11-21)
 
 
