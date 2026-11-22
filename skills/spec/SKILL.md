@@ -2,7 +2,7 @@
 name: spec
 description: Synthesize the current conversation into a published spec, test seams included.
 disable-model-invocation: true
-version: 1.4.0
+version: 1.4.1
 source: mattpocock/skills@1.3.2 (to-spec)
 ---
 
@@ -68,11 +68,10 @@ Number on from the conversation's last question where an interview preceded, so 
 
    You are the draft's only writer: apply to the file each finding that needs no user call, and hold the rest for step 6.
    Then message the same sub-agent to reread the file.
-   Repeat until a pass reports nothing that changes a decision, a claim or a gap beyond the findings already held, three passes at most; wording-only findings are fixed without calling for another pass.
+   Repeat until a pass reports nothing that changes a decision, a claim or a gap beyond the findings already held; wording-only findings are fixed without calling for another pass.
 
 6. Put the residue to the user: one line saying what the reread fixed or softened on its own, then the questions only the user can settle, as one numbered round ending the message, in step 3's format.
    Where this session engaged a deputy through `/deputy` and has not dismissed it, what is put to the user here goes to the deputy instead, as [ROUNDS.md](../deputy/ROUNDS.md) says, and the deputy's reply is printed verbatim under a one-line header before anything acts on it; otherwise it goes to the user as written.
-   A third pass that still changed a decision, a claim or a gap is residue too: say the cap was hit.
    Leave the draft out of the message.
    With no residue, publish without stopping.
    Apply the user's answers to the draft.
