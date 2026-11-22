@@ -3,7 +3,7 @@ name: simplify
 description: Optional pre-review quality pass — preserving fixes through the reuse, simplification, efficiency, and test-value lenses, pruning tests and comments that carry no value. Bug hunting is /review-gate's job.
 argument-hint: "[blank to simplify current branch changes, or describe what to simplify] [proof-test:<path> ...]"
 disable-model-invocation: true
-version: 1.11.1
+version: 1.11.2
 source: EveryInc/compound-engineering-plugin@3.38.1 (ce-simplify-code)
 ---
 
@@ -34,10 +34,10 @@ The proof-test path is context for Steps 2 and 3, never scope; a caller may pass
 2. **Otherwise**, use the diff between the current branch and its merge-base with the default branch (`git diff <default-branch>...`) plus the uncommitted changes (`git diff HEAD`), which a merge-base diff leaves out.
    With no base ref, the uncommitted changes alone.
    Either way, add the files git does not track (`git ls-files --others --exclude-standard`): a file git does not track appears in no diff, so it joins the scope whole.
-   Snapshot each of those untracked files before Step 3 edits anything — git holds no pre-pass state for them, and Step 4 verifies against pre-pass text.
 3. **Outside a git repository**, use the files edited earlier in this conversation.
 
 If the scope comes up empty, stop and ask the user what to simplify.
+Snapshot the scope's files before Step 3 edits any: Step 4 verifies against that pre-pass text.
 
 ## Step 2: Dispatch the lens finders in parallel
 
@@ -79,8 +79,7 @@ On a failure, fix the underlying break or revert the specific simplification tha
 A test is removed only as a test-value finding, and any remaining tests that finding named must still pass afterwards.
 If no checks are configured, state that in the summary.
 
-**Where the pass touched agent-facing prose**, diff each changed file against its state before this pass and read every line the pass removed or reworded.
-For a file git tracks that state is `HEAD`; for an untracked one it is the Step 1 snapshot, since git holds none.
+**Where the pass touched agent-facing prose**, diff each changed file against its snapshot and read every line the pass removed or reworded.
 That pre-pass text is the only place a cut instruction still exists, so re-reading the file as it now stands cannot find one.
 For each removed or reworded line, confirm it carried no directive, prohibition, gate, or completion criterion — and restore it where it did.
 Then reread every sentence the pass wrote in place, as its reader will meet it, and fix what that reading catches.
