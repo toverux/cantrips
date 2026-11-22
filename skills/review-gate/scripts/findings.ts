@@ -1234,10 +1234,6 @@ function close(file: string, input: Json): Result {
       ? `pointer: none until the user answers ${ids(open)}; answers resumes this run`
       : 'pointer: /commit (user-invoked), since every fix was re-reviewed';
   }
-  // A spec revision the run annotated is /compound material, so the pointer that renders a step adds one for it.
-  if (revisions(state).length && !pointer.startsWith('pointer: none')) {
-    pointer += '; and /compound beside it, over the spec revisions the closing block lists';
-  }
   save(file, state);
   return { user: closingReport(state, line), agent: [pointer] };
 }

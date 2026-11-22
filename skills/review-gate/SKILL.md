@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[inline|low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop | --fsd]'
 disable-model-invocation: true
-version: 2.4.0
+version: 2.4.1
 source: mattpocock/skills@1.3.2 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 # `; exit $LASTEXITCODE`, unquoted, keeps node's exit 2 under PowerShell, where Claude Code runs hooks on Windows; bash and sh ignore it.
 hooks:
@@ -59,6 +59,7 @@ Where the `paste:` line says to end your turn, end it on the pasted block: the S
 An input error exits 2: say in one line that the script rejected your input, then resend it corrected.
 A fault exits 1: stop the run, print the error and the state file's path, and write no report of your own.
 The pasted blocks are the report: your own prose carries only what they and the screen lack — the red-to-green run behind a fix, a risk no row names, the question you are asking — since the harness already displays running sub-agents and each row already states its outcome and reason.
+With none of these to write between two pasted blocks, a turn that makes calls writes nothing, and one that only waits writes just a count: `n/9 finders in`.
 Put that prose above a pasted block, never inside it; the `/compound` flags and the flow pointer follow the last one.
 The user answers by finding ID; map an answer by `file:line` to the one finding it matches, and ask where it matches none or several.
 
@@ -68,7 +69,6 @@ The effort level is whichever of `inline`, `low`, `medium`, or `high` appears am
 `--fix`, anywhere in the arguments, enables apply mode (see Synthesize and report).
 `--loop`, anywhere in the arguments, implies `--fix` and drives that apply mode to a defined green state instead of reporting once — read [LOOP.md](LOOP.md) before Scope and run the whole gate under its rules.
 `--fsd` (full self-driving), anywhere in the arguments, implies `--loop` and runs it hands off, as LOOP.md says.
-What remains once the level and the flags are taken out is the fixed point.
 
 | Level    | Pipeline                                                    | Bias                                                          | Findings cap |
 | -------- | ----------------------------------------------------------- | ------------------------------------------------------------- | ------------ |

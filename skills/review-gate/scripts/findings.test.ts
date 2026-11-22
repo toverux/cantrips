@@ -1584,10 +1584,10 @@ withSandbox('under --fsd a spec finding takes its recommended route: the advice 
   const green = s.call('close');
   assert.match(green.user, /^`GREEN: /);
   assert.match(green.user, /\n\n📝 \*\*\/compound material\*\* — the spec revisions this run annotated\n\n- \*\*F2\*\* `spec: Quotas §4`: the limit keys per user, deliberately$/);
-  assert.equal(green.agent.split('\n').at(-1), 'pointer: /commit (user-invoked), since every fix was re-reviewed; and /compound beside it, over the spec revisions the closing block lists');
+  assert.equal(green.agent.split('\n').at(-1), 'pointer: /commit (user-invoked), since every fix was re-reviewed');
 });
 
-withSandbox('a WAITING close lists the spec revisions and still renders no pointer, and a close without any adds no /compound step', (s) => {
+withSandbox('a WAITING close lists the spec revisions and still renders no pointer, and a close without any lists none', (s) => {
   s.call('start', { level: 'medium', mode: 'loop', target: 't' });
   s.call('report', { ...VERIFIED, ...judged([{ ...SPEC, ruling: 'fix', opinion: 'ok', options: ROUTES }, fix(2)]) });
   s.call('outcomes', {
