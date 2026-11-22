@@ -3,7 +3,7 @@ name: review-gate
 description: 'The review gate — effort-scaled, multi-angle review of the working diff or the changes since a fixed point, every finding independently verified.'
 argument-hint: '[inline|low|medium|high] [fixed point — commit, branch, or tag; blank reviews the uncommitted changes] [--fix | --loop | --fsd]'
 disable-model-invocation: true
-version: 2.4.1
+version: 2.5.0
 source: mattpocock/skills@1.3.2 (code-review); finder/verifier architecture modeled on the Claude Code built-in reviewer
 # `; exit $LASTEXITCODE`, unquoted, keeps node's exit 2 under PowerShell, where Claude Code runs hooks on Windows; bash and sh ignore it.
 hooks:
@@ -59,7 +59,7 @@ Where the `paste:` line says to end your turn, end it on the pasted block: the S
 An input error exits 2: say in one line that the script rejected your input, then resend it corrected.
 A fault exits 1: stop the run, print the error and the state file's path, and write no report of your own.
 The pasted blocks are the report: your own prose carries only what they and the screen lack — the red-to-green run behind a fix, a risk no row names, the question you are asking — since the harness already displays running sub-agents and each row already states its outcome and reason.
-With none of these to write between two pasted blocks, a turn that makes calls writes nothing, and one that only waits writes just a count: `n/9 finders in`.
+With none of these to write between two pasted blocks, a turn that makes calls writes nothing but the line Verify asks for, and one that only waits writes just a count: `n/9 finders in`.
 Put that prose above a pasted block, never inside it; the `/compound` flags and the flow pointer follow the last one.
 The user answers by finding ID; map an answer by `file:line` to the one finding it matches, and ask where it matches none or several.
 
@@ -126,7 +126,7 @@ Dispatch the finders in parallel, each message carrying the scope block, the lev
 
 ## Verify
 
-Wait for all finders (grouping needs every finder's output), then dedup near-duplicates (same defect, same location, same reason → keep one).
+Wait for all finders (grouping needs every finder's output), then dedup near-duplicates (same defect, same location, same reason → keep one, never a `spec` candidate with another category).
 
 **Inline triage.**
 Settle inline the candidates this session can decide from evidence it already holds — a recorded decision, a rule-quote check, a fact established earlier in the session — locating the deciding quote in your reasoning exactly as a verifier would under the verdict rules of [`verifier.md`](../../agents/verifier.md), without narrating it.
@@ -135,6 +135,7 @@ Never settle REFUTED inline on code this session itself wrote — an author refu
 Group the remaining candidates by what one read covers — usually a file for code, a section for prose — keeping each group small enough that every candidate in it gets its own look.
 At `low`, the remaining candidates form one group, whatever files they sit in.
 Run **one verifier per group** — `cantrips:verifier`, its message carrying the scope block, the relevant files, the group's candidates, the fetched spec where a candidate is spec-category, and the level where it is `high`.
+Before the calls, write one line, `🔎 14 found → 9 after dedup → 2 settled inline → 3 verifiers, by file`, a step that did nothing left out.
 A verifier returns one verdict per candidate — CONFIRMED, PLAUSIBLE or REFUTED, each with the line that proves or refutes it.
 
 Where this run applies fixes — `--fix` or `--loop` — read [ARBITER.md](ARBITER.md) and dispatch the **arbiter** over every candidate still standing after inline triage, at the same time as the verifiers and whether or not any was needed: it rules which findings are worth fixing here, and its ruling binds.
