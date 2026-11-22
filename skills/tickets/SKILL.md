@@ -2,7 +2,7 @@
 name: tickets
 description: Break a spec, plan, or the current conversation into tracer-bullet tickets, each declaring its blocking edges.
 disable-model-invocation: true
-version: 1.3.2
+version: 1.4.0
 source: mattpocock/skills@1.3.2 (to-tickets)
 ---
 
@@ -42,11 +42,16 @@ Give each ticket its **blocking edges**: the other tickets that must complete be
 
 ### 4. Quiz the user
 
-Present the proposed breakdown as a numbered list. For each ticket, show:
+Present the proposed breakdown in this format, its `⛔` line only where a ticket has blockers:
 
-- **Title**: short descriptive name
-- **Blocked by**: which other tickets (if any) must complete first
-- **What it delivers**: the end-to-end behaviour this ticket makes work
+```
+🎟️ **T1** - **<title>**
+<the end-to-end behaviour this ticket makes work, in one sentence>
+
+🎟️ **T2** - **<title>**
+<the end-to-end behaviour this ticket makes work, in one sentence>
+⛔ Blocked by: 1
+```
 
 Ask the user:
 
