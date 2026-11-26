@@ -1,6 +1,7 @@
 # Maintains a rolling release PR that bumps versions and changelogs from Conventional Commits.
 # Merging that PR tags and creates the GitHub Release as a draft; the notes job then rewrites its
-# body with communique and publishes it, falling back to release-please's notes on any failure.
+# body with communique, folds release-please's notes below it, and publishes it, keeping
+# release-please's notes alone on any failure.
 
 name: release-please
 
@@ -61,28 +62,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: mise x communique@1.8.0 -- communique generate "$TAG" --github-release
+        run: mise x communique@1.9.0 -- communique generate "$TAG" --github-release
 
-      # A model that answers in text instead of calling communique's submit tool leaves its JSON
-      # as the release body, its first line as the title; put both fields where they belong.
-      - name: Unpack notes the model returned as JSON text
-        if: steps.communique.outcome == 'success'
-        run: |
-          body=$(gh release view "$TAG" --json body --jq .body)
-          if title=$(jq -er .release_title <<<"$body" 2>/dev/null); then
-            gh release edit "$TAG" --title "$TAG: $title" --notes "$(jq -r .release_body <<<"$body")"
-          fi
-
-      - name: Warn when the notes were not rewritten
+      - name: Keep release-please's notes below communique's, or warn
         if: always()
         env:
           OUTCOME: ${{ steps.communique.outcome }}
         run: |
           if [ "$OUTCOME" != success ]; then
             echo "::warning::communique failed ($OUTCOME); $TAG keeps release-please's notes."
-          elif gh release view "$TAG" --json body --jq .body |
-            cmp -s - "$RUNNER_TEMP/body-before"; then
+            exit 0
+          fi
+          gh release view "$TAG" --json body --jq .body > "$RUNNER_TEMP/body-after"
+          if cmp -s "$RUNNER_TEMP/body-after" "$RUNNER_TEMP/body-before"; then
             echo "::warning::communique left $TAG unchanged; it keeps release-please's notes."
+          else
+            printf '%s\n\n<details>\n<summary>Full commits list</summary>\n\n%s\n\n</details>\n' \
+              "$(cat "$RUNNER_TEMP/body-after")" "$(cat "$RUNNER_TEMP/body-before")" \
+              > "$RUNNER_TEMP/notes"
+            gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes"
           fi
 
       - name: Publish the draft

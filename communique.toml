@@ -14,7 +14,10 @@ records how each one differs from its upstream.
 
 system_extra = """
 Write for the plugin's users, not as a commit log: say what changed in the way they use it.
-Describe a small release briefly and plainly; a release with one fix needs a sentence or two.
+Keep the notes short and easy to skim, whatever the release's size: one line per change, saying
+what users notice or must do, and skip the details behind it. A release with one fix needs a
+sentence or two.
+Put breaking changes first, each with what users must do about it.
 Leave out CI, dependency, docs and internal changes that users don't notice.
 Leave out how the repository tracks its forks (FORKS.md, deferred findings); keep only what a
 skill now does differently.
@@ -29,13 +32,9 @@ Keep the research cheap; every tool call resends the whole conversation and cost
   once per commit.
 - Never call git_show on a commit that syncs the forks with an upstream release: summarize it
   from its commit message alone.
-- Never call read_file, list_files, grep or get_commits.
-- Make at most 6 tool calls in total, then call submit_release_notes. Notes that miss a detail
-  are fine; more research is not.
 """
 
 [defaults]
-# gpt-4.1 shuts down on 2027-01-14; move to gpt-6.1-terra once jdx/communique#457 is fixed.
-model = "gpt-4.1"
+model = "gpt-6.1-terra"
 emoji = false
 match_style = false

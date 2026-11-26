@@ -115,7 +115,7 @@ When editing plugin metadata, edit BOTH manifests, and both catalog files for th
 ## Versioning and releases
 
 release-please (`.github/workflows/release-please.yml`, `release-please-config.json`, `.release-please-manifest.json`) maintains a rolling release PR from Conventional Commits; merging it bumps the version, updates `CHANGELOG.md`, tags `vX.Y.Z`, and creates a GitHub Release.
-That release starts as a draft: the workflow's notes job has communique (`communique.toml`, the `OPENAI_API_KEY` repo secret) rewrite its body and title, then publishes it, keeping release-please's notes with a warning when communique fails.
+That release starts as a draft: the workflow's notes job has communique (`communique.toml`, the `OPENAI_API_KEY` repo secret) rewrite its body and title, folds release-please's notes below under "Full commits list", then publishes it, keeping release-please's notes alone with a warning when communique fails.
 There is one release unit, and no version file to maintain: `.release-please-manifest.json` is the version of record, mirrored via `extra-files` into both plugin.json manifests.
 The `simple` release type would also write a `version.txt`, but it only updates that file when it already exists, so leaving it absent costs one skipped-file warning in the workflow log and nothing else.
 
