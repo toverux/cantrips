@@ -2,7 +2,7 @@
 name: commit
 description: Scan the session for compound-worthy learnings, then commit the working tree with a repo-appropriate, value-communicating message.
 disable-model-invocation: true
-version: 1.5.0
+version: 1.5.1
 source: EveryInc/compound-engineering-plugin@3.38.1 (ce-commit)
 ---
 
@@ -72,17 +72,30 @@ Scan the changed files for naturally distinct concerns; if they clearly group in
 Keep it lightweight: group at the file level only (no hunk splitting), split only when the separation is obvious, and stay at two or three commits at most.
 
 For each group, stage specific files by name, never `git add -A` or `git add .` — that keeps sensitive files (.env, credentials) and unrelated changes out.
-Write the full message — subject line, blank line, optional body — to `cantrips-commit-msg` in the directory `git rev-parse --absolute-git-dir` prints, which no other repo or worktree shares, with your file-write tool, then stage and commit as two calls per commit group:
+Stage and commit as two calls per commit group, the full message — subject line, blank line, optional body — on stdin:
 
 ```bash
 git add file1 file2 file3
 ```
 
 ```bash
-git commit -F <message-file> -- file1 file2 file3
+git commit -F - -- file1 file2 file3 <<'EOF'
+type(scope): subject line
+
+Optional body.
+EOF
 ```
 
-No shell parses the message with `-F`: a `$`, quotes, backticks, or a multi-line body pass through literally under any shell, with no quoting rules to satisfy. Git's normal whitespace cleanup still applies (trailing spaces trimmed, blank-line runs collapsed), which is fine for a commit message.
+The quoted `'EOF'` keeps the message literal, `$` and backticks included.
+
+Under PowerShell:
+
+```powershell
+$OutputEncoding = [Console]::InputEncoding = [Text.UTF8Encoding]::new()
+@'
+<message>
+'@ | git commit -F - -- file1 file2 file3
+```
 
 The trailing path list on `git commit` is required: a bare `git commit` takes the whole index, so anything already staged before this run (work the user staged and did not name) would ride into the commit. Naming the paths commits exactly the group and leaves other index entries alone.
 
