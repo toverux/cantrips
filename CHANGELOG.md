@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.1.1](https://github.com/toverux/cantrips/compare/v5.1.0...v5.1.1) (2026-11-28)
+
+
+### Bug Fixes
+
+* **commit:** commit with the message on stdin, saving a file write on every commit ([7f7d81b](https://github.com/toverux/cantrips/commit/7f7d81bd2f8654ee2e8628f2fe683b74e6d58635))
+* **release:** write release notes on gpt-6.1-terra and keep the full commit list below them ([18c4423](https://github.com/toverux/cantrips/commit/18c44231a45a6684cb8b0952ecf46df1f5cbbe84))
+
 ## [5.1.0](https://github.com/toverux/cantrips/compare/v5.0.1...v5.1.0) (2026-11-22)
 
 
